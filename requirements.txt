@@ -1,0 +1,7 @@
+ffmpeg-python
+mediapipe
+scikit-video
+tqdm
+pyannote-audio@git+https://github.com/pyannote/pyannote-audio.git#egg=b56add2
+openai-whisper
+pydub

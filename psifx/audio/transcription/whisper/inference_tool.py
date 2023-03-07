@@ -4,7 +4,7 @@ from pathlib import Path
 
 from whisper import Whisper, load_model
 
-from psifx.audio.transcription.base_tool import BaseTranscriptionTool
+from psifx.audio.transcription.inference_tool import BaseTranscriptionTool
 from psifx.utils.text_writer import (
     TXTWriter,
     VTTWriter,

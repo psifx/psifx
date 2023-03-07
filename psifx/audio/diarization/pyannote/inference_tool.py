@@ -5,7 +5,7 @@ from pathlib import Path
 from pyannote.audio import Pipeline
 from pyannote.core import Annotation
 
-from psifx.audio.diarization.base_tool import BaseDiarizationTool
+from psifx.audio.diarization.inference_tool import BaseDiarizationTool
 from psifx.utils.text_writer import RTTMWriter
 
 

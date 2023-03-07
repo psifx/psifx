@@ -1,5 +1,6 @@
 ffmpeg-python
 mediapipe
+scikit-image
 scikit-video
 tqdm
 pyannote-audio@git+https://github.com/pyannote/pyannote-audio.git#egg=b56add2

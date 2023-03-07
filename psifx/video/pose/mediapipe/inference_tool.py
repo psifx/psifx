@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from pathlib import Path
 from tqdm import tqdm
@@ -6,16 +6,19 @@ import json
 
 import numpy as np
 from skvideo.io import vreader, ffprobe, FFmpegWriter
-from mediapipe.python.solutions.holistic import Holistic, PoseLandmark
+from mediapipe.python.solutions.holistic import Holistic
 
-from psifx.video.pose.base_tool import BasePoseEstimationTool
+from psifx.video.pose.inference_tool import BasePoseEstimationTool
+from psifx.video.pose.mediapipe import skeleton
 from psifx.utils import tar
 
 
-N_POSE_LANDMARKS = len([p.value for p in PoseLandmark])
-N_FACE_LANDMARKS = 468
-N_LEFT_HAND_LANDMARKS = 21
-N_RIGHT_HAND_LANDMARKS = 21
+EDGES = {
+    "pose_keypoints_edges": skeleton.POSE_EDGES,
+    "face_keypoints_edges": skeleton.FACE_EDGES,
+    "hand_left_keypoints_edges": skeleton.LEFT_HAND_EDGES,
+    "hand_right_keypoints_edges": skeleton.RIGHT_HAND_EDGES,
+}
 
 
 class MediaPipePoseEstimationTool(BasePoseEstimationTool):
@@ -31,25 +34,61 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
             device=device,
             overwrite=overwrite,
             verbose=verbose,
+            edges=EDGES,
         )
 
         assert self.device == "cpu", "Only CPU support is currently available."
         self.model_complexity = model_complexity
         self.smooth = smooth
 
-    @staticmethod
-    def process_pose(
+    def process_part(
+        self,
         landmarks,
         size: Tuple[int, int],
         n_points: int,
-    ) -> np.ndarray:
+    ) -> List[float]:
         h, w = size
         if landmarks is not None:
-            landmarks = [[p.x * w, p.y * h, p.visibility] for p in landmarks.landmark]
+            landmarks = [
+                [
+                    p.x * (w - 1),
+                    p.y * (h - 1),
+                    p.visibility,
+                ]
+                for p in landmarks.landmark
+            ]
             points = np.array(landmarks, dtype=np.float32)
         else:
             points = np.zeros((n_points, 3), dtype=np.float32)
-        return points
+        return points.flatten().tolist()
+
+    def process_pose(
+        self,
+        results,
+        size: Tuple[int, int],
+    ) -> Dict[str, Any]:
+        return {
+            "pose_keypoints_2d": self.process_part(
+                landmarks=results.pose_landmarks,
+                size=size,
+                n_points=skeleton.N_POSE_LANDMARKS,
+            ),
+            "face_keypoints_2d": self.process_part(
+                landmarks=results.face_landmarks,
+                size=size,
+                n_points=skeleton.N_FACE_LANDMARKS,
+            ),
+            "hand_left_keypoints_2d": self.process_part(
+                landmarks=results.left_hand_landmarks,
+                size=size,
+                n_points=skeleton.N_LEFT_HAND_LANDMARKS,
+            ),
+            "hand_right_keypoints_2d": self.process_part(
+                landmarks=results.right_hand_landmarks,
+                size=size,
+                n_points=skeleton.N_LEFT_HAND_LANDMARKS,
+            ),
+        }
 
     def __call__(
         self,
@@ -66,8 +105,9 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
             print(f"poses   =   {poses_path}")
 
         video_info = ffprobe(str(video_path))
+        n_frames = int(video_info["video"]["@nb_frames"])
 
-        poses = {}
+        poses = {"edges": self.edges}
 
         # We have to instantiate the model for every __call__, because of internal states.
         # Not that it is very costly anyway.
@@ -82,35 +122,16 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
             for i, image in enumerate(
                 tqdm(
                     vreader(str(video_path)),
-                    total=int(video_info["video"]["@nb_frames"]),
+                    total=n_frames,
                     disable=not self.verbose,
                 )
             ):
                 h, w, c = image.shape
                 results = model.process(image)
-                pose = {
-                    "pose_keypoints_2d": self.process_pose(
-                        landmarks=results.pose_landmarks,
-                        size=(h, w),
-                        n_points=N_POSE_LANDMARKS,
-                    ),
-                    "face_keypoints_2d": self.process_pose(
-                        landmarks=results.face_landmarks,
-                        size=(h, w),
-                        n_points=N_FACE_LANDMARKS,
-                    ),
-                    "hand_left_keypoints_2d": self.process_pose(
-                        landmarks=results.left_hand_landmarks,
-                        size=(h, w),
-                        n_points=N_LEFT_HAND_LANDMARKS,
-                    ),
-                    "hand_right_keypoints_2d": self.process_pose(
-                        landmarks=results.right_hand_landmarks,
-                        size=(h, w),
-                        n_points=N_LEFT_HAND_LANDMARKS,
-                    ),
-                }
-                poses[f"{i: 012d}"] = {k: v.flatten().tolist() for k, v in pose.items()}
+                poses[f"{i: 012d}"] = self.process_pose(
+                    results=results,
+                    size=(h, w),
+                )
 
         if poses_path.exists():
             if self.overwrite:
@@ -143,8 +164,8 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         )
         self.mask_threshold = mask_threshold
 
-    @staticmethod
     def process_mask(
+        self,
         mask: np.ndarray,
         size: Tuple[int, int],
         threshold: float,
@@ -154,7 +175,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             mask = np.array(mask)
             mask[mask < threshold] = 0.0
             mask[mask > threshold] = 1.0
-            mask = (mask * 255.0).astype(np.uint8)
+            mask = (mask * 255.0).astype(dtype=np.uint8)
         else:
             mask = np.zeros((h, w), dtype=np.uint8)
         return np.stack((mask,) * 3, axis=-1)
@@ -178,8 +199,10 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             print(f"masks   =   {masks_path}")
 
         video_info = ffprobe(str(video_path))
+        n_frames = int(video_info["video"]["@nb_frames"])
+        frame_rate = video_info["video"]["@r_frame_rate"]
 
-        poses = {}
+        poses = {"edges": self.edges}
 
         if masks_path.exists():
             if self.overwrite:
@@ -201,44 +224,23 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             ) as model,
             FFmpegWriter(
                 filename=str(masks_path),
-                inputdict={
-                    "-r": video_info["video"]["@r_frame_rate"],
-                },
+                inputdict={"-r": frame_rate},
                 outputdict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
             ) as mask_writer,
         ):
             for i, image in enumerate(
                 tqdm(
                     vreader(str(video_path)),
-                    total=int(video_info["video"]["@nb_frames"]),
+                    total=n_frames,
                     disable=not self.verbose,
                 )
             ):
                 h, w, c = image.shape
                 results = model.process(image)
-                pose = {
-                    "pose_keypoints_2d": self.process_pose(
-                        landmarks=results.pose_landmarks,
-                        size=(h, w),
-                        n_points=N_POSE_LANDMARKS,
-                    ),
-                    "face_keypoints_2d": self.process_pose(
-                        landmarks=results.face_landmarks,
-                        size=(h, w),
-                        n_points=N_FACE_LANDMARKS,
-                    ),
-                    "hand_left_keypoints_2d": self.process_pose(
-                        landmarks=results.left_hand_landmarks,
-                        size=(h, w),
-                        n_points=N_LEFT_HAND_LANDMARKS,
-                    ),
-                    "hand_right_keypoints_2d": self.process_pose(
-                        landmarks=results.right_hand_landmarks,
-                        size=(h, w),
-                        n_points=N_LEFT_HAND_LANDMARKS,
-                    ),
-                }
-                poses[f"{i: 012d}"] = {k: v.flatten().tolist() for k, v in pose.items()}
+                poses[f"{i: 012d}"] = self.process_pose(
+                    results=results,
+                    size=(h, w),
+                )
                 mask = self.process_mask(
                     mask=results.segmentation_mask,
                     size=(h, w),
@@ -346,6 +348,8 @@ def cli_main():
                     video_path=video_path,
                     poses_path=poses_path,
                 )
+        else:
+            raise ValueError("args.video is neither a file or a directory.")
     else:
         tool = MediaPipePoseEstimationAndSegmentationTool(
             model_complexity=args.model_complexity,
@@ -379,3 +383,9 @@ def cli_main():
                     poses_path=poses_path,
                     masks_path=masks_path,
                 )
+        else:
+            raise ValueError("args.video is neither a file or a directory.")
+
+
+if __name__ == "__main__":
+    cli_main()

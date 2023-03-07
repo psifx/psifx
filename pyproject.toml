@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "psifx"
 version = "0.0.0"
@@ -22,19 +26,15 @@ homepage = "https://github.com/GuillaumeRochette/psifx"
 documentation = "https://github.com/GuillaumeRochette/psifx"
 repository = "https://github.com/GuillaumeRochette/psifx"
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+[project.scripts]
+psifx-stream-separation = "psifx.stream.separation_tool:cli_main"
+psifx-video-pose-mediapipe = "psifx.video.pose.mediapipe.inference_tool:cli_main"
+psifx-audio-diarization-pyannote = "psifx.audio.diarization.pyannote.inference_tool:cli_main"
+psifx-audio-transcription-whisper = "psifx.audio.transcription.whisper.inference_tool:cli_main"
+
 
 #[tool.setuptools.packages]
 #find = {}
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
-
-[project.scripts]
-psifx-stream-separation = "psifx.stream_separation_tool:cli_main"
-psifx-video-pose-mediapipe = "psifx.video.pose.mediapipe_tool:cli_main"
-psifx-audio-diarization-pyannote = "psifx.audio.diarization.pyannote_tool:cli_main"
-psifx-audio-transcription-whisper = "psifx.audio.transcription.whisper_tool:cli_main"
-

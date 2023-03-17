@@ -29,6 +29,7 @@ repository = "https://github.com/GuillaumeRochette/psifx"
 [project.scripts]
 psifx-stream-separation = "psifx.stream.separation_tool:cli_main"
 psifx-video-pose-mediapipe = "psifx.video.pose.mediapipe.inference_tool:cli_main"
+psifx-audio-extraction = "psifx.audio.extraction_tool:cli_main"
 psifx-audio-diarization-pyannote = "psifx.audio.diarization.pyannote.inference_tool:cli_main"
 psifx-audio-transcription-whisper = "psifx.audio.transcription.whisper.inference_tool:cli_main"
 

@@ -166,11 +166,11 @@ def cli_main():
             num_speakers=args.num_speakers,
         )
     elif args.audio.is_dir():
-        audio_path_dir = args.audio
-        diarization_path_dir = args.diarization
-        for audio_path in sorted(audio_path_dir.glob("*.wav")):
+        audio_dir = args.audio
+        diarization_dir = args.diarization
+        for audio_path in sorted(audio_dir.glob("*.wav")):
             diarization_name = audio_path.stem + tool.writer.suffix
-            diarization_path = diarization_path_dir / diarization_name
+            diarization_path = diarization_dir / diarization_name
             tool(
                 audio_path=audio_path,
                 diarization_path=diarization_path,

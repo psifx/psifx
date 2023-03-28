@@ -9,7 +9,7 @@ description = "Psychological and Social Interactions Feature Extraction"
 readme = "README.md"
 requires-python = ">=3.7"
 authors = [
-    {name="Guillaume Rochette", email="rochette.guillaume@gmail.com"},
+    {name="Guillaume Rochette", email="guillaume.rochette@unil.ch"},
     {name="Matthew Vowels", email="matthew.vowels@unil.ch"},
 ]
 keywords = ["TODO"]
@@ -27,15 +27,10 @@ documentation = "https://github.com/GuillaumeRochette/psifx"
 repository = "https://github.com/GuillaumeRochette/psifx"
 
 [project.scripts]
-psifx-stream-separation = "psifx.stream.separation_tool:cli_main"
 psifx-video-pose-mediapipe = "psifx.video.pose.mediapipe.inference_tool:cli_main"
 psifx-audio-extraction = "psifx.audio.extraction_tool:cli_main"
 psifx-audio-diarization-pyannote = "psifx.audio.diarization.pyannote.inference_tool:cli_main"
 psifx-audio-transcription-whisper = "psifx.audio.transcription.whisper.inference_tool:cli_main"
-
-
-#[tool.setuptools.packages]
-#find = {}
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

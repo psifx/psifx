@@ -14,10 +14,10 @@ from psifx.utils import tar
 
 
 EDGES = {
-    "pose_keypoints_edges": skeleton.POSE_EDGES,
-    "face_keypoints_edges": skeleton.FACE_EDGES,
-    "hand_left_keypoints_edges": skeleton.LEFT_HAND_EDGES,
-    "hand_right_keypoints_edges": skeleton.RIGHT_HAND_EDGES,
+    "pose_keypoints_2d": skeleton.POSE_EDGES,
+    "face_keypoints_2d": skeleton.FACE_EDGES,
+    "hand_left_keypoints_2d": skeleton.LEFT_HAND_EDGES,
+    "hand_right_keypoints_2d": skeleton.RIGHT_HAND_EDGES,
 }
 
 
@@ -128,7 +128,7 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
             ):
                 h, w, c = image.shape
                 results = model.process(image)
-                poses[f"{i: 012d}"] = self.process_pose(
+                poses[f"{i: 015d}"] = self.process_pose(
                     results=results,
                     size=(h, w),
                 )
@@ -237,7 +237,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             ):
                 h, w, c = image.shape
                 results = model.process(image)
-                poses[f"{i: 012d}"] = self.process_pose(
+                poses[f"{i: 015d}"] = self.process_pose(
                     results=results,
                     size=(h, w),
                 )

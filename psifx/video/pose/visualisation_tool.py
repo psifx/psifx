@@ -49,12 +49,8 @@ class VisualisationTool(BaseTool):
             edges = {k: tuple(v) for k, v in edges.items()}
         except KeyError:
             print("Missing or incorrect edges.json, only the landmarks will be drawn.")
-            edges = {
-                "pose_keypoints_edges": (),
-                "face_keypoints_edges": (),
-                "hand_left_keypoints_edges": (),
-                "hand_right_keypoints_edges": (),
-            }
+            pose = next(iter(dictionary.values()))
+            edges = {key: () for key, value in pose.items()}
 
         poses = {int(k): v for k, v in dictionary.items()}
 
@@ -82,45 +78,19 @@ class VisualisationTool(BaseTool):
                     ),
                 )
             ):
-                pose = {k: np.array(v).reshape(-1, 3) for k, v in pose.items()}
                 image = image.copy()
 
-                points = pose["pose_keypoints_2d"][..., :-1]
-                confidences = pose["pose_keypoints_2d"][..., -1:]
-                image = plot.draw_pose(
-                    image=image,
-                    points=points,
-                    confidences=confidences >= self.confidence_threshold,
-                    edges=edges["pose_keypoints_edges"],
-                )
-
-                points = pose["face_keypoints_2d"][..., :-1]
-                confidences = pose["face_keypoints_2d"][..., -1:]
-                image = plot.draw_pose(
-                    image=image,
-                    points=points,
-                    confidences=confidences >= self.confidence_threshold,
-                    edges=edges["face_keypoints_edges"],
-                    draw_points=False,
-                )
-
-                points = pose["hand_left_keypoints_2d"][..., :-1]
-                confidences = pose["hand_left_keypoints_2d"][..., -1:]
-                image = plot.draw_pose(
-                    image=image,
-                    points=points,
-                    confidences=confidences >= self.confidence_threshold,
-                    edges=edges["hand_left_keypoints_edges"],
-                )
-
-                points = pose["hand_right_keypoints_2d"][..., :-1]
-                confidences = pose["hand_right_keypoints_2d"][..., -1:]
-                image = plot.draw_pose(
-                    image=image,
-                    points=points,
-                    confidences=confidences >= self.confidence_threshold,
-                    edges=edges["hand_right_keypoints_edges"],
-                )
+                for key, value in pose.items():
+                    value = np.array(value).reshape(-1, 3)
+                    points = value[..., :-1]
+                    confidences = value[..., -1:]
+                    image = plot.draw_pose(
+                        image=image,
+                        points=points,
+                        confidences=confidences >= self.confidence_threshold,
+                        edges=edges[key],
+                        draw_points="face" not in key,
+                    )
 
                 visualisation_writer.writeFrame(image)
 

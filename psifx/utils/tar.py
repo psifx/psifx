@@ -11,7 +11,7 @@ def load(
     verbose: Union[bool, int] = True,
 ) -> Dict[str, Any]:
     dictionary = {}
-    with tarfile.open(path) as tar:
+    with tarfile.open(path, mode="r") as tar:
         for tarinfo in tqdm(tar.getmembers(), disable=not verbose):
             if tarinfo.isfile():
                 key = tarinfo.name.split("/")[-1]
@@ -28,10 +28,10 @@ def dump(
     if not isinstance(path, Path):
         path = Path(path)
 
-    suffix = path.suffix.replace(".", "")
+    extension = path.suffix.replace(".", "")
     dir_name = path.stem.replace(".tar", "")
 
-    with tarfile.open(path, f"w:{suffix}") as tar:
+    with tarfile.open(path, mode=f"w:{extension}") as tar:
         for key, value in tqdm(dictionary.items(), disable=not verbose):
             tarinfo = tarfile.TarInfo(f"{dir_name}/{key}")
             tarinfo.size = len(value)

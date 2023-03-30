@@ -194,3 +194,5 @@ def cli_main():
             )
     else:
         raise ValueError("args.video is neither a file or a directory.")
+
+    del tool

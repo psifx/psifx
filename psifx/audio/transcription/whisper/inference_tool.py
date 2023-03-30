@@ -40,7 +40,7 @@ class WhisperTranscriptionTool(BaseTranscriptionTool):
 
         self.model_name = model_name
         self.model: Whisper = load_model(model_name, device=self.device)
-
+        # Freeze the model.
         self.model.eval()
         for param in self.model.parameters():
             param.requires_grad = False
@@ -280,6 +280,8 @@ def cli_main():
                 )
         else:
             raise ValueError("args.audio is neither a file or a directory.")
+
+        del tool
     else:
         tool = WhisperTranscriptionWithDiarizationTool(
             model_name=args.model_name,
@@ -323,3 +325,5 @@ def cli_main():
                 )
         else:
             raise ValueError("args.audio is neither a file or a directory.")
+
+        del tool

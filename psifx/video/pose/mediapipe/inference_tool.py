@@ -350,6 +350,8 @@ def cli_main():
                 )
         else:
             raise ValueError("args.video is neither a file or a directory.")
+
+        del tool
     else:
         tool = MediaPipePoseEstimationAndSegmentationTool(
             model_complexity=args.model_complexity,
@@ -385,6 +387,8 @@ def cli_main():
                 )
         else:
             raise ValueError("args.video is neither a file or a directory.")
+
+        del tool
 
 
 if __name__ == "__main__":

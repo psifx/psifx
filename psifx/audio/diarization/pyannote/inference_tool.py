@@ -12,7 +12,7 @@ from psifx.utils.text_writer import RTTMWriter
 class PyannoteDiarizationTool(BaseDiarizationTool):
     def __init__(
         self,
-        model_name: str = "2.2.1",
+        model_name: str = "2.1.1",
         api_token: Union[str, bool] = True,
         device: str = "cpu",
         overwrite: bool = False,
@@ -178,3 +178,5 @@ def cli_main():
             )
     else:
         raise ValueError("args.audio is neither a file or a directory.")
+
+    del tool

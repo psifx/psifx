@@ -60,7 +60,7 @@ class PyannoteDiarizationTool(BaseDiarizationTool):
         )
 
         # POST-PROCESSING
-        # Converting it to a simple and customizable dictionary.
+        # Converting it to a simple and practical dictionary.
         diarization_results: Dict = {
             "segments": [
                 {

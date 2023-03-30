@@ -41,6 +41,10 @@ class WhisperTranscriptionTool(BaseTranscriptionTool):
         self.model_name = model_name
         self.model: Whisper = load_model(model_name, device=self.device)
 
+        self.model.eval()
+        for param in self.model.parameters():
+            param.requires_grad = False
+
         self.writer = WRITERS[transcription_suffix]()
 
     def __call__(

@@ -15,6 +15,10 @@ from psifx.video.face.openface.fields import CLEAN_FIELDS, DIRTY_FIELDS
 from psifx.utils import tar, timestamp
 
 
+EXECUTABLE_PATH = "$(which FeatureExtraction)"
+DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
+
+
 class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
     def __init__(
         self,
@@ -42,40 +46,40 @@ class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
         tmp_dir = Path(f"/tmp/TEMP_{time.time()}")
         tmp_dir.mkdir(parents=True, exist_ok=True)
 
-        executable = "/home/guillaume/Projects/OpenFace/build/bin/FeatureExtraction"
-        options = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
-        args = f"{executable} -f {video_path} -out_dir {tmp_dir} {options}"
+        args = f"{EXECUTABLE_PATH} -f {video_path} -out_dir {tmp_dir} {DEFAULT_OPTIONS}"
 
         if self.verbose:
-            message = (
-                "OpenFace will run with the following command:\n"
-                f"{args}\n"
-                "It might take a while, depending on the length of the video and the number of CPUs."
+            print("OpenFace will run with the following command:")
+            print(f"{args}")
+            print("It might take a while, depending on the length of the video and the")
+            print("number of CPUs.")
+
+        try:
+            start = time.time()
+            # WEIRD BUT PRINTS IF NOT CAPTURED
+            # process = subprocess.run(
+            #     args=shlex.split(args),
+            #     check=True,
+            #     capture_output=not self.verbose > 1,
+            #     text=True,
+            # )
+            # MORE CORRECT BUT LESS INTERACTIVE
+            process = subprocess.run(
+                args=shlex.split(args),
+                check=True,
+                stdout=subprocess.PIPE if self.verbose > 1 else subprocess.DEVNULL,
+                stderr=subprocess.STDOUT if self.verbose > 1 else subprocess.DEVNULL,
+                text=True,
             )
-            print(message)
+            end = time.time()
 
-        # WEIRD BUT PRINTS IF NOT CAPTURED
-        # process = subprocess.run(
-        #     args=shlex.split(args),
-        #     check=True,
-        #     capture_output=not self.verbose > 1,
-        #     text=True,
-        # )
+            if self.verbose > 1:
+                print(process.stdout)
+            if self.verbose:
+                print(f"OpenFace took {timestamp.format_timestamp(end - start)}.")
 
-        # MORE CORRECT BUT LESS INTERACTIVE
-        start = time.time()
-        process = subprocess.run(
-            args=shlex.split(args),
-            check=True,
-            stdout=subprocess.PIPE if self.verbose > 1 else subprocess.DEVNULL,
-            stderr=subprocess.STDOUT if self.verbose > 1 else subprocess.DEVNULL,
-            text=True,
-        )
-        end = time.time()
-        if self.verbose > 1:
-            print(process.stdout)
-        if self.verbose:
-            print(f"OpenFace took {timestamp.format_timestamp(end - start)}.")
+        except subprocess.CalledProcessError as error:
+            print(error.stdout)
 
         # SLOW CODE WHERE WE ITERATE THROUGH ROWS OF THE DATAFRAME
         # df = pd.read_csv(tmp_dir / (video_path.stem + ".csv"))

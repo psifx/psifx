@@ -9,6 +9,7 @@ import json
 import time
 
 import pandas as pd
+import numpy as np
 
 from psifx.video.face.inference_tool import BaseFaceAnalysisTool
 from psifx.video.face.openface.fields import CLEAN_FIELDS, DIRTY_FIELDS
@@ -81,32 +82,23 @@ class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
         except subprocess.CalledProcessError as error:
             print(error.stdout)
 
-        # SLOW CODE WHERE WE ITERATE THROUGH ROWS OF THE DATAFRAME
-        # df = pd.read_csv(tmp_dir / (video_path.stem + ".csv"))
-        # features = {}
-        # for i, row in tqdm(
-        #     df.iterrows(),
-        #     disable=not self.verbose,
-        # ):
-        #     features[f"{i: 015d}"] = {
-        #         clean: row[dirty].to_numpy().flatten().tolist()
-        #         for clean, dirty in zip(CLEAN_FIELDS, DIRTY_FIELDS)
-        #     }
+        dirty_dataframe = pd.read_csv(tmp_dir / (video_path.stem + ".csv"))
 
-        # FAST CODE WHERE WE GROUP ALL THE COLUMNS INTO NUMPY ARRAYS
-        # THEN WE PUT THEM IN THE INDEX-ORDERED DICT.
-        df = pd.read_csv(tmp_dir / (video_path.stem + ".csv"))
-        df2 = {}
+        clean_dataframe = pd.DataFrame()
+        clean_dataframe["index"] = dirty_dataframe["frame"] - 1
         for clean, dirty in zip(CLEAN_FIELDS, DIRTY_FIELDS):
-            df2[clean] = df[dirty].to_numpy()
-        n_rows, n_cols = df.shape
+            clean_dataframe[clean] = dirty_dataframe[dirty].values.tolist()
+
+        n_rows, n_cols = clean_dataframe.shape
         features = {}
         for i in tqdm(
             range(n_rows),
             disable=not self.verbose,
         ):
-            features[f"{i: 015d}"] = {
-                clean: df2[clean][i].flatten().tolist() for clean in CLEAN_FIELDS
+            index = clean_dataframe["index"][i]
+            features[f"{index: 015d}"] = {
+                clean: np.array(clean_dataframe[clean][i]).flatten().tolist()
+                for clean in CLEAN_FIELDS
             }
 
         shutil.rmtree(tmp_dir)

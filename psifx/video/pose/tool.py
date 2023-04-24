@@ -35,22 +35,22 @@ class PoseEstimationTool(BaseTool):
         self,
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
-        visualisation_path: Union[str, Path],
+        visualization_path: Union[str, Path],
         confidence_threshold: float = 0.0,
     ):
         if not isinstance(video_path, Path):
             video_path = Path(video_path)
         if not isinstance(poses_path, Path):
             poses_path = Path(poses_path)
-        if not isinstance(visualisation_path, Path):
-            visualisation_path = Path(visualisation_path)
+        if not isinstance(visualization_path, Path):
+            visualization_path = Path(visualization_path)
 
         if self.verbose:
             print(f"video           =   {video_path}")
             print(f"poses           =   {poses_path}")
-            print(f"visualisation   =   {visualisation_path}")
+            print(f"visualization   =   {visualization_path}")
 
-        assert video_path != visualisation_path
+        assert video_path != visualization_path
 
         dictionary = {
             k.replace(".json", ""): json.loads(v)
@@ -69,18 +69,18 @@ class PoseEstimationTool(BaseTool):
         video_info = ffprobe(str(video_path))
         frame_rate = video_info["video"]["@r_frame_rate"]
 
-        if visualisation_path.exists():
+        if visualization_path.exists():
             if self.overwrite:
-                visualisation_path.unlink()
+                visualization_path.unlink()
             else:
-                raise FileExistsError(visualisation_path)
-        visualisation_path.parent.mkdir(parents=True, exist_ok=True)
+                raise FileExistsError(visualization_path)
+        visualization_path.parent.mkdir(parents=True, exist_ok=True)
 
         with FFmpegWriter(
-            filename=str(visualisation_path),
+            filename=str(visualization_path),
             inputdict={"-r": frame_rate},
             outputdict={"-c:v": "libx264", "-crf": "15", "-pix_fmt": "yuv420p"},
-        ) as visualisation_writer:
+        ) as visualization_writer:
             for i, (image, pose) in enumerate(
                 zip(
                     vreader(str(video_path)),
@@ -104,7 +104,7 @@ class PoseEstimationTool(BaseTool):
                         draw_points="face" not in key,
                     )
 
-                visualisation_writer.writeFrame(image)
+                visualization_writer.writeFrame(image)
 
 
 def visualization_main():
@@ -122,7 +122,7 @@ def visualization_main():
         required=True,
     )
     parser.add_argument(
-        "--visualisation",
+        "--visualization",
         type=Path,
         required=True,
     )
@@ -153,7 +153,7 @@ def visualization_main():
     tool.visualization(
         video_path=args.video,
         poses_path=args.poses,
-        visualisation_path=args.visualisation,
+        visualization_path=args.visualization,
         confidence_threshold=args.confidence_threshold,
     )
     del tool

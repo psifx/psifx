@@ -20,27 +20,27 @@ class ExtractionTool(BaseTool):
 
     def inference(
         self,
-        in_video_path: Union[str, Path],
-        out_audio_path: Union[str, Path],
+        video_path: Union[str, Path],
+        audio_path: Union[str, Path],
     ):
-        if not isinstance(in_video_path, Path):
-            in_video_path = Path(in_video_path)
-        if not isinstance(out_audio_path, Path):
-            out_audio_path = Path(out_audio_path)
+        if not isinstance(video_path, Path):
+            video_path = Path(video_path)
+        if not isinstance(audio_path, Path):
+            audio_path = Path(audio_path)
 
         if self.verbose:
-            print(f"in_video     =   {in_video_path}")
-            print(f"out_audio    =   {out_audio_path}")
+            print(f"in_video     =   {video_path}")
+            print(f"out_audio    =   {audio_path}")
 
-        if out_audio_path.exists():
+        if audio_path.exists():
             if self.overwrite:
-                out_audio_path.unlink()
+                audio_path.unlink()
             else:
-                raise FileExistsError(out_audio_path)
-        out_audio_path.parent.mkdir(parents=True, exist_ok=True)
+                raise FileExistsError(audio_path)
+        audio_path.parent.mkdir(parents=True, exist_ok=True)
         (
-            ffmpeg.input(str(in_video_path))
-            .audio.output(str(out_audio_path), **{"q:a": 0, "ac": 1, "ar": 16000})
+            ffmpeg.input(str(video_path))
+            .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 16000})
             .overwrite_output()
             .run(quiet=not self.verbose > 1)
         )
@@ -51,12 +51,12 @@ def inference_main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--in_video",
+        "--video",
         type=Path,
         required=True,
     )
     parser.add_argument(
-        "--out_audio",
+        "--audio",
         type=Path,
         required=True,
     )
@@ -79,7 +79,7 @@ def inference_main():
         verbose=args.verbose,
     )
     tool.inference(
-        in_video_path=args.in_video,
-        out_audio_path=args.out_audio,
+        video_path=args.video,
+        audio_path=args.audio,
     )
     del tool

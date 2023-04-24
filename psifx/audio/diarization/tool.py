@@ -33,16 +33,16 @@ class DiarizationTool(BaseTool):
     def visualization(
         self,
         diarization_path: Union[str, Path],
-        visualisation_path: Union[str, Path],
+        visualization_path: Union[str, Path],
     ):
         if not isinstance(diarization_path, Path):
             diarization_path = Path(diarization_path)
-        if not isinstance(visualisation_path, Path):
-            visualisation_path = Path(visualisation_path)
+        if not isinstance(visualization_path, Path):
+            visualization_path = Path(visualization_path)
 
         if self.verbose:
             print(f"diarization     =   {diarization_path}")
-            print(f"visualisation   =   {visualisation_path}")
+            print(f"visualization   =   {visualization_path}")
 
         dataframe = pd.read_csv(
             diarization_path,
@@ -75,7 +75,7 @@ class DiarizationTool(BaseTool):
         plt.rcParams["figure.figsize"] = (notebook.width, 2)
         fig, ax = plt.subplots()
         notebook.plot_annotation(annotation, ax=ax)
-        plt.savefig(visualisation_path, bbox_inches="tight")
+        plt.savefig(visualization_path, bbox_inches="tight")
 
 
 def visualization_main():
@@ -89,7 +89,7 @@ def visualization_main():
         help="Path to the output diarization or directory containing the diarizations.",
     )
     parser.add_argument(
-        "--visualisation",
+        "--visualization",
         type=Path,
         required=True,
     )
@@ -114,6 +114,6 @@ def visualization_main():
     )
     tool.visualization(
         diarization_path=args.diarization,
-        visualisation_path=args.visualisation,
+        visualization_path=args.visualization,
     )
     del tool

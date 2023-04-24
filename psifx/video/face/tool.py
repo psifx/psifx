@@ -29,6 +29,6 @@ class FaceAnalysisTool(BaseTool):
         self,
         video_path: Union[str, Path],
         features_path: Union[str, Path],
-        visualisation_path: Union[str, Path],
+        visualization_path: Union[str, Path],
     ):
         raise NotImplementedError

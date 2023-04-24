@@ -12,5 +12,8 @@ class BaseTool(object):
         self.overwrite = overwrite
         self.verbose = verbose
 
-    def __call__(self, *args, **kwargs):
+    def inference(self, *args, **kwargs):
+        raise NotImplementedError
+
+    def visualization(self, *args, **kwargs):
         raise NotImplementedError

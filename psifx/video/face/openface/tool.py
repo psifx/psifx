@@ -11,16 +11,16 @@ import time
 import pandas as pd
 import numpy as np
 
-from psifx.video.face.inference_tool import BaseFaceAnalysisTool
+from psifx.video.face.tool import FaceAnalysisTool
 from psifx.video.face.openface.fields import CLEAN_FIELDS, DIRTY_FIELDS
 from psifx.utils import tar, timestamp
 
 
-EXECUTABLE_PATH = "$(which FeatureExtraction)"
+EXECUTABLE_PATH = Path(shutil.which("FeatureExtraction")).resolve(strict=True)
 DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
 
 
-class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
+class OpenFaceAnalysisTool(FaceAnalysisTool):
     def __init__(
         self,
         overwrite: bool = False,
@@ -32,7 +32,7 @@ class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
             verbose=verbose,
         )
 
-    def __call__(
+    def inference(
         self,
         video_path: Union[str, Path],
         features_path: Union[str, Path],
@@ -41,6 +41,10 @@ class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
             video_path = Path(video_path)
         if not isinstance(features_path, Path):
             features_path = Path(features_path)
+
+        if self.verbose:
+            print(f"video       =   {video_path}")
+            print(f"features    =   {features_path}")
 
         assert video_path.is_file()
 
@@ -57,19 +61,11 @@ class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
 
         try:
             start = time.time()
-            # WEIRD BUT PRINTS IF NOT CAPTURED
-            # process = subprocess.run(
-            #     args=shlex.split(args),
-            #     check=True,
-            #     capture_output=not self.verbose > 1,
-            #     text=True,
-            # )
-            # MORE CORRECT BUT LESS INTERACTIVE
             process = subprocess.run(
                 args=shlex.split(args),
                 check=True,
-                stdout=subprocess.PIPE if self.verbose > 1 else subprocess.DEVNULL,
-                stderr=subprocess.STDOUT if self.verbose > 1 else subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True,
             )
             end = time.time()
@@ -114,8 +110,17 @@ class OpenFaceAnalysisTool(BaseFaceAnalysisTool):
             path=features_path,
         )
 
+    def visualization(
+        self,
+        video_path: Union[str, Path],
+        features_path: Union[str, Path],
+        visualisation_path: Union[str, Path],
+    ):
+        # TODO: Implement a similar or simpler version than the one from the original OpenFace.
+        raise NotImplementedError
 
-def cli_main():
+
+def inference_main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -147,29 +152,8 @@ def cli_main():
         overwrite=args.overwrite,
         verbose=args.verbose,
     )
-
-    if args.video.is_file():
-        video_path = args.video
-        features_path = args.features
-        tool(
-            video_path=video_path,
-            features_path=features_path,
-        )
-    elif args.video.is_dir():
-        video_dir = args.video
-        features_dir = args.features
-        for video_path in sorted(video_dir.glob("*.mp4")):
-            features_name = video_path.stem + ".tar.gz"
-            features_path = features_dir / features_name
-            tool(
-                video_path=video_path,
-                features_path=features_path,
-            )
-    else:
-        raise ValueError("args.video is neither a file or a directory.")
-
+    tool.inference(
+        video_path=args.video,
+        features_path=args.features,
+    )
     del tool
-
-
-if __name__ == "__main__":
-    cli_main()

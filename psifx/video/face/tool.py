@@ -2,23 +2,11 @@ from typing import Union
 
 from pathlib import Path
 
-from psifx.base_tool import BaseTool
+from psifx.tool import BaseTool
 
 
-class BaseFaceAnalysisTool(BaseTool):
-    def __init__(
-        self,
-        device: str = "cpu",
-        overwrite: bool = False,
-        verbose: Union[bool, int] = True,
-    ):
-        super().__init__(
-            device=device,
-            overwrite=overwrite,
-            verbose=verbose,
-        )
-
-    def __call__(
+class FaceAnalysisTool(BaseTool):
+    def inference(
         self,
         video_path: Union[str, Path],
         features_path: Union[str, Path],
@@ -35,4 +23,12 @@ class BaseFaceAnalysisTool(BaseTool):
         # features.update({"metadata": metastuff})
         # write(features, features_path)
 
+        raise NotImplementedError
+
+    def visualization(
+        self,
+        video_path: Union[str, Path],
+        features_path: Union[str, Path],
+        visualisation_path: Union[str, Path],
+    ):
         raise NotImplementedError

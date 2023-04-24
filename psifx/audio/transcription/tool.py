@@ -2,11 +2,11 @@ from typing import Union
 
 from pathlib import Path
 
-from psifx.base_tool import BaseTool
+from psifx.tool import BaseTool
 
 
-class BaseTranscriptionTool(BaseTool):
-    def __call__(
+class TranscriptionTool(BaseTool):
+    def inference(
         self,
         audio_path: Union[str, Path],
         transcription_path: Union[str, Path],
@@ -22,4 +22,8 @@ class BaseTranscriptionTool(BaseTool):
         # transcription = post_process_func(transcription)
         # write(transcription, transcription_path)
 
+        raise NotImplementedError
+
+    def visualization(self, *args, **kwargs):
+        print("Just open the .vtt file with a video player like VLC.")
         raise NotImplementedError

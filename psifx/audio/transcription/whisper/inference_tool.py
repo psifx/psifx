@@ -8,7 +8,7 @@ import torchaudio
 
 from whisper import Whisper, load_model
 
-from psifx.audio.transcription.inference_tool import BaseTranscriptionTool
+from psifx.audio.transcription.tool import TranscriptionTool
 from psifx.utils.text_writer import (
     TXTWriter,
     VTTWriter,
@@ -23,7 +23,7 @@ WRITERS = {
 }
 
 
-class WhisperTranscriptionTool(BaseTranscriptionTool):
+class WhisperTranscriptionTool(TranscriptionTool):
     def __init__(
         self,
         model_name: str = "small",
@@ -47,7 +47,7 @@ class WhisperTranscriptionTool(BaseTranscriptionTool):
 
         self.writer = WRITERS[transcription_suffix]()
 
-    def __call__(
+    def inference(
         self,
         audio_path: Union[str, Path],
         transcription_path: Union[str, Path],
@@ -225,12 +225,6 @@ def cli_main():
         default="small",
         help="Name of the model, check https://github.com/openai/whisper#available-models-and-languages.",
     )
-    # parser.add_argument(
-    #     "--add-prefix",
-    #     default=False,
-    #     action=argparse.BooleanOptionalAction,
-    #     help="Adds a prefix relating to the model used.",
-    # )
     parser.add_argument(
         "--device",
         type=str,
@@ -251,79 +245,16 @@ def cli_main():
     )
     args = parser.parse_args()
 
-    if args.diarization is None and args.speaker_assignment is None:
-        tool = WhisperTranscriptionTool(
-            model_name=args.model_name,
-            transcription_suffix=f".{args.format.lower()}",
-            device=args.device,
-            overwrite=args.overwrite,
-            verbose=args.verbose,
-        )
-        if args.audio.is_file():
-            audio_path = args.audio
-            transcription_path = args.transcription
-            tool(
-                audio_path=audio_path,
-                transcription_path=transcription_path,
-                language=args.language,
-            )
-        elif args.audio.is_dir():
-            audio_dir = args.audio
-            transcription_dir = args.transcription
-            for audio_path in sorted(audio_dir.glob("*.wav")):
-                transcription_name = audio_path.stem + tool.writer.suffix
-                transcription_path = transcription_dir / transcription_name
-                tool(
-                    audio_path=audio_path,
-                    transcription_path=transcription_path,
-                    language=args.language,
-                )
-        else:
-            raise ValueError("args.audio is neither a file or a directory.")
-
-        del tool
-    else:
-        tool = WhisperTranscriptionWithDiarizationTool(
-            model_name=args.model_name,
-            transcription_suffix=f".{args.format.lower()}",
-            device=args.device,
-            overwrite=args.overwrite,
-            verbose=args.verbose,
-        )
-        if args.audio.is_file():
-            audio_path = args.audio
-            diarization_path = args.diarization
-            speaker_assignment_path = args.speaker_assignment
-            transcription_path = args.transcription
-            tool(
-                audio_path=audio_path,
-                transcription_path=transcription_path,
-                diarization_path=diarization_path,
-                speaker_assignment_path=speaker_assignment_path,
-                language=args.language,
-            )
-        elif args.audio.is_dir():
-            audio_dir = args.audio
-            diarization_dir = args.diarization
-            speaker_assignment_dir = args.speaker_assignment
-            transcription_dir = args.transcription
-            for audio_path in sorted(audio_dir.glob("*.wav")):
-                transcription_name = audio_path.stem + tool.writer.suffix
-                transcription_path = transcription_dir / transcription_name
-                diarization_name = audio_path.stem + ".rttm"
-                diarization_path = diarization_dir / diarization_name
-                speaker_assignment_name = audio_path.stem + ".json"
-                speaker_assignment_path = (
-                    speaker_assignment_dir / speaker_assignment_name
-                )
-                tool(
-                    audio_path=audio_path,
-                    diarization_path=diarization_path,
-                    speaker_assignment_path=speaker_assignment_path,
-                    transcription_path=transcription_path,
-                    language=args.language,
-                )
-        else:
-            raise ValueError("args.audio is neither a file or a directory.")
-
-        del tool
+    tool = WhisperTranscriptionTool(
+        model_name=args.model_name,
+        transcription_suffix=f".{args.format.lower()}",
+        device=args.device,
+        overwrite=args.overwrite,
+        verbose=args.verbose,
+    )
+    tool.inference(
+        audio_path=args.audio,
+        transcription_path=args.transcription,
+        language=args.language,
+    )
+    del tool

@@ -8,20 +8,12 @@ import numpy as np
 from skvideo.io import vreader, ffprobe, FFmpegWriter
 from mediapipe.python.solutions.holistic import Holistic
 
-from psifx.video.pose.inference_tool import BasePoseEstimationTool
+from psifx.video.pose.tool import PoseEstimationTool, visualization_main
 from psifx.video.pose.mediapipe import skeleton
 from psifx.utils import tar
 
 
-EDGES = {
-    "pose_keypoints_2d": skeleton.POSE_EDGES,
-    "face_keypoints_2d": skeleton.FACE_EDGES,
-    "hand_left_keypoints_2d": skeleton.LEFT_HAND_EDGES,
-    "hand_right_keypoints_2d": skeleton.RIGHT_HAND_EDGES,
-}
-
-
-class MediaPipePoseEstimationTool(BasePoseEstimationTool):
+class MediaPipePoseEstimationTool(PoseEstimationTool):
     def __init__(
         self,
         model_complexity: int = 2,
@@ -34,7 +26,6 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
             device=device,
             overwrite=overwrite,
             verbose=verbose,
-            edges=EDGES,
         )
 
         assert self.device == "cpu", "Only CPU support is currently available."
@@ -90,7 +81,7 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
             ),
         }
 
-    def __call__(
+    def inference(
         self,
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
@@ -107,7 +98,14 @@ class MediaPipePoseEstimationTool(BasePoseEstimationTool):
         video_info = ffprobe(str(video_path))
         n_frames = int(video_info["video"]["@nb_frames"])
 
-        poses = {"edges": self.edges}
+        poses = {
+            "edges": {
+                "pose_keypoints_2d": skeleton.POSE_EDGES,
+                "face_keypoints_2d": skeleton.FACE_EDGES,
+                "hand_left_keypoints_2d": skeleton.LEFT_HAND_EDGES,
+                "hand_right_keypoints_2d": skeleton.RIGHT_HAND_EDGES,
+            }
+        }
 
         # We have to instantiate the model for every __call__, because of internal states.
         # Not that it is very costly anyway.
@@ -180,7 +178,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             mask = np.zeros((h, w), dtype=np.uint8)
         return np.stack((mask,) * 3, axis=-1)
 
-    def __call__(
+    def inference(
         self,
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
@@ -202,7 +200,14 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         n_frames = int(video_info["video"]["@nb_frames"])
         frame_rate = video_info["video"]["@r_frame_rate"]
 
-        poses = {"edges": self.edges}
+        poses = {
+            "edges": {
+                "pose_keypoints_2d": skeleton.POSE_EDGES,
+                "face_keypoints_2d": skeleton.FACE_EDGES,
+                "hand_left_keypoints_2d": skeleton.LEFT_HAND_EDGES,
+                "hand_right_keypoints_2d": skeleton.RIGHT_HAND_EDGES,
+            }
+        }
 
         if masks_path.exists():
             if self.overwrite:
@@ -260,7 +265,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         )
 
 
-def cli_main():
+def inference_main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -296,12 +301,6 @@ def cli_main():
         action=argparse.BooleanOptionalAction,
         help="Whether to temporally smooth the inference results to reduce the jitter.",
     )
-    # parser.add_argument(
-    #     "--add-prefix",
-    #     default=False,
-    #     action=argparse.BooleanOptionalAction,
-    #     help="Adds a prefix relating to the model used.",
-    # )
     parser.add_argument(
         "--device",
         type=str,
@@ -330,28 +329,10 @@ def cli_main():
             overwrite=args.overwrite,
             verbose=args.verbose,
         )
-
-        if args.video.is_file():
-            video_path = args.video
-            poses_path = args.poses
-            tool(
-                video_path=video_path,
-                poses_path=poses_path,
-            )
-        elif args.video.is_dir():
-            video_dir = args.video
-            poses_dir = args.poses
-            for video_path in sorted(video_dir.glob("*.mp4")):
-                poses_name = video_path.stem + ".tar.gz"
-                poses_path = poses_dir / poses_name
-                tool(
-                    video_path=video_path,
-                    poses_path=poses_path,
-                )
-        else:
-            raise ValueError("args.video is neither a file or a directory.")
-
-        del tool
+        tool.inference(
+            video_path=args.video,
+            poses_path=args.poses,
+        )
     else:
         tool = MediaPipePoseEstimationAndSegmentationTool(
             model_complexity=args.model_complexity,
@@ -361,35 +342,9 @@ def cli_main():
             overwrite=args.overwrite,
             verbose=args.verbose,
         )
-
-        if args.video.is_file():
-            video_path = args.video
-            poses_path = args.poses
-            masks_path = args.masks
-            tool(
-                video_path=video_path,
-                poses_path=poses_path,
-                masks_path=masks_path,
-            )
-        elif args.video.is_dir():
-            video_dir = args.video
-            poses_dir = args.poses
-            masks_dir = args.masks
-            for video_path in sorted(video_dir.glob("*.mp4")):
-                poses_name = video_path.stem + ".tar.gz"
-                poses_path = poses_dir / poses_name
-                masks_name = video_path.stem + ".mp4"
-                masks_path = masks_dir / masks_name
-                tool(
-                    video_path=video_path,
-                    poses_path=poses_path,
-                    masks_path=masks_path,
-                )
-        else:
-            raise ValueError("args.video is neither a file or a directory.")
-
-        del tool
-
-
-if __name__ == "__main__":
-    cli_main()
+        tool.inference(
+            video_path=args.video,
+            poses_path=args.poses,
+            masks_path=args.masks,
+        )
+    del tool

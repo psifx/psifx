@@ -7,29 +7,36 @@ import json
 import numpy as np
 from skvideo.io import vreader, ffprobe, FFmpegWriter
 
-from psifx.base_tool import BaseTool
+from psifx.tool import BaseTool
 from psifx.utils import tar, plot
 
 
-class VisualisationTool(BaseTool):
-    def __init__(
+class PoseEstimationTool(BaseTool):
+    def inference(
         self,
-        confidence_threshold: float = 0.0,
-        overwrite: bool = False,
-        verbose: Union[bool, int] = True,
+        video_path: Union[str, Path],
+        poses_path: Union[str, Path],
     ):
-        super().__init__(
-            device="cpu",
-            overwrite=overwrite,
-            verbose=verbose,
-        )
-        self.confidence_threshold = confidence_threshold
+        if not isinstance(video_path, Path):
+            video_path = Path(video_path)
+        if not isinstance(poses_path, Path):
+            poses_path = Path(poses_path)
 
-    def __call__(
+        # video = load(video_path)
+        # video = pre_process_func(video)
+        # poses = model(video)
+        # poses = post_process_func(poses)
+        # poses.update({"edges": self.edges})
+        # write(poses, poses_path)
+
+        raise NotImplementedError
+
+    def visualization(
         self,
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
         visualisation_path: Union[str, Path],
+        confidence_threshold: float = 0.0,
     ):
         if not isinstance(video_path, Path):
             video_path = Path(video_path)
@@ -37,6 +44,11 @@ class VisualisationTool(BaseTool):
             poses_path = Path(poses_path)
         if not isinstance(visualisation_path, Path):
             visualisation_path = Path(visualisation_path)
+
+        if self.verbose:
+            print(f"video           =   {video_path}")
+            print(f"poses           =   {poses_path}")
+            print(f"visualisation   =   {visualisation_path}")
 
         assert video_path != visualisation_path
 
@@ -87,7 +99,7 @@ class VisualisationTool(BaseTool):
                     image = plot.draw_pose(
                         image=image,
                         points=points,
-                        confidences=confidences >= self.confidence_threshold,
+                        confidences=confidences >= confidence_threshold,
                         edges=edges[key],
                         draw_points="face" not in key,
                     )
@@ -95,7 +107,7 @@ class VisualisationTool(BaseTool):
                 visualisation_writer.writeFrame(image)
 
 
-def cli_main():
+def visualization_main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -133,36 +145,15 @@ def cli_main():
     )
     args = parser.parse_args()
 
-    tool = VisualisationTool(
-        confidence_threshold=args.confidence_threshold,
+    tool = PoseEstimationTool(
+        device="cpu",
         overwrite=args.overwrite,
         verbose=args.verbose,
     )
-
-    if args.video.is_file():
-        video_path = args.video
-        poses_path = args.poses
-        visualisation_path = args.visualisation
-        tool(
-            video_path=video_path,
-            poses_path=poses_path,
-            visualisation_path=visualisation_path,
-        )
-    elif args.video.is_dir():
-        video_dir = args.video
-        poses_dir = args.poses
-        visualisation_dir = args.visualisation
-        for video_path in sorted(video_dir.glob("*.mp4")):
-            poses_name = video_path.stem + ".tar.gz"
-            poses_path = poses_dir / poses_name
-            visualisation_name = video_path.stem + ".mp4"
-            visualisation_path = visualisation_dir / visualisation_name
-            tool(
-                video_path=video_path,
-                poses_path=poses_path,
-                visualisation_path=visualisation_path,
-            )
-    else:
-        raise ValueError("args.video is neither a file or a directory.")
-
+    tool.visualization(
+        video_path=args.video,
+        poses_path=args.poses,
+        visualisation_path=args.visualisation,
+        confidence_threshold=args.confidence_threshold,
+    )
     del tool

@@ -3,7 +3,7 @@ from typing import Union
 from pathlib import Path
 import ffmpeg
 
-from psifx.base_tool import BaseTool
+from psifx.tool import BaseTool
 
 
 class ExtractionTool(BaseTool):
@@ -18,7 +18,7 @@ class ExtractionTool(BaseTool):
             verbose=verbose,
         )
 
-    def __call__(
+    def inference(
         self,
         in_video_path: Union[str, Path],
         out_audio_path: Union[str, Path],
@@ -46,7 +46,7 @@ class ExtractionTool(BaseTool):
         )
 
 
-def cli_main():
+def inference_main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -78,25 +78,8 @@ def cli_main():
         overwrite=args.overwrite,
         verbose=args.verbose,
     )
-
-    if args.in_video.is_file():
-        in_video_path = args.in_video
-        out_audio_path = args.out_audio
-        tool(
-            in_video_path=in_video_path,
-            out_audio_path=out_audio_path,
-        )
-    elif args.in_video.is_dir():
-        in_video_dir = args.in_video
-        out_audio_dir = args.out_audio
-        for in_video_path in sorted(in_video_dir.glob("*")):
-            out_audio_name = in_video_path.stem + ".wav"
-            out_audio_path = out_audio_dir / out_audio_name
-            tool(
-                in_video_path=in_video_path,
-                out_audio_path=out_audio_path,
-            )
-    else:
-        raise ValueError("args.in_video is neither a file or a directory.")
-
+    tool.inference(
+        in_video_path=args.in_video,
+        out_audio_path=args.out_audio,
+    )
     del tool

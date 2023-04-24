@@ -5,15 +5,15 @@ from pathlib import Path
 from pyannote.audio import Pipeline
 from pyannote.core import Annotation
 
-from psifx.audio.diarization.inference_tool import BaseDiarizationTool
+from psifx.audio.diarization.tool import DiarizationTool
 from psifx.utils.text_writer import RTTMWriter
 
 
-class PyannoteDiarizationTool(BaseDiarizationTool):
+class PyannoteDiarizationTool(DiarizationTool):
     def __init__(
         self,
         model_name: str = "2.1.1",
-        api_token: Union[str, bool] = True,
+        api_token: Optional[str] = None,
         device: str = "cpu",
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
@@ -23,6 +23,9 @@ class PyannoteDiarizationTool(BaseDiarizationTool):
             overwrite=overwrite,
             verbose=verbose,
         )
+
+        if api_token is None:
+            api_token = "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"
 
         self.model_name = model_name
         self.api_token = api_token
@@ -34,7 +37,7 @@ class PyannoteDiarizationTool(BaseDiarizationTool):
 
         self.writer = RTTMWriter()
 
-    def __call__(
+    def inference(
         self,
         audio_path: Union[str, Path],
         diarization_path: Union[str, Path],
@@ -87,7 +90,7 @@ class PyannoteDiarizationTool(BaseDiarizationTool):
         )
 
 
-def cli_main():
+def inference_main():
     import argparse
 
     parser = argparse.ArgumentParser()
@@ -119,16 +122,9 @@ def cli_main():
     parser.add_argument(
         "--api_token",
         type=str,
-        default="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",
-        # default="True",
+        default=None,
         help="API token for the downloading the models from HuggingFace.",
     )
-    # parser.add_argument(
-    #     "--add-prefix",
-    #     default=False,
-    #     action=argparse.BooleanOptionalAction,
-    #     help="Adds a prefix relating to the model used.",
-    # )
     parser.add_argument(
         "--device",
         type=str,
@@ -156,27 +152,9 @@ def cli_main():
         overwrite=args.overwrite,
         verbose=args.verbose,
     )
-
-    if args.audio.is_file():
-        audio_path = args.audio
-        diarization_path = args.diarization
-        tool(
-            audio_path=audio_path,
-            diarization_path=diarization_path,
-            num_speakers=args.num_speakers,
-        )
-    elif args.audio.is_dir():
-        audio_dir = args.audio
-        diarization_dir = args.diarization
-        for audio_path in sorted(audio_dir.glob("*.wav")):
-            diarization_name = audio_path.stem + tool.writer.suffix
-            diarization_path = diarization_dir / diarization_name
-            tool(
-                audio_path=audio_path,
-                diarization_path=diarization_path,
-                num_speakers=args.num_speakers,
-            )
-    else:
-        raise ValueError("args.audio is neither a file or a directory.")
-
+    tool.inference(
+        audio_path=args.audio,
+        diarization_path=args.diarization,
+        num_speakers=args.num_speakers,
+    )
     del tool

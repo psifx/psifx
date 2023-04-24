@@ -1,9 +1,18 @@
 # `psifx` - Psychological and Social Interactions Feature Extraction
 
 ---
+## TODO List
 
+- Add `visualization()` for `OpenFaceAnalysisTool`. Implement a similar or simpler version than the one from the original OpenFace.
+- Check that every input has the right format, e.g. encoding and extension.
+- Re-process the transcribed subtitles with the diarization output.
+- Implement the linguistic feature extraction for each of the participant.
+- Use the diarization of the combined track and the isolated tracks to infer the identity of each speaker in each track.
+
+---
 ## Setup
 
+---
 ### Local
 To install `psifx` is a Python package, install the following:
 - Install the following system-wide:

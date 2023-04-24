@@ -9,6 +9,7 @@ To install `psifx` is a Python package, install the following:
 - Install the following system-wide:
 ```bash
 sudo apt install ffmpeg
+sudo apt install ubuntu-restricted-extras
 ```
 - Create a dedicated `conda` environment following the instructions in that order:
 ```bash

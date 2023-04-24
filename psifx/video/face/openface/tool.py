@@ -116,7 +116,6 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         features_path: Union[str, Path],
         visualisation_path: Union[str, Path],
     ):
-        # TODO: Implement a similar or simpler version than the one from the original OpenFace.
         raise NotImplementedError
 
 

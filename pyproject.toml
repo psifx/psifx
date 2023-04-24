@@ -27,10 +27,20 @@ documentation = "https://github.com/GuillaumeRochette/psifx"
 repository = "https://github.com/GuillaumeRochette/psifx"
 
 [project.scripts]
-psifx-video-pose-mediapipe = "psifx.video.pose.mediapipe.inference_tool:cli_main"
-psifx-audio-extraction = "psifx.audio.extraction_tool:cli_main"
-psifx-audio-diarization-pyannote = "psifx.audio.diarization.pyannote.inference_tool:cli_main"
-psifx-audio-transcription-whisper = "psifx.audio.transcription.whisper.inference_tool:cli_main"
+
+psifx-video-pose-visualization = "psifx.video.pose.tool:visualization_main"
+psifx-video-pose-mediapipe-inference = "psifx.video.pose.mediapipe.tool:inference_main"
+psifx-video-pose-mediapipe-visualization = "psifx.video.pose.mediapipe.tool:visualization_main"
+
+psifx-video-face-openface-inference = "psifx.video.face.openface.tool:inference_main"
+
+psifx-audio-extraction-inference = "psifx.audio.extraction.tool:inference_main"
+
+psifx-audio-diarization-visualization = "psifx.audio.diarization.tool:visualization_main"
+psifx-audio-diarization-pyannote-inference = "psifx.audio.diarization.pyannote.tool:inference_main"
+psifx-audio-diarization-pyannote-visualization = "psifx.audio.diarization.pyannote.tool:visualization_main"
+
+psifx-audio-transcription-whisper-inference = "psifx.audio.transcription.whisper.tool:inference_main"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

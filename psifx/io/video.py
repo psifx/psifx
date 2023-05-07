@@ -25,7 +25,7 @@ class VideoReader(FFmpegReader):
         )
 
         self.num_frames = self.inputframenum
-        self.frame_rate = self.inputfps
+        self.frame_rate = self.probeInfo["video"][self.INFO_AVERAGE_FRAMERATE]
 
     def __len__(self):
         return self.num_frames

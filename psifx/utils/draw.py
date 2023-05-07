@@ -303,12 +303,12 @@ def draw_lines(
 
     for i in range(b):
         image[i] = _draw_func(
-                image=image[i],
-                start_points=start_points[i],
-                end_points=end_points[i],
-                colors=colors,
-                thickness=thickness,
-            )
+            image=image[i],
+            start_points=start_points[i],
+            end_points=end_points[i],
+            colors=colors,
+            thickness=thickness,
+        )
 
     image = image.reshape(shape)
 

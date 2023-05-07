@@ -49,7 +49,7 @@ def dump(
     if index == len(path.suffixes) - 1:
         compression = ""
     else:
-        compression = path.suffixes[index + 1]
+        compression = path.suffixes[index + 1].replace(".", "")
 
     dir_name = path.stem.replace(".tar", "")
     with tarfile.open(path, mode=f"w:{compression}") as tar:

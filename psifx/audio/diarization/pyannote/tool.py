@@ -1,12 +1,12 @@
-from typing import Union, Dict, Optional
+from typing import Optional, Union
 
 from pathlib import Path
 
 from pyannote.audio import Pipeline
 from pyannote.core import Annotation
 
-from psifx.audio.diarization.tool import DiarizationTool, visualization_main
-from psifx.utils.text_writer import RTTMWriter
+from psifx.audio.diarization.tool import DiarizationTool
+from psifx.io import rttm
 
 
 class PyannoteDiarizationTool(DiarizationTool):
@@ -35,18 +35,14 @@ class PyannoteDiarizationTool(DiarizationTool):
             use_auth_token=api_token,
         ).to(device=device)
 
-        self.writer = RTTMWriter()
-
     def inference(
         self,
         audio_path: Union[str, Path],
         diarization_path: Union[str, Path],
         num_speakers: Optional[int] = None,
     ):
-        if not isinstance(audio_path, Path):
-            audio_path = Path(audio_path)
-        if not isinstance(diarization_path, Path):
-            diarization_path = Path(diarization_path)
+        audio_path = Path(audio_path)
+        diarization_path = Path(diarization_path)
 
         if self.verbose:
             print(f"audio           =   {audio_path}")
@@ -56,37 +52,34 @@ class PyannoteDiarizationTool(DiarizationTool):
         # Nothing to do here, the model wants the path of the audio.
 
         # INFERENCE
-        # diarization_results is a pyannote.core.Annotation
-        diarization_results: Annotation = self.model(
+        # results is a pyannote.core.Annotation
+        results: Annotation = self.model(
             file=audio_path,
             num_speakers=num_speakers,
         )
 
-        # POST-PROCESSING
-        # Converting it to a simple and practical dictionary.
-        diarization_results: Dict = {
-            "segments": [
-                {
-                    "uri": audio_path.stem,
-                    "start": segment.start,
-                    "end": segment.end,
-                    "label": label,
-                }
-                for segment, track, label in diarization_results.itertracks(
-                    yield_label=True
-                )
-            ]
-        }
+        starts = []
+        durations = []
+        speaker_names = []
+        for segment, track_name, speaker_name in results.itertracks(yield_label=True):
+            starts.append(segment.start)
+            durations.append(segment.duration)
+            speaker_names.append(speaker_name)
+        num_tracks = len(starts)
 
-        if diarization_path.exists():
-            if self.overwrite:
-                diarization_path.unlink()
-            else:
-                raise FileExistsError(diarization_path)
-        diarization_path.parent.mkdir(parents=True, exist_ok=True)
-        self.writer(
-            result=diarization_results,
+        rttm.RTTMWriter.write(
             path=diarization_path,
+            type=["SPEAKER"] * num_tracks,
+            file_stem=[audio_path.stem] * num_tracks,
+            channel=[1] * num_tracks,
+            start=starts,
+            duration=durations,
+            orthography=["<NA>"] * num_tracks,
+            speaker_type=["<NA>"] * num_tracks,
+            speaker_name=speaker_names,
+            confidence_score=["<NA>"] * num_tracks,
+            signal_lookahead_time=["<NA>"] * num_tracks,
+            overwrite=self.overwrite,
         )
 
 

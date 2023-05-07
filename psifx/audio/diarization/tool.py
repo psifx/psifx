@@ -9,6 +9,7 @@ from pyannote.core.annotation import Segment, Annotation
 from pyannote.core import notebook
 
 from psifx.tool import BaseTool
+from psifx.io import rttm
 
 
 class DiarizationTool(BaseTool):
@@ -17,10 +18,8 @@ class DiarizationTool(BaseTool):
         audio_path: Union[str, Path],
         diarization_path: Union[str, Path],
     ):
-        if not isinstance(audio_path, Path):
-            audio_path = Path(audio_path)
-        if not isinstance(diarization_path, Path):
-            diarization_path = Path(diarization_path)
+        audio_path = Path(audio_path)
+        diarization_path = Path(diarization_path)
 
         # audio = load(audio_path)
         # audio = pre_process_func(audio)
@@ -35,43 +34,28 @@ class DiarizationTool(BaseTool):
         diarization_path: Union[str, Path],
         visualization_path: Union[str, Path],
     ):
-        if not isinstance(diarization_path, Path):
-            diarization_path = Path(diarization_path)
-        if not isinstance(visualization_path, Path):
-            visualization_path = Path(visualization_path)
+        diarization_path = Path(diarization_path)
+        visualization_path = Path(visualization_path)
 
         if self.verbose:
             print(f"diarization     =   {diarization_path}")
             print(f"visualization   =   {visualization_path}")
 
-        dataframe = pd.read_csv(
-            diarization_path,
-            delimiter=" ",
-            header=None,
-            names=[
-                "Type",
-                "FileName",
-                "Channel",
-                "Start",
-                "Duration",
-                "Orthography",
-                "SpeakerType",
-                "SpeakerName",
-                "ConfidenceScore",
-                "SignalLookaheadTime",
-            ],
+        dataframe = rttm.RTTMReader.read(path=diarization_path)
+        dataframe["end"] = dataframe["start"] + dataframe["duration"]
+
+        annotation = Annotation.from_records(
+            iter(
+                [
+                    (
+                        Segment(start=row["start"], end=row["end"]),
+                        index,
+                        row["speaker_name"],
+                    )
+                    for index, row in enumerate(dataframe.iloc)
+                ]
+            )
         )
-
-        n_rows, n_cols = dataframe.shape
-        records = []
-        for index in range(n_rows):
-            row = dataframe.iloc[index]
-            segment = Segment(row["Start"], row["Start"] + row["Duration"])
-            track_name = index
-            label = row["SpeakerName"]
-            records.append((segment, track_name, label))
-        annotation = Annotation.from_records(iter(records))
-
         plt.rcParams["figure.figsize"] = (notebook.width, 2)
         fig, ax = plt.subplots()
         notebook.plot_annotation(annotation, ax=ax)

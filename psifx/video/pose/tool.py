@@ -5,10 +5,10 @@ from tqdm import tqdm
 import json
 
 import numpy as np
-from skvideo.io import vreader, ffprobe, FFmpegWriter
 
 from psifx.tool import BaseTool
-from psifx.utils import tar, plot
+from psifx.utils import draw
+from psifx.io import tar, video
 
 
 class PoseEstimationTool(BaseTool):
@@ -17,10 +17,8 @@ class PoseEstimationTool(BaseTool):
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(poses_path, Path):
-            poses_path = Path(poses_path)
+        video_path = Path(video_path)
+        poses_path = Path(poses_path)
 
         # video = load(video_path)
         # video = pre_process_func(video)
@@ -38,12 +36,9 @@ class PoseEstimationTool(BaseTool):
         visualization_path: Union[str, Path],
         confidence_threshold: float = 0.0,
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(poses_path, Path):
-            poses_path = Path(poses_path)
-        if not isinstance(visualization_path, Path):
-            visualization_path = Path(visualization_path)
+        video_path = Path(video_path)
+        poses_path = Path(poses_path)
+        visualization_path = Path(visualization_path)
 
         if self.verbose:
             print(f"video           =   {video_path}")
@@ -52,59 +47,66 @@ class PoseEstimationTool(BaseTool):
 
         assert video_path != visualization_path
 
-        dictionary = {
-            k.replace(".json", ""): json.loads(v)
-            for k, v in tar.load(poses_path).items()
-        }
+        poses = tar.load(
+            poses_path,
+            verbose=self.verbose,
+        )
+
         try:
-            edges = dictionary.pop("edges")
+            edges = poses.pop("edges.json")
+            edges = json.loads(edges)
             edges = {k: tuple(v) for k, v in edges.items()}
         except KeyError:
             print("Missing or incorrect edges.json, only the landmarks will be drawn.")
-            pose = next(iter(dictionary.values()))
+            pose = next(iter(poses.values()))
+            pose = json.loads(pose)
             edges = {key: () for key, value in pose.items()}
 
-        poses = {int(k): v for k, v in dictionary.items()}
+        poses = {
+            int(k.replace(".json", "")): json.loads(v)
+            for k, v in tqdm(
+                poses.items(),
+                desc="Decoding",
+                disable=not self.verbose,
+            )
+        }
 
-        video_info = ffprobe(str(video_path))
-        frame_rate = video_info["video"]["@r_frame_rate"]
-
-        if visualization_path.exists():
-            if self.overwrite:
-                visualization_path.unlink()
-            else:
-                raise FileExistsError(visualization_path)
-        visualization_path.parent.mkdir(parents=True, exist_ok=True)
-
-        with FFmpegWriter(
-            filename=str(visualization_path),
-            inputdict={"-r": frame_rate},
-            outputdict={"-c:v": "libx264", "-crf": "15", "-pix_fmt": "yuv420p"},
-        ) as visualization_writer:
-            for i, (image, pose) in enumerate(
-                zip(
-                    vreader(str(video_path)),
-                    tqdm(
-                        poses.values(),
-                        disable=not self.verbose,
-                    ),
+        video_reader = video.VideoReader(path=video_path)
+        visualization_writer = video.VideoWriter(
+            path=visualization_path,
+            input_dict={"-r": video_reader.frame_rate},
+            output_dict={
+                "-c:v": "libx264",
+                "-crf": "15",
+                "-pix_fmt": "yuv420p",
+            },
+            overwrite=self.overwrite,
+        )
+        for i, (image, pose) in enumerate(
+            zip(
+                tqdm(
+                    video_reader,
+                    desc="Processing",
+                    disable=not self.verbose,
+                ),
+                poses.values(),
+            )
+        ):
+            image = image.copy()
+            for key, value in pose.items():
+                value = np.array(value).reshape(-1, 3)
+                points = value[..., :-1]
+                confidences = value[..., -1:]
+                image = draw.draw_pose(
+                    image=image,
+                    points=points,
+                    confidences=confidences >= confidence_threshold,
+                    edges=edges[key],
+                    circle_radius=1 if "face" not in key else 0,
+                    line_thickness=1,
                 )
-            ):
-                image = image.copy()
-
-                for key, value in pose.items():
-                    value = np.array(value).reshape(-1, 3)
-                    points = value[..., :-1]
-                    confidences = value[..., -1:]
-                    image = plot.draw_pose(
-                        image=image,
-                        points=points,
-                        confidences=confidences >= confidence_threshold,
-                        edges=edges[key],
-                        draw_points="face" not in key,
-                    )
-
-                visualization_writer.writeFrame(image)
+            visualization_writer.write(image=image)
+        visualization_writer.close()
 
 
 def visualization_main():

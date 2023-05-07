@@ -11,10 +11,8 @@ class FaceAnalysisTool(BaseTool):
         video_path: Union[str, Path],
         features_path: Union[str, Path],
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(features_path, Path):
-            features_path = Path(features_path)
+        video_path = Path(video_path)
+        features_path = Path(features_path)
 
         # video = load(video_path)
         # video = pre_process_func(video)

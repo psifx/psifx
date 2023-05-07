@@ -5,12 +5,11 @@ from tqdm import tqdm
 import json
 
 import numpy as np
-from skvideo.io import vreader, ffprobe, FFmpegWriter
 from mediapipe.python.solutions.holistic import Holistic
 
-from psifx.video.pose.tool import PoseEstimationTool, visualization_main
+from psifx.video.pose.tool import PoseEstimationTool
 from psifx.video.pose.mediapipe import skeleton
-from psifx.utils import tar
+from psifx.io import tar, video
 
 
 class MediaPipePoseEstimationTool(PoseEstimationTool):
@@ -40,15 +39,10 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
     ) -> List[float]:
         h, w = size
         if landmarks is not None:
-            landmarks = [
-                [
-                    p.x * (w - 1),
-                    p.y * (h - 1),
-                    p.visibility,
-                ]
-                for p in landmarks.landmark
-            ]
+            landmarks = [[p.x, p.y, p.visibility] for p in landmarks.landmark]
             points = np.array(landmarks, dtype=np.float32)
+            points[:, 0] *= w - 1
+            points[:, 1] *= h - 1
         else:
             points = np.zeros((n_points, 3), dtype=np.float32)
         return points.flatten().tolist()
@@ -86,17 +80,12 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(poses_path, Path):
-            poses_path = Path(poses_path)
+        video_path = Path(video_path)
+        poses_path = Path(poses_path)
 
         if self.verbose:
             print(f"video   =   {video_path}")
             print(f"poses   =   {poses_path}")
-
-        video_info = ffprobe(str(video_path))
-        n_frames = int(video_info["video"]["@nb_frames"])
 
         poses = {
             "edges": {
@@ -107,7 +96,9 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
             }
         }
 
-        # We have to instantiate the model for every __call__, because of internal states.
+        video_reader = video.VideoReader(path=video_path)
+
+        # We have to instantiate the model for every call, because of internal states.
         # Not that it is very costly anyway.
         with Holistic(
             static_image_mode=False,
@@ -119,8 +110,8 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
         ) as model:
             for i, image in enumerate(
                 tqdm(
-                    vreader(str(video_path)),
-                    total=n_frames,
+                    video_reader,
+                    desc="Processing",
                     disable=not self.verbose,
                 )
             ):
@@ -131,15 +122,19 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
                     size=(h, w),
                 )
 
-        if poses_path.exists():
-            if self.overwrite:
-                poses_path.unlink()
-            else:
-                raise FileExistsError(poses_path)
-        poses_path.parent.mkdir(parents=True, exist_ok=True)
+        poses = {
+            f"{k}.json": json.dumps(v)
+            for k, v in tqdm(
+                poses.items(),
+                desc="Encoding",
+                disable=not self.verbose,
+            )
+        }
         tar.dump(
-            dictionary={f"{k}.json": json.dumps(v) for k, v in poses.items()},
+            dictionary=poses,
             path=poses_path,
+            overwrite=self.overwrite,
+            verbose=self.verbose,
         )
 
 
@@ -170,13 +165,15 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
     ) -> np.ndarray:
         h, w = size
         if mask is not None:
-            mask = np.array(mask)
-            mask[mask < threshold] = 0.0
-            mask[mask > threshold] = 1.0
-            mask = (mask * 255.0).astype(dtype=np.uint8)
+            mask = np.where(
+                condition=mask < threshold,
+                x=np.array(0, dtype=np.uint8),
+                y=np.array(255, dtype=np.uint8),
+            )
+            mask = np.stack((mask,) * 3, axis=-1)
         else:
-            mask = np.zeros((h, w), dtype=np.uint8)
-        return np.stack((mask,) * 3, axis=-1)
+            mask = np.zeros((h, w, 3), dtype=np.uint8)
+        return mask
 
     def inference(
         self,
@@ -184,21 +181,14 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         poses_path: Union[str, Path],
         masks_path: Union[str, Path],
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(poses_path, Path):
-            poses_path = Path(poses_path)
-        if not isinstance(masks_path, Path):
-            masks_path = masks_path
+        video_path = Path(video_path)
+        poses_path = Path(poses_path)
+        masks_path = masks_path
 
         if self.verbose:
             print(f"video   =   {video_path}")
             print(f"poses   =   {poses_path}")
             print(f"masks   =   {masks_path}")
-
-        video_info = ffprobe(str(video_path))
-        n_frames = int(video_info["video"]["@nb_frames"])
-        frame_rate = video_info["video"]["@r_frame_rate"]
 
         poses = {
             "edges": {
@@ -209,12 +199,13 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             }
         }
 
-        if masks_path.exists():
-            if self.overwrite:
-                masks_path.unlink()
-            else:
-                raise FileExistsError(masks_path)
-        masks_path.parent.mkdir(parents=True, exist_ok=True)
+        video_reader = video.VideoReader(path=video_path)
+        mask_writer = video.VideoWriter(
+            path=masks_path,
+            input_dict={"-r": video_reader.frame_rate},
+            output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
+            overwrite=self.overwrite,
+        )
 
         # We have to instantiate the model for every __call__, because of internal states.
         # Not that it is very costly anyway.
@@ -227,16 +218,11 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
                 smooth_segmentation=self.smooth,
                 refine_face_landmarks=True,
             ) as model,
-            FFmpegWriter(
-                filename=str(masks_path),
-                inputdict={"-r": frame_rate},
-                outputdict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
-            ) as mask_writer,
         ):
             for i, image in enumerate(
                 tqdm(
-                    vreader(str(video_path)),
-                    total=n_frames,
+                    video_reader,
+                    desc="Processing",
                     disable=not self.verbose,
                 )
             ):
@@ -251,17 +237,22 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
                     size=(h, w),
                     threshold=self.mask_threshold,
                 )
-                mask_writer.writeFrame(mask)
+                mask_writer.write(image=mask)
+        mask_writer.close()
 
-        if poses_path.exists():
-            if self.overwrite:
-                poses_path.unlink()
-            else:
-                raise FileExistsError(poses_path)
-        poses_path.parent.mkdir(parents=True, exist_ok=True)
+        poses = {
+            f"{k}.json": json.dumps(v)
+            for k, v in tqdm(
+                poses.items(),
+                desc="Encoding",
+                disable=not self.verbose,
+            )
+        }
         tar.dump(
-            dictionary={f"{k}.json": json.dumps(v) for k, v in poses.items()},
+            dictionary=poses,
             path=poses_path,
+            overwrite=self.overwrite,
+            verbose=self.verbose,
         )
 
 

@@ -13,8 +13,7 @@ import numpy as np
 
 from psifx.video.face.tool import FaceAnalysisTool
 from psifx.video.face.openface.fields import CLEAN_FIELDS, DIRTY_FIELDS
-from psifx.utils import tar, timestamp
-
+from psifx.io import tar
 
 EXECUTABLE_PATH = Path(shutil.which("FeatureExtraction")).resolve(strict=True)
 DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
@@ -37,10 +36,8 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         video_path: Union[str, Path],
         features_path: Union[str, Path],
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(features_path, Path):
-            features_path = Path(features_path)
+        video_path = Path(video_path)
+        features_path = Path(features_path)
 
         if self.verbose:
             print(f"video       =   {video_path}")
@@ -60,20 +57,21 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
             print("number of CPUs.")
 
         try:
-            start = time.time()
-            process = subprocess.run(
-                args=shlex.split(args),
-                check=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-            )
-            end = time.time()
+            for i in tqdm(
+                range(1),
+                desc="Processing",
+                disable=not self.verbose,
+            ):
+                process = subprocess.run(
+                    args=shlex.split(args),
+                    check=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
+                    text=True,
+                )
 
             if self.verbose > 1:
                 print(process.stdout)
-            if self.verbose:
-                print(f"OpenFace took {timestamp.format_timestamp(end - start)}.")
 
         except subprocess.CalledProcessError as error:
             print(error.stdout)
@@ -89,6 +87,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         features = {}
         for i in tqdm(
             range(n_rows),
+            desc="Parsing",
             disable=not self.verbose,
         ):
             index = clean_dataframe["index"][i]
@@ -99,15 +98,19 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
 
         shutil.rmtree(tmp_dir)
 
-        if features_path.exists():
-            if self.overwrite:
-                features_path.unlink()
-            else:
-                raise FileExistsError(features_path)
-        features_path.parent.mkdir(parents=True, exist_ok=True)
+        dictionary = {
+            f"{k}.json": json.dumps(v)
+            for k, v in tqdm(
+                features.items(),
+                desc="Encoding",
+                disable=not self.verbose,
+            )
+        }
         tar.dump(
-            dictionary={f"{k}.json": json.dumps(v) for k, v in features.items()},
+            dictionary=dictionary,
             path=features_path,
+            overwrite=self.overwrite,
+            verbose=self.verbose,
         )
 
     def visualization(

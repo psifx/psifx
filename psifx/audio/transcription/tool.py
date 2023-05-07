@@ -11,10 +11,8 @@ class TranscriptionTool(BaseTool):
         audio_path: Union[str, Path],
         transcription_path: Union[str, Path],
     ):
-        if not isinstance(audio_path, Path):
-            audio_path = Path(audio_path)
-        if not isinstance(transcription_path, Path):
-            transcription_path = Path(transcription_path)
+        audio_path = Path(audio_path)
+        transcription_path = Path(transcription_path)
 
         # audio = load(audio_path)
         # audio = pre_process_func(audio)

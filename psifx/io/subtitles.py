@@ -6,20 +6,20 @@ import json
 from psifx.utils.timestamp import format_timestamp
 
 
-class BaseTextWriter:
+class BaseWriter:
     suffix: str
 
     def __call__(self, result: dict, path: Path):
         assert path.suffix == self.suffix
 
-        with path.open("w", encoding="utf-8") as file:
+        with path.open(mode="w", encoding="utf-8") as file:
             self.write_result(result, file=file)
 
     def write_result(self, result: dict, file: TextIO):
         raise NotImplementedError
 
 
-class RTTMWriter(BaseTextWriter):
+class RTTMWriter(BaseWriter):
     suffix: str = ".rttm"
 
     def write_result(self, result: dict, file: TextIO):
@@ -29,7 +29,7 @@ class RTTMWriter(BaseTextWriter):
             if end > start:
                 duration = end - start
             else:
-                duration = 0
+                duration = 0.0
             print(
                 f"SPEAKER {segment['uri']} 1 {start:.3f} {duration:.3f} <NA> <NA> {segment['label']} <NA> <NA>",
                 file=file,
@@ -37,7 +37,7 @@ class RTTMWriter(BaseTextWriter):
             )
 
 
-class TXTWriter(BaseTextWriter):
+class TXTWriter(BaseWriter):
     suffix: str = ".txt"
 
     def write_result(self, result: dict, file: TextIO):
@@ -49,7 +49,7 @@ class TXTWriter(BaseTextWriter):
             )
 
 
-class VTTWriter(BaseTextWriter):
+class VTTWriter(BaseWriter):
     suffix: str = ".vtt"
 
     def write_result(self, result: dict, file: TextIO):
@@ -63,7 +63,7 @@ class VTTWriter(BaseTextWriter):
             )
 
 
-class SRTWriter(BaseTextWriter):
+class SRTWriter(BaseWriter):
     suffix: str = ".srt"
 
     def write_result(self, result: dict, file: TextIO):
@@ -79,7 +79,7 @@ class SRTWriter(BaseTextWriter):
             )
 
 
-class TSVWriter(BaseTextWriter):
+class TSVWriter(BaseWriter):
     """
     Write a transcript to a file in TSV (tab-separated values) format containing lines like:
     <start time in integer milliseconds>\t<end time in integer milliseconds>\t<transcript text>
@@ -103,7 +103,7 @@ class TSVWriter(BaseTextWriter):
             )
 
 
-class JSONWriter(BaseTextWriter):
+class JSONWriter(BaseWriter):
     suffix: str = ".json"
 
     def write_result(self, result: dict, file: TextIO):

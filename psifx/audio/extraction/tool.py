@@ -23,10 +23,8 @@ class ExtractionTool(BaseTool):
         video_path: Union[str, Path],
         audio_path: Union[str, Path],
     ):
-        if not isinstance(video_path, Path):
-            video_path = Path(video_path)
-        if not isinstance(audio_path, Path):
-            audio_path = Path(audio_path)
+        video_path = Path(video_path)
+        audio_path = Path(audio_path)
 
         if self.verbose:
             print(f"in_video     =   {video_path}")

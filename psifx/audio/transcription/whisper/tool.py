@@ -1,15 +1,11 @@
 from typing import Union, Dict, Optional
 
 from pathlib import Path
-import json
-
-import torch
-import torchaudio
 
 from whisper import Whisper, load_model
 
 from psifx.audio.transcription.tool import TranscriptionTool
-from psifx.utils.text_writer import (
+from psifx.io.subtitles import (
     TXTWriter,
     VTTWriter,
     SRTWriter,
@@ -53,10 +49,8 @@ class WhisperTranscriptionTool(TranscriptionTool):
         transcription_path: Union[str, Path],
         language: Optional[str] = None,
     ):
-        if not isinstance(audio_path, Path):
-            audio_path = Path(audio_path)
-        if not isinstance(transcription_path, Path):
-            transcription_path = Path(transcription_path)
+        audio_path = Path(audio_path)
+        transcription_path = Path(transcription_path)
 
         if self.verbose:
             print(f"audio           =   {audio_path}")

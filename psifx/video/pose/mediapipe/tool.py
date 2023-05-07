@@ -166,9 +166,9 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         h, w = size
         if mask is not None:
             mask = np.where(
-                condition=mask < threshold,
-                x=np.array(0, dtype=np.uint8),
-                y=np.array(255, dtype=np.uint8),
+                mask < threshold,
+                np.array(0, dtype=np.uint8),
+                np.array(255, dtype=np.uint8),
             )
             mask = np.stack((mask,) * 3, axis=-1)
         else:

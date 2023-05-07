@@ -53,8 +53,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         if self.verbose:
             print("OpenFace will run with the following command:")
             print(f"{args}")
-            print("It might take a while, depending on the length of the video and the")
-            print("number of CPUs.")
+            print("It might take a while, depending on the number of CPUs.")
 
         try:
             for i in tqdm(
@@ -92,8 +91,8 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         ):
             index = clean_dataframe["index"][i]
             features[f"{index: 015d}"] = {
-                clean: np.array(clean_dataframe[clean][i]).flatten().tolist()
-                for clean in CLEAN_FIELDS
+                field: np.array(clean_dataframe[field][i]).flatten().tolist()
+                for field in CLEAN_FIELDS
             }
 
         shutil.rmtree(tmp_dir)

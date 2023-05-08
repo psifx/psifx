@@ -1,6 +1,7 @@
 from typing import Optional, Union
 
 from pathlib import Path
+from tqdm import tqdm
 
 from pyannote.audio import Pipeline
 from pyannote.core import Annotation
@@ -52,21 +53,30 @@ class PyannoteDiarizationTool(DiarizationTool):
         # Nothing to do here, the model wants the path of the audio.
 
         # INFERENCE
-        # results is a pyannote.core.Annotation
-        results: Annotation = self.model(
-            file=audio_path,
-            num_speakers=num_speakers,
-        )
+        for i in tqdm(
+            range(1),
+            desc="Processing",
+            disable=not self.verbose,
+        ):
+            # results is a pyannote.core.Annotation
+            results: Annotation = self.model(
+                file=audio_path,
+                num_speakers=num_speakers,
+            )
 
         starts = []
         durations = []
         speaker_names = []
-        for segment, track_name, speaker_name in results.itertracks(yield_label=True):
+        for segment, track_name, speaker_name in tqdm(
+            results.itertracks(yield_label=True),
+            desc="Parsing",
+            disable=not self.verbose,
+        ):
             starts.append(segment.start)
             durations.append(segment.duration)
             speaker_names.append(speaker_name)
-        num_tracks = len(starts)
 
+        num_tracks = len(starts)
         rttm.RTTMWriter.write(
             path=diarization_path,
             type=["SPEAKER"] * num_tracks,

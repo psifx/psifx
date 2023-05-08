@@ -1,8 +1,8 @@
 from typing import Union
 
 from pathlib import Path
+from tqdm import tqdm
 
-import pandas as pd
 import matplotlib.pyplot as plt
 
 from pyannote.core.annotation import Segment, Annotation
@@ -42,7 +42,6 @@ class DiarizationTool(BaseTool):
             print(f"visualization   =   {visualization_path}")
 
         dataframe = rttm.RTTMReader.read(path=diarization_path)
-        dataframe["end"] = dataframe["start"] + dataframe["duration"]
 
         annotation = Annotation.from_records(
             iter(
@@ -52,10 +51,24 @@ class DiarizationTool(BaseTool):
                         index,
                         row["speaker_name"],
                     )
-                    for index, row in enumerate(dataframe.iloc)
+                    for index, row in enumerate(
+                        tqdm(
+                            dataframe.iloc[:],
+                            desc="Parsing",
+                            disable=not self.verbose,
+                        )
+                    )
                 ]
             )
         )
+
+        if visualization_path.exists():
+            if self.overwrite:
+                visualization_path.unlink()
+            else:
+                raise FileExistsError(visualization_path)
+        visualization_path.parent.mkdir(parents=True, exist_ok=True)
+
         plt.rcParams["figure.figsize"] = (notebook.width, 2)
         fig, ax = plt.subplots()
         notebook.plot_annotation(annotation, ax=ax)

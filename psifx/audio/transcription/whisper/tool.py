@@ -90,7 +90,7 @@ def inference_main():
         "--audio",
         type=Path,
         required=True,
-        help="Path to the input audio or directory containing the input audios.",
+        help="Path to the audio file.",
     )
     parser.add_argument(
         "--diarization",
@@ -108,7 +108,7 @@ def inference_main():
         "--transcription",
         type=Path,
         required=True,
-        help="Path to the output transcription file or directory containing the transcriptions.",
+        help="Path to the transcription file.",
     )
     parser.add_argument(
         "--format",
@@ -120,8 +120,7 @@ def inference_main():
         "--language",
         type=str,
         default=None,
-        help="Language of the audio, if ignore, the model will try to guess it, it is advised to specify it. "
-        "If a directory is passed as input, the language will be the same for all the audio tracks.",
+        help="Language of the audio, if ignore, the model will try to guess it, it is advised to specify it. ",
     )
     parser.add_argument(
         "--model_name",

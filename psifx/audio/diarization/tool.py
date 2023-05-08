@@ -83,12 +83,13 @@ def visualization_main():
         "--diarization",
         type=Path,
         required=True,
-        help="Path to the output diarization or directory containing the diarizations.",
+        help="Path to the diarization file.",
     )
     parser.add_argument(
         "--visualization",
         type=Path,
         required=True,
+        help="Path to the visualization file.",
     )
     parser.add_argument(
         "--overwrite",

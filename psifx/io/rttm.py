@@ -34,6 +34,8 @@ class RTTMReader(object):
                 "signal_lookahead_time",
             ],
         )
+        dataframe["end"] = dataframe["start"] + dataframe["duration"]
+
         return dataframe
 
 

@@ -96,18 +96,19 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
             }
         }
 
-        video_reader = video.VideoReader(path=video_path)
-
         # We have to instantiate the model for every call, because of internal states.
         # Not that it is very costly anyway.
-        with Holistic(
-            static_image_mode=False,
-            model_complexity=self.model_complexity,
-            smooth_landmarks=self.smooth,
-            enable_segmentation=False,
-            smooth_segmentation=False,
-            refine_face_landmarks=True,
-        ) as model:
+        with (
+            Holistic(
+                static_image_mode=False,
+                model_complexity=self.model_complexity,
+                smooth_landmarks=self.smooth,
+                enable_segmentation=False,
+                smooth_segmentation=False,
+                refine_face_landmarks=True,
+            ) as model,
+            video.VideoReader(path=video_path) as video_reader,
+        ):
             for i, image in enumerate(
                 tqdm(
                     video_reader,
@@ -130,7 +131,7 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
                 disable=not self.verbose,
             )
         }
-        tar.dump(
+        tar.TarWriter.write(
             dictionary=poses,
             path=poses_path,
             overwrite=self.overwrite,
@@ -199,14 +200,6 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             }
         }
 
-        video_reader = video.VideoReader(path=video_path)
-        mask_writer = video.VideoWriter(
-            path=masks_path,
-            input_dict={"-r": video_reader.frame_rate},
-            output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
-            overwrite=self.overwrite,
-        )
-
         # We have to instantiate the model for every __call__, because of internal states.
         # Not that it is very costly anyway.
         with (
@@ -218,6 +211,13 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
                 smooth_segmentation=self.smooth,
                 refine_face_landmarks=True,
             ) as model,
+            video.VideoReader(path=video_path) as video_reader,
+            video.VideoWriter(
+                path=masks_path,
+                input_dict={"-r": video_reader.frame_rate},
+                output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
+                overwrite=self.overwrite,
+            ) as mask_writer,
         ):
             for i, image in enumerate(
                 tqdm(
@@ -238,7 +238,6 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
                     threshold=self.mask_threshold,
                 )
                 mask_writer.write(image=mask)
-        mask_writer.close()
 
         poses = {
             f"{k}.json": json.dumps(v)
@@ -248,7 +247,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
                 disable=not self.verbose,
             )
         }
-        tar.dump(
+        tar.TarWriter.write(
             dictionary=poses,
             path=poses_path,
             overwrite=self.overwrite,

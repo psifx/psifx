@@ -105,7 +105,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
                 disable=not self.verbose,
             )
         }
-        tar.dump(
+        tar.TarWriter.write(
             dictionary=dictionary,
             path=features_path,
             overwrite=self.overwrite,

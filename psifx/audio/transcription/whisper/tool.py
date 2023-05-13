@@ -5,25 +5,13 @@ from pathlib import Path
 from whisper import Whisper, load_model
 
 from psifx.audio.transcription.tool import TranscriptionTool
-from psifx.io.subtitles import (
-    TXTWriter,
-    VTTWriter,
-    SRTWriter,
-    TSVWriter,
-    JSONWriter,
-)
-
-
-WRITERS = {
-    w.suffix: w for w in [TXTWriter, VTTWriter, SRTWriter, TSVWriter, JSONWriter]
-}
+from psifx.io import vtt
 
 
 class WhisperTranscriptionTool(TranscriptionTool):
     def __init__(
         self,
         model_name: str = "small",
-        transcription_suffix: str = ".vtt",
         device: str = "cpu",
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
@@ -40,8 +28,6 @@ class WhisperTranscriptionTool(TranscriptionTool):
         self.model.eval()
         for param in self.model.parameters():
             param.requires_grad = False
-
-        self.writer = WRITERS[transcription_suffix]()
 
     def inference(
         self,
@@ -60,25 +46,18 @@ class WhisperTranscriptionTool(TranscriptionTool):
         # Nothing to do here, the model wants the path of the audio.
 
         # INFERENCE
-        transcription_results: Dict = self.model.transcribe(
+        segments = self.model.transcribe(
             audio=str(audio_path),
             task="transcribe",
             language=language,
             verbose=self.verbose > 1,
-        )
+        )["segments"]
 
         # POST-PROCESSING
-        # Nothing to do here, it is already formatted.
-
-        if transcription_path.exists():
-            if self.overwrite:
-                transcription_path.unlink()
-            else:
-                raise FileExistsError(transcription_path)
-        transcription_path.parent.mkdir(parents=True, exist_ok=True)
-        self.writer(
-            result=transcription_results,
+        vtt.VTTWriter.write(
+            segments=segments,
             path=transcription_path,
+            overwrite=self.overwrite,
         )
 
 
@@ -93,28 +72,10 @@ def inference_main():
         help="Path to the audio file.",
     )
     parser.add_argument(
-        "--diarization",
-        type=Path,
-        default=None,
-        help="Path to the input diarization or directory containing the input diarizations.",
-    )
-    parser.add_argument(
-        "--speaker_assignment",
-        type=Path,
-        default=None,
-        help="Path to the input speaker assignment or directory containing the input speaker assignments.",
-    )
-    parser.add_argument(
         "--transcription",
         type=Path,
         required=True,
         help="Path to the transcription file.",
-    )
-    parser.add_argument(
-        "--format",
-        type=str,
-        default="VTT",
-        help="Format of the transcription. Available formats: TXT, VTT, SRT, TSV, JSON",
     )
     parser.add_argument(
         "--language",
@@ -150,7 +111,6 @@ def inference_main():
 
     tool = WhisperTranscriptionTool(
         model_name=args.model_name,
-        transcription_suffix=f".{args.format.lower()}",
         device=args.device,
         overwrite=args.overwrite,
         verbose=args.verbose,

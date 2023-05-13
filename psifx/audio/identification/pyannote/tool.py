@@ -162,7 +162,7 @@ class PyannoteIdentificationTool(IdentificationTool):
             "mapping": best_mapping,
             "agreement": best_agreement,
         }
-        json.dump(
+        json.JSONWriter.write(
             data=data,
             path=identification_path,
             overwrite=self.overwrite,

@@ -47,7 +47,7 @@ class PoseEstimationTool(BaseTool):
 
         assert video_path != visualization_path
 
-        poses = tar.load(
+        poses = tar.TarReader.read(
             poses_path,
             verbose=self.verbose,
         )
@@ -71,42 +71,43 @@ class PoseEstimationTool(BaseTool):
             )
         }
 
-        video_reader = video.VideoReader(path=video_path)
-        visualization_writer = video.VideoWriter(
-            path=visualization_path,
-            input_dict={"-r": video_reader.frame_rate},
-            output_dict={
-                "-c:v": "libx264",
-                "-crf": "15",
-                "-pix_fmt": "yuv420p",
-            },
-            overwrite=self.overwrite,
-        )
-        for i, (image, pose) in enumerate(
-            zip(
-                tqdm(
-                    video_reader,
-                    desc="Processing",
-                    disable=not self.verbose,
-                ),
-                poses.values(),
-            )
+        with (
+            video.VideoReader(path=video_path) as video_reader,
+            video.VideoWriter(
+                path=visualization_path,
+                input_dict={"-r": video_reader.frame_rate},
+                output_dict={
+                    "-c:v": "libx264",
+                    "-crf": "15",
+                    "-pix_fmt": "yuv420p",
+                },
+                overwrite=self.overwrite,
+            ) as visualization_writer,
         ):
-            image = image.copy()
-            for key, value in pose.items():
-                value = np.array(value).reshape(-1, 3)
-                points = value[..., :-1]
-                confidences = value[..., -1:]
-                image = draw.draw_pose(
-                    image=image,
-                    points=points,
-                    confidences=confidences >= confidence_threshold,
-                    edges=edges[key],
-                    circle_radius=1 if "face" not in key else 0,
-                    line_thickness=1,
+            for i, (image, pose) in enumerate(
+                zip(
+                    tqdm(
+                        video_reader,
+                        desc="Processing",
+                        disable=not self.verbose,
+                    ),
+                    poses.values(),
                 )
-            visualization_writer.write(image=image)
-        visualization_writer.close()
+            ):
+                image = image.copy()
+                for key, value in pose.items():
+                    value = np.array(value).reshape(-1, 3)
+                    points = value[..., :-1]
+                    confidences = value[..., -1:]
+                    image = draw.draw_pose(
+                        image=image,
+                        points=points,
+                        confidences=confidences >= confidence_threshold,
+                        edges=edges[key],
+                        circle_radius=1 if "face" not in key else 0,
+                        line_thickness=1,
+                    )
+                visualization_writer.write(image=image)
 
 
 def visualization_main():

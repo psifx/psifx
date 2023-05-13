@@ -1,11 +1,9 @@
-from typing import Optional, Sequence, Union
+from typing import Sequence, Union
 
 from pathlib import Path
 
 import pandas as pd
 from pandas import DataFrame
-
-import json
 
 
 class RTTMReader(object):
@@ -15,7 +13,7 @@ class RTTMReader(object):
     ) -> DataFrame:
         path = Path(path)
 
-        assert path.exists()
+        assert path.suffix == ".rttm"
 
         dataframe = pd.read_csv(
             path,
@@ -57,6 +55,7 @@ class RTTMWriter(object):
     ):
         path = Path(path)
 
+        assert path.suffix == ".rttm"
         assert (
             len(type)
             == len(file_stem)
@@ -92,22 +91,3 @@ class RTTMWriter(object):
                 raise FileExistsError(path)
         path.parent.mkdir(parents=True, exist_ok=True)
         dataframe.to_csv(path, sep=" ", header=False, float_format="%.3f")
-
-
-def main():
-    path = Path(
-        "/home/guillaume/Datasets/UNIL/CH.102/Diarizations/CH.102.R.combined.rttm"
-    )
-    dataframe = RTTMReader.read(path)
-    dataframe["end"] = dataframe["start"] + dataframe["duration"]
-
-    for row in dataframe.iloc:
-        print(row)
-        print(row["start"])
-        print(row["end"])
-
-        break
-
-
-if __name__ == "__main__":
-    main()

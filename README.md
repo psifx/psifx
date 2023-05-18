@@ -7,7 +7,10 @@
 - Check that every input has the right format, e.g. encoding and extension.
 - Re-process the transcribed subtitles with the diarization output.
 - Implement the linguistic feature extraction for each of the participant.
-- Use the diarization of the combined track and the isolated tracks to infer the identity of each speaker in each track.
+- Make two small tools:
+  - Audio Conversion from any format to mono wav.
+  - Audio Concatenation: Sum of two tracks that are -6dB themselves.
+
 
 ---
 ## Setup

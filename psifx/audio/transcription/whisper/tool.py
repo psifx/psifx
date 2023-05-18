@@ -12,6 +12,7 @@ class WhisperTranscriptionTool(TranscriptionTool):
     def __init__(
         self,
         model_name: str = "small",
+        task: str = "transcribe",
         device: str = "cpu",
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
@@ -23,6 +24,7 @@ class WhisperTranscriptionTool(TranscriptionTool):
         )
 
         self.model_name = model_name
+        self.task = task
         self.model: Whisper = load_model(model_name, device=self.device)
         # Freeze the model.
         self.model.eval()
@@ -48,7 +50,7 @@ class WhisperTranscriptionTool(TranscriptionTool):
         # INFERENCE
         segments = self.model.transcribe(
             audio=str(audio_path),
-            task="transcribe",
+            task=self.task,
             language=language,
             verbose=self.verbose > 1,
         )["segments"]
@@ -81,13 +83,19 @@ def inference_main():
         "--language",
         type=str,
         default=None,
-        help="Language of the audio, if ignore, the model will try to guess it, it is advised to specify it. ",
+        help="Language of the audio, if ignore, the model will try to guess it, it is advised to specify it.",
     )
     parser.add_argument(
         "--model_name",
         type=str,
         default="small",
         help="Name of the model, check https://github.com/openai/whisper#available-models-and-languages.",
+    )
+    parser.add_argument(
+        "--translate_to_english",
+        default=False,
+        action=argparse.BooleanOptionalAction,
+        help="Whether to transcribe the audio in its original language or to translate it to english.",
     )
     parser.add_argument(
         "--device",
@@ -111,6 +119,7 @@ def inference_main():
 
     tool = WhisperTranscriptionTool(
         model_name=args.model_name,
+        task="transcribe" if not args.translate_to_english else "translate",
         device=args.device,
         overwrite=args.overwrite,
         verbose=args.verbose,

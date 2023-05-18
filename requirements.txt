@@ -6,3 +6,4 @@ tqdm
 pyannote-audio@git+https://github.com/pyannote/pyannote-audio.git#egg=b56add2
 openai-whisper
 pydub
+numpy==1.20

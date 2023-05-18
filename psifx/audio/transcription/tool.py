@@ -25,3 +25,12 @@ class TranscriptionTool(BaseTool):
     def visualization(self, *args, **kwargs):
         print("Just open the .vtt file with a video player like VLC.")
         raise NotImplementedError
+
+    def enhance(
+        self,
+        transcription_path: Union[str, Path],
+        diarization_path: Union[str, Path],
+        identification_path: Union[str, Path],
+        enhanced_transcription_path: Union[str, Path],
+    ):
+        pass

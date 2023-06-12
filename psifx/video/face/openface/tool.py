@@ -46,7 +46,8 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         assert video_path.is_file()
 
         tmp_dir = Path(f"/tmp/TEMP_{time.time()}")
-        tmp_dir.mkdir(parents=True, exist_ok=True)
+        tmp_dir.mkdir(parents=True)
+        # tmp_dir.mkdir(parents=True, exist_ok=True)
 
         args = f"{EXECUTABLE_PATH} -f {video_path} -out_dir {tmp_dir} {DEFAULT_OPTIONS}"
 
@@ -97,7 +98,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
 
         shutil.rmtree(tmp_dir)
 
-        dictionary = {
+        features = {
             f"{k}.json": json.dumps(v)
             for k, v in tqdm(
                 features.items(),
@@ -106,7 +107,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
             )
         }
         tar.TarWriter.write(
-            dictionary=dictionary,
+            dictionary=features,
             path=features_path,
             overwrite=self.overwrite,
             verbose=self.verbose,

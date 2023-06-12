@@ -48,6 +48,9 @@ class PyannoteIdentificationTool(IdentificationTool):
             verbose=verbose,
         )
 
+        if api_token is None:
+            api_token = "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"
+
         self.api_token = api_token
         self.models = {
             name: PretrainedSpeakerEmbedding(
@@ -60,22 +63,23 @@ class PyannoteIdentificationTool(IdentificationTool):
 
     def inference(
         self,
-        audio_path: Union[str, Path],
+        mixed_audio_path: Union[str, Path],
         diarization_path: Union[str, Path],
         mono_audio_paths: Sequence[Union[str, Path]],
         identification_path: Union[str, Path],
     ):
-        audio_path = Path(audio_path)
+        mixed_audio_path = Path(mixed_audio_path)
         diarization_path = Path(diarization_path)
         mono_audio_paths = [Path(path) for path in mono_audio_paths]
         identification_path = Path(identification_path)
 
-        assert audio_path not in mono_audio_paths
+        assert mixed_audio_path not in mono_audio_paths
         assert sorted(set(mono_audio_paths)) == sorted(mono_audio_paths)
 
-        dataframe = rttm.RTTMReader.read(path=diarization_path)
+        segments = rttm.RTTMReader.read(path=diarization_path, verbose=self.verbose)
+        dataframe = pd.DataFrame.from_records(segments)
+        dataframe["end"] = dataframe["start"] + dataframe["duration"]
 
-        n_rows, n_cols = dataframe.shape
         for name, model in tqdm(
             self.models.items(),
             desc="Processing",
@@ -84,34 +88,37 @@ class PyannoteIdentificationTool(IdentificationTool):
             distances = []
             valids = []
             for index in tqdm(
-                range(n_rows),
+                range(dataframe.shape[0]),
                 desc="Model Embedding",
                 disable=not self.verbose,
                 leave=False,
             ):
                 row = dataframe.iloc[index]
-                embedding = model(
-                    waveforms=cropped_waveform(
-                        path=audio_path,
-                        start=row["start"],
-                        end=row["end"],
-                    )[None, ...]
-                )
-                mono_embeddings = np.concatenate(
-                    [
-                        model(
-                            waveforms=cropped_waveform(
-                                path=single_audio_path,
-                                start=row["start"],
-                                end=row["end"],
-                            )[None, ...]
-                        )
-                        for single_audio_path in mono_audio_paths
-                    ]
-                )
-                delta = embedding - mono_embeddings
+                if row["duration"] < 0.300:
+                    distance = np.nan
+                else:
+                    mixed_embedding = model(
+                        waveforms=cropped_waveform(
+                            path=mixed_audio_path,
+                            start=row["start"],
+                            end=row["end"],
+                        )[None, ...]
+                    )
+                    mono_embeddings = np.concatenate(
+                        [
+                            model(
+                                waveforms=cropped_waveform(
+                                    path=path,
+                                    start=row["start"],
+                                    end=row["end"],
+                                )[None, ...]
+                            )
+                            for path in mono_audio_paths
+                        ]
+                    )
+                    delta = mixed_embedding - mono_embeddings
+                    distance = np.linalg.norm(delta, ord=2, axis=-1)
 
-                distance = np.linalg.norm(delta, ord=2, axis=-1)
                 valid = np.isfinite(distance).all()
 
                 distances.append(distance)
@@ -208,7 +215,7 @@ def inference_main():
             "speechbrain/spkrec-ecapa-voxceleb",
         ],
         help="Version number of the pyannote/speaker-diarization model, c.f. https://huggingface.co/pyannote/speaker-diarization/tree/main/reproducible_research",
-    )
+    )  # TODO
     parser.add_argument(
         "--api_token",
         type=str,
@@ -243,13 +250,9 @@ def inference_main():
         verbose=args.verbose,
     )
     tool.inference(
-        audio_path=args.audio,
+        mixed_audio_path=args.audio,
         diarization_path=args.diarization,
         mono_audio_paths=args.mono_audios,
         identification_path=args.identification,
     )
     del tool
-
-
-if __name__ == "__main__":
-    inference_main()

@@ -41,19 +41,22 @@ class DiarizationTool(BaseTool):
             print(f"diarization     =   {diarization_path}")
             print(f"visualization   =   {visualization_path}")
 
-        dataframe = rttm.RTTMReader.read(path=diarization_path)
+        segments = rttm.RTTMReader.read(path=diarization_path, verbose=True)
 
         annotation = Annotation.from_records(
             iter(
                 [
                     (
-                        Segment(start=row["start"], end=row["end"]),
+                        Segment(
+                            start=segment["start"],
+                            end=segment["start"] + segment["duration"],
+                        ),
                         index,
-                        row["speaker_name"],
+                        segment["speaker_name"],
                     )
-                    for index, row in enumerate(
+                    for index, segment in enumerate(
                         tqdm(
-                            dataframe.iloc[:],
+                            segments,
                             desc="Parsing",
                             disable=not self.verbose,
                         )

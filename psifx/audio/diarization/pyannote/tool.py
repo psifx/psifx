@@ -64,31 +64,28 @@ class PyannoteDiarizationTool(DiarizationTool):
                 num_speakers=num_speakers,
             )
 
-        starts = []
-        durations = []
-        speaker_names = []
-        for segment, track_name, speaker_name in tqdm(
-            results.itertracks(yield_label=True),
-            desc="Parsing",
-            disable=not self.verbose,
-        ):
-            starts.append(segment.start)
-            durations.append(segment.duration)
-            speaker_names.append(speaker_name)
-
-        num_tracks = len(starts)
+        segments = [
+            {
+                "type": "SPEAKER",
+                "file_stem": audio_path.stem,
+                "channel": 1,
+                "start": segment.start,
+                "duration": segment.duration,
+                "orthography": "<NA>",
+                "speaker_type": "<NA>",
+                "speaker_name": speaker_name,
+                "confidence_score": "<NA>",
+                "signal_lookahead_time": "<NA>",
+            }
+            for segment, track_name, speaker_name in tqdm(
+                results.itertracks(yield_label=True),
+                desc="Parsing",
+                disable=not self.verbose,
+            )
+        ]
         rttm.RTTMWriter.write(
             path=diarization_path,
-            type=["SPEAKER"] * num_tracks,
-            file_stem=[audio_path.stem] * num_tracks,
-            channel=[1] * num_tracks,
-            start=starts,
-            duration=durations,
-            orthography=["<NA>"] * num_tracks,
-            speaker_type=["<NA>"] * num_tracks,
-            speaker_name=speaker_names,
-            confidence_score=["<NA>"] * num_tracks,
-            signal_lookahead_time=["<NA>"] * num_tracks,
+            segments=segments,
             overwrite=self.overwrite,
         )
 

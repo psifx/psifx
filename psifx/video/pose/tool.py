@@ -36,6 +36,8 @@ class PoseEstimationTool(BaseTool):
         visualization_path: Union[str, Path],
         confidence_threshold: float = 0.0,
     ):
+        assert 0.0 <= confidence_threshold <= 1.0
+
         video_path = Path(video_path)
         poses_path = Path(poses_path)
         visualization_path = Path(visualization_path)
@@ -107,6 +109,7 @@ class PoseEstimationTool(BaseTool):
                         circle_radius=1 if "face" not in key else 0,
                         line_thickness=1,
                     )
+                    # TODO Single color for face? Ellipse with image relative thickness?
                 visualization_writer.write(image=image)
 
 

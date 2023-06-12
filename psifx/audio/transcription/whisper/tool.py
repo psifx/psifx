@@ -2,6 +2,7 @@ from typing import Union, Dict, Optional
 
 from pathlib import Path
 
+import torch
 from whisper import Whisper, load_model
 
 from psifx.audio.transcription.tool import TranscriptionTool
@@ -48,12 +49,13 @@ class WhisperTranscriptionTool(TranscriptionTool):
         # Nothing to do here, the model wants the path of the audio.
 
         # INFERENCE
-        segments = self.model.transcribe(
-            audio=str(audio_path),
-            task=self.task,
-            language=language,
-            verbose=self.verbose > 1,
-        )["segments"]
+        with torch.no_grad():
+            segments = self.model.transcribe(
+                audio=str(audio_path),
+                task=self.task,
+                language=language,
+                verbose=self.verbose > 1,
+            )["segments"]
 
         # POST-PROCESSING
         vtt.VTTWriter.write(

@@ -30,9 +30,12 @@ repository = "https://github.com/GuillaumeRochette/psifx"
 
 psifx-video-pose-visualization = "psifx.video.pose.tool:visualization_main"
 psifx-video-pose-mediapipe-inference = "psifx.video.pose.mediapipe.tool:inference_main"
+
 psifx-video-face-openface-inference = "psifx.video.face.openface.tool:inference_main"
 
-psifx-audio-extraction-inference = "psifx.audio.extraction.tool:inference_main"
+psifx-audio-manipulation-extraction = "psifx.audio.manipulation.tool:extraction_main"
+psifx-audio-manipulation-mixdown = "psifx.audio.manipulation.tool:mixdown_main"
+psifx-audio-manipulation-normalization = "psifx.audio.manipulation.tool:normalization_main"
 
 psifx-audio-diarization-visualization = "psifx.audio.diarization.tool:visualization_main"
 psifx-audio-diarization-pyannote-inference = "psifx.audio.diarization.pyannote.tool:inference_main"

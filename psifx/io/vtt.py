@@ -40,7 +40,8 @@ def timestamp2seconds(timestamp: str) -> float:
 class VTTReader(object):
     @staticmethod
     def read(
-        path: Union[str, Path], verbose: bool = True
+        path: Union[str, Path],
+        verbose: bool = True,
     ) -> Sequence[Dict[str, Union[float, str]]]:
         path = Path(path)
 
@@ -94,8 +95,8 @@ class VTTReader(object):
 class VTTWriter(object):
     @staticmethod
     def write(
-        segments: Sequence[Dict[str, Union[float, str]]],
         path: Union[str, Path],
+        segments: Sequence[Dict[str, Union[float, str]]],
         overwrite: bool = False,
         verbose: bool = True,
     ):

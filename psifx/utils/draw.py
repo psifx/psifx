@@ -337,7 +337,7 @@ def draw_pose(
     :param line_thickness:
     :return: [*, H, W, C]
     """
-    assert image.shape[:-3] == points.shape[:-2]
+    assert image.shape[:-3] == points.shape[:-2] == confidences.shape[:-2]
     assert points.shape[-1] == 2
 
     if line_thickness > 0:

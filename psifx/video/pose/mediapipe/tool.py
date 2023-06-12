@@ -149,6 +149,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
     ):
+        assert 0.0 <= mask_threshold <= 1.0
         super().__init__(
             model_complexity=model_complexity,
             smooth=smooth,
@@ -184,7 +185,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
     ):
         video_path = Path(video_path)
         poses_path = Path(poses_path)
-        masks_path = masks_path
+        masks_path = Path(masks_path)
 
         if self.verbose:
             print(f"video   =   {video_path}")

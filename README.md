@@ -10,8 +10,18 @@
 - Make two small tools:
   - Audio Conversion from any format to mono wav.
   - Audio Concatenation: Sum of two tracks that are -6dB themselves.
+- OpenSMILE
+  - Using either diarization or transcription segments:
+    - Amplitude windowing, e.g. scalar multiplication of the cos([0, pi/2]) for the first 30ms.
+    - Filter with a second order high-pass filter: https://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.butter.html
+      - Medium Analytics Vidhya
+    - Features level 3, all features.
 
 
+To extract from a video and split UNIL left and right stereo into two separate mono tracks, downsampled at 16 kHz:
+```bash
+ffmpeg -i video.mp4 -filter_complex "[0:a]pan=1c|c0=c0[left];[0:a]pan=1c|c0=c1[right]" -map "[left]" -ar 16000 left.wav -map "[right]" -ar 16000 left.wav
+```
 ---
 ## Setup
 
@@ -20,8 +30,7 @@
 To install `psifx` is a Python package, install the following:
 - Install the following system-wide:
 ```bash
-sudo apt install ffmpeg
-sudo apt install ubuntu-restricted-extras
+sudo apt install ffmpeg ubuntu-restricted-extras
 ```
 - Create a dedicated `conda` environment following the instructions in that order:
 ```bash

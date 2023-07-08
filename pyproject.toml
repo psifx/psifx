@@ -44,5 +44,7 @@ psifx-audio-identification-pyannote-inference = "psifx.audio.identification.pyan
 
 psifx-audio-transcription-whisper-inference = "psifx.audio.transcription.whisper.tool:inference_main"
 
+psifx-audio-speech-opensmile-inference = "psifx.audio.speech.opensmile.tool:inference_main"
+
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

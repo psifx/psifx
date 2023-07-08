@@ -8,13 +8,20 @@ from tqdm import tqdm
 
 class TarReader(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if ".tar" not in path.suffixes:
+            raise NameError(path)
+        if not path.exists():
+            raise FileNotFoundError(path)
+
+    @staticmethod
     def read(
         path: Union[str, Path],
         verbose: Union[bool, int] = True,
     ) -> Dict[str, Any]:
         path = Path(path)
-
-        assert ".tar" in path.suffixes
+        TarReader.check(path)
 
         with tarfile.open(path, mode="r") as tar:
             dictionary = {}
@@ -32,6 +39,12 @@ class TarReader(object):
 
 class TarWriter(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if ".tar" not in path.suffixes:
+            raise NameError(path)
+
+    @staticmethod
     def write(
         dictionary: Dict[str, Any],
         path: Union[str, Path],
@@ -39,8 +52,7 @@ class TarWriter(object):
         verbose: Union[bool, int] = True,
     ):
         path = Path(path)
-
-        assert ".tar" in path.suffixes
+        TarWriter.check(path)
 
         if path.exists():
             if overwrite:

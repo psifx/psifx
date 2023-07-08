@@ -39,13 +39,20 @@ def timestamp2seconds(timestamp: str) -> float:
 
 class VTTReader(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if path.suffix != ".vtt":
+            raise NameError(path)
+        if not path.exists():
+            raise FileNotFoundError(path)
+    
+    @staticmethod
     def read(
         path: Union[str, Path],
         verbose: bool = True,
     ) -> Sequence[Dict[str, Union[float, str]]]:
         path = Path(path)
-
-        assert path.suffix == ".vtt"
+        VTTReader.check(path)
 
         with path.open(encoding="utf-8") as file:
             lines = file.readlines()
@@ -94,6 +101,12 @@ class VTTReader(object):
 
 class VTTWriter(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if path.suffix != ".vtt":
+            raise NameError(path)
+
+    @staticmethod
     def write(
         path: Union[str, Path],
         segments: Sequence[Dict[str, Union[float, str]]],
@@ -101,8 +114,7 @@ class VTTWriter(object):
         verbose: bool = True,
     ):
         path = Path(path)
-
-        assert path.suffix == ".vtt"
+        VTTWriter.check(path)
 
         if path.exists():
             if overwrite:

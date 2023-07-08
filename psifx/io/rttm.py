@@ -22,13 +22,20 @@ COLUMN_NAMES = [
 
 class RTTMReader(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if path.suffix != ".rttm":
+            raise NameError(path)
+        if not path.exists():
+            raise FileNotFoundError(path)
+
+    @staticmethod
     def read(
         path: Union[str, Path],
         verbose: bool = True,
     ) -> List[Dict[str, Union[str, float]]]:
         path = Path(path)
-
-        assert path.suffix == ".rttm"
+        RTTMReader.check(path)
 
         dataframe = pd.read_csv(
             path,
@@ -60,14 +67,19 @@ class RTTMReader(object):
 
 class RTTMWriter(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if path.suffix != ".rttm":
+            raise NameError(path)
+
+    @staticmethod
     def write(
         path: Union[str, Path],
         segments: List[Dict[str, Union[str, float]]],
         overwrite: bool = False,
     ):
         path = Path(path)
-
-        assert path.suffix == ".rttm"
+        RTTMWriter.check(path)
 
         dataframe = pd.DataFrame.from_records(segments)
 

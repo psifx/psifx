@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 import json
 from pathlib import Path
@@ -7,13 +7,20 @@ from tqdm import tqdm
 
 class JSONReader(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if path.suffix != ".json":
+            raise NameError(path)
+        if not path.exists():
+            raise FileNotFoundError(path)
+
+    @staticmethod
     def read(
         path: Union[str, Path],
         verbose: Union[bool, int] = True,
     ) -> Union[List, Dict]:
         path = Path(path)
-
-        assert path.suffix == ".json"
+        JSONReader.check(path)
 
         with path.open(mode="r") as file:
             for i in tqdm(
@@ -28,6 +35,12 @@ class JSONReader(object):
 
 class JSONWriter(object):
     @staticmethod
+    def check(path: Union[str, Path]):
+        path = Path(path)
+        if path.suffix != ".json":
+            raise NameError(path)
+
+    @staticmethod
     def write(
         data: Union[List, Dict],
         path: Union[str, Path],
@@ -35,8 +48,7 @@ class JSONWriter(object):
         verbose: Union[bool, int] = True,
     ):
         path = Path(path)
-
-        assert path.suffix == ".json"
+        JSONWriter.check(path)
 
         if path.exists():
             if overwrite:

@@ -37,8 +37,6 @@ sudo apt install ffmpeg ubuntu-restricted-extras
 CONDA_ENV_NAME="name-of-my-environment"
 conda create -y -n $CONDA_ENV_NAME python=3.9 pip
 conda activate $CONDA_ENV_NAME
-conda install -y ffmpeg x264 -c conda-forge # To be able to encode with H264.
-conda install -y pytorch=1.13.1 torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvidia # Then install PyTorch 
 ```
 - Now install `psifx`:
 ```bash

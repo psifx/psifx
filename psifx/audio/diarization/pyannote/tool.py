@@ -3,11 +3,12 @@ from typing import Optional, Union
 from pathlib import Path
 from tqdm import tqdm
 
+import torch
 from pyannote.audio import Pipeline
 from pyannote.core import Annotation
 
 from psifx.audio.diarization.tool import DiarizationTool
-from psifx.io import rttm
+from psifx.io import rttm, wav
 
 
 class PyannoteDiarizationTool(DiarizationTool):
@@ -34,7 +35,7 @@ class PyannoteDiarizationTool(DiarizationTool):
         self.model: Pipeline = Pipeline.from_pretrained(
             checkpoint_path=f"pyannote/speaker-diarization@{model_name}",
             use_auth_token=api_token,
-        ).to(device=device)
+        ).to(device=torch.device(device))
 
     def inference(
         self,
@@ -48,6 +49,9 @@ class PyannoteDiarizationTool(DiarizationTool):
         if self.verbose:
             print(f"audio           =   {audio_path}")
             print(f"diarization     =   {diarization_path}")
+
+        wav.WAVReader.check(audio_path)
+        rttm.RTTMWriter.check(diarization_path)
 
         # PRE-PROCESSING
         # Nothing to do here, the model wants the path of the audio.

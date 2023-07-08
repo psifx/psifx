@@ -6,7 +6,7 @@ import torch
 from whisper import Whisper, load_model
 
 from psifx.audio.transcription.tool import TranscriptionTool
-from psifx.io import vtt
+from psifx.io import vtt, wav
 
 
 class WhisperTranscriptionTool(TranscriptionTool):
@@ -44,6 +44,9 @@ class WhisperTranscriptionTool(TranscriptionTool):
         if self.verbose:
             print(f"audio           =   {audio_path}")
             print(f"transcription   =   {transcription_path}")
+
+        wav.WAVReader.check(audio_path)
+        vtt.VTTWriter.check(transcription_path)
 
         # PRE-PROCESSING
         # Nothing to do here, the model wants the path of the audio.

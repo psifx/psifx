@@ -15,7 +15,7 @@ from pyannote.audio.pipelines.speaker_verification import PretrainedSpeakerEmbed
 from pyannote.core import Segment
 
 from psifx.audio.identification.tool import IdentificationTool
-from psifx.io import rttm, json
+from psifx.io import rttm, json, wav
 
 
 def cropped_waveform(
@@ -75,6 +75,12 @@ class PyannoteIdentificationTool(IdentificationTool):
 
         assert mixed_audio_path not in mono_audio_paths
         assert sorted(set(mono_audio_paths)) == sorted(mono_audio_paths)
+
+        wav.WAVReader.check(mixed_audio_path)
+        rttm.RTTMReader.check(diarization_path)
+        for p in mono_audio_paths:
+            wav.WAVReader.check(p)
+        json.JSONWriter.check(identification_path)
 
         segments = rttm.RTTMReader.read(path=diarization_path, verbose=self.verbose)
         dataframe = pd.DataFrame.from_records(segments)

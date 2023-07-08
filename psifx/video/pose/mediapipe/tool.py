@@ -87,6 +87,8 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
             print(f"video   =   {video_path}")
             print(f"poses   =   {poses_path}")
 
+        tar.TarWriter.check(poses_path)
+
         poses = {
             "edges": {
                 "pose_keypoints_2d": skeleton.POSE_EDGES,
@@ -191,6 +193,8 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             print(f"video   =   {video_path}")
             print(f"poses   =   {poses_path}")
             print(f"masks   =   {masks_path}")
+
+        tar.TarWriter.check(poses_path)
 
         poses = {
             "edges": {

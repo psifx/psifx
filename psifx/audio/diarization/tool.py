@@ -41,6 +41,8 @@ class DiarizationTool(BaseTool):
             print(f"diarization     =   {diarization_path}")
             print(f"visualization   =   {visualization_path}")
 
+        rttm.RTTMReader.check(diarization_path)
+
         segments = rttm.RTTMReader.read(path=diarization_path, verbose=True)
 
         annotation = Annotation.from_records(

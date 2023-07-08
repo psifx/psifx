@@ -44,6 +44,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
             print(f"features    =   {features_path}")
 
         assert video_path.is_file()
+        tar.TarWriter.check(features_path)
 
         tmp_dir = Path(f"/tmp/TEMP_{time.time()}")
         tmp_dir.mkdir(parents=True)

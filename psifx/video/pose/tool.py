@@ -48,6 +48,7 @@ class PoseEstimationTool(BaseTool):
             print(f"visualization   =   {visualization_path}")
 
         assert video_path != visualization_path
+        tar.TarReader.check(poses_path)
 
         poses = tar.TarReader.read(
             poses_path,

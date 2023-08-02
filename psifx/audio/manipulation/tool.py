@@ -57,7 +57,7 @@ class ManipulationTool(BaseTool):
 
         if self.verbose:
             print(f"audio           =   {audio_path}")
-            print(f"converted_audio =   {mono_audio_path}")
+            print(f"mono_audio      =   {mono_audio_path}")
 
         mono_audios = [
             audio.apply_gain(-audio.max_dBFS - 6.0)
@@ -85,8 +85,8 @@ class ManipulationTool(BaseTool):
         mixed_audio_path = Path(mixed_audio_path)
 
         if self.verbose:
-            print(f"mono_audios     = {[str(path) for path in mono_audio_paths]}")
-            print(f"mixed_audio     = {mixed_audio_path}")
+            print(f"mono_audios     =   {[str(path) for path in mono_audio_paths]}")
+            print(f"mixed_audio     =   {mixed_audio_path}")
 
         mono_audios = [AudioSegment.from_wav(path) for path in mono_audio_paths]
         mono_audios = [audio.apply_gain(-audio.max_dBFS - 6.0) for audio in mono_audios]
@@ -125,121 +125,3 @@ class ManipulationTool(BaseTool):
                 raise FileExistsError(normalized_audio_path)
         normalized_audio_path.parent.mkdir(parents=True, exist_ok=True)
         normalized_audio.export(normalized_audio_path, format="wav")
-
-
-def extraction_main():
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--video",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--audio",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--overwrite",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Overwrite existing files, otherwise raises an error.",
-    )
-    parser.add_argument(
-        "--verbose",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Verbosity of the script.",
-    )
-    args = parser.parse_args()
-
-    tool = ManipulationTool(
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
-    tool.extraction(
-        video_path=args.video,
-        audio_path=args.audio,
-    )
-    del tool
-
-
-def mixdown_main():
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--mono_audios",
-        nargs="+",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--mixed_audio",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--overwrite",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Overwrite existing files, otherwise raises an error.",
-    )
-    parser.add_argument(
-        "--verbose",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Verbosity of the script.",
-    )
-    args = parser.parse_args()
-
-    tool = ManipulationTool(
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
-    tool.mixdown(
-        mono_audio_paths=args.mono_audios,
-        mixed_audio_path=args.mixed_audio,
-    )
-    del tool
-
-
-def normalization_main():
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--audio",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--normalized_audio",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--overwrite",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Overwrite existing files, otherwise raises an error.",
-    )
-    parser.add_argument(
-        "--verbose",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Verbosity of the script.",
-    )
-    args = parser.parse_args()
-
-    tool = ManipulationTool(
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
-    tool.normalization(
-        audio_path=args.audio,
-        normalized_audio_path=args.normalized_audio,
-    )
-    del tool

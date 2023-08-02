@@ -9,8 +9,8 @@ description = "Psychological and Social Interactions Feature Extraction"
 readme = "README.md"
 requires-python = ">=3.7"
 authors = [
-    {name="Guillaume Rochette", email="guillaume.rochette@unil.ch"},
-    {name="Matthew Vowels", email="matthew.vowels@unil.ch"},
+    { name = "Guillaume Rochette", email = "guillaume.rochette@unil.ch" },
+    { name = "Matthew Vowels", email = "matthew.vowels@unil.ch" },
 ]
 keywords = ["TODO"]
 classifiers = [
@@ -27,24 +27,7 @@ documentation = "https://github.com/GuillaumeRochette/psifx"
 repository = "https://github.com/GuillaumeRochette/psifx"
 
 [project.scripts]
-
-psifx-video-pose-visualization = "psifx.video.pose.tool:visualization_main"
-psifx-video-pose-mediapipe-inference = "psifx.video.pose.mediapipe.tool:inference_main"
-
-psifx-video-face-openface-inference = "psifx.video.face.openface.tool:inference_main"
-
-psifx-audio-manipulation-extraction = "psifx.audio.manipulation.tool:extraction_main"
-psifx-audio-manipulation-mixdown = "psifx.audio.manipulation.tool:mixdown_main"
-psifx-audio-manipulation-normalization = "psifx.audio.manipulation.tool:normalization_main"
-
-psifx-audio-diarization-visualization = "psifx.audio.diarization.tool:visualization_main"
-psifx-audio-diarization-pyannote-inference = "psifx.audio.diarization.pyannote.tool:inference_main"
-
-psifx-audio-identification-pyannote-inference = "psifx.audio.identification.pyannote.tool:inference_main"
-
-psifx-audio-transcription-whisper-inference = "psifx.audio.transcription.whisper.tool:inference_main"
-
-psifx-audio-speech-opensmile-inference = "psifx.audio.speech.opensmile.tool:inference_main"
+psifx = "psifx.command:main"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}

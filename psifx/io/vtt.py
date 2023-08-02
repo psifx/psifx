@@ -45,7 +45,7 @@ class VTTReader(object):
             raise NameError(path)
         if not path.exists():
             raise FileNotFoundError(path)
-    
+
     @staticmethod
     def read(
         path: Union[str, Path],

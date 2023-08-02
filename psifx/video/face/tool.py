@@ -2,10 +2,10 @@ from typing import Union
 
 from pathlib import Path
 
-from psifx.tool import BaseTool
+from psifx.video.tool import VideoTool
 
 
-class FaceAnalysisTool(BaseTool):
+class FaceAnalysisTool(VideoTool):
     def inference(
         self,
         video_path: Union[str, Path],

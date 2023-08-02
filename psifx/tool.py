@@ -11,9 +11,3 @@ class BaseTool(object):
         self.device = device
         self.overwrite = overwrite
         self.verbose = verbose
-
-    def inference(self, *args, **kwargs):
-        raise NotImplementedError
-
-    def visualization(self, *args, **kwargs):
-        raise NotImplementedError

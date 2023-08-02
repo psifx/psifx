@@ -318,8 +318,8 @@ def draw_lines(
 def draw_pose(
     image: ndarray,
     points: ndarray,
-    confidences: ndarray,
     edges: Tuple[Tuple[int, int], ...],
+    confidences: Optional[ndarray] = None,
     circle_colors: Optional[ndarray] = None,
     circle_radius: int = 1,
     line_colors: Optional[ndarray] = None,
@@ -337,6 +337,9 @@ def draw_pose(
     :param line_thickness:
     :return: [*, H, W, C]
     """
+    if confidences is None:
+        confidences = np.ones(points.shape[:-1] + (1,), dtype=np.bool_)
+
     assert image.shape[:-3] == points.shape[:-2] == confidences.shape[:-2]
     assert points.shape[-1] == 2
 

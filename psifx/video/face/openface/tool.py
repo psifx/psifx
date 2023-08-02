@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional, Union
 
 import shlex
 import shutil
@@ -12,14 +12,15 @@ import pandas as pd
 import numpy as np
 
 from psifx.video.face.tool import FaceAnalysisTool
-from psifx.video.face.openface.fields import CLEAN_FIELDS, DIRTY_FIELDS
-from psifx.io import tar
+from psifx.video.face.openface import skeleton, fields
+from psifx.io import tar, video
+from psifx.utils import draw
 
 EXECUTABLE_PATH = Path(shutil.which("FeatureExtraction")).resolve(strict=True)
 DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
 
 
-class OpenFaceAnalysisTool(FaceAnalysisTool):
+class OpenFaceTool(FaceAnalysisTool):
     def __init__(
         self,
         overwrite: bool = False,
@@ -48,7 +49,6 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
 
         tmp_dir = Path(f"/tmp/TEMP_{time.time()}")
         tmp_dir.mkdir(parents=True)
-        # tmp_dir.mkdir(parents=True, exist_ok=True)
 
         args = f"{EXECUTABLE_PATH} -f {video_path} -out_dir {tmp_dir} {DEFAULT_OPTIONS}"
 
@@ -81,11 +81,20 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
 
         clean_dataframe = pd.DataFrame()
         clean_dataframe["index"] = dirty_dataframe["frame"] - 1
-        for clean, dirty in zip(CLEAN_FIELDS, DIRTY_FIELDS):
+        for clean, dirty in zip(fields.CLEAN_FIELDS, fields.DIRTY_FIELDS):
             clean_dataframe[clean] = dirty_dataframe[dirty].values.tolist()
 
         n_rows, n_cols = clean_dataframe.shape
-        features = {}
+        features = {
+            "edges": {
+                "eye_right_keypoints_2d": skeleton.EYE_EDGES,
+                "eye_left_keypoints_2d": skeleton.EYE_EDGES,
+                "eye_right_keypoints_3d": skeleton.EYE_EDGES,
+                "eye_left_keypoints_3d": skeleton.EYE_EDGES,
+                "face_keypoints_2d": skeleton.FACE_EDGES,
+                "face_keypoints_3d": skeleton.FACE_EDGES,
+            }
+        }
         for i in tqdm(
             range(n_rows),
             desc="Parsing",
@@ -94,7 +103,7 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
             index = clean_dataframe["index"][i]
             features[f"{index: 015d}"] = {
                 field: np.array(clean_dataframe[field][i]).flatten().tolist()
-                for field in CLEAN_FIELDS
+                for field in fields.CLEAN_FIELDS
             }
 
         shutil.rmtree(tmp_dir)
@@ -119,44 +128,130 @@ class OpenFaceAnalysisTool(FaceAnalysisTool):
         video_path: Union[str, Path],
         features_path: Union[str, Path],
         visualization_path: Union[str, Path],
+        depth: Optional[float] = 3.0,
+        f_x: Optional[float] = None,
+        f_y: Optional[float] = None,
+        c_x: Optional[float] = None,
+        c_y: Optional[float] = None,
     ):
-        raise NotImplementedError
+        video_path = Path(video_path)
+        features_path = Path(features_path)
+        visualization_path = Path(visualization_path)
 
+        if self.verbose:
+            print(f"video           =   {video_path}")
+            print(f"features        =   {features_path}")
+            print(f"visualization   =   {visualization_path}")
 
-def inference_main():
-    import argparse
+        assert video_path != visualization_path
+        tar.TarReader.check(features_path)
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--video",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--features",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--overwrite",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Overwrite existing files, otherwise raises an error.",
-    )
-    parser.add_argument(
-        "--verbose",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Verbosity of the script.",
-    )
-    args = parser.parse_args()
+        calibration = all(p is not None for p in [f_x, f_y, c_x, c_y])
+        no_calibration = all(p is None for p in [f_x, f_y, c_x, c_y])
+        assert calibration or no_calibration
 
-    tool = OpenFaceAnalysisTool(
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
-    tool.inference(
-        video_path=args.video,
-        features_path=args.features,
-    )
-    del tool
+        features = tar.TarReader.read(
+            features_path,
+            verbose=self.verbose,
+        )
+
+        try:
+            edges = features.pop("edges.json")
+            edges = json.loads(edges)
+            edges = {k: tuple(v) for k, v in edges.items()}
+        except KeyError:
+            print("Missing or incorrect edges.json, only the landmarks will be drawn.")
+            pose = next(iter(features.values()))
+            pose = json.loads(pose)
+            edges = {key: () for key, value in pose.items()}
+
+        features = {
+            int(k.replace(".json", "")): json.loads(v)
+            for k, v in tqdm(
+                features.items(),
+                desc="Decoding",
+                disable=not self.verbose,
+            )
+        }
+
+        with (
+            video.VideoReader(path=video_path) as video_reader,
+            video.VideoWriter(
+                path=visualization_path,
+                input_dict={"-r": video_reader.frame_rate},
+                output_dict={
+                    "-c:v": "libx264",
+                    "-crf": "15",
+                    "-pix_fmt": "yuv420p",
+                },
+                overwrite=self.overwrite,
+            ) as visualization_writer,
+        ):
+            for i, (image, feature) in enumerate(
+                zip(
+                    tqdm(
+                        video_reader,
+                        desc="Processing",
+                        disable=not self.verbose,
+                    ),
+                    features.values(),
+                )
+            ):
+                image = image.copy()
+                for key in [
+                    "face_keypoints_2d",
+                    "eye_right_keypoints_2d",
+                    "eye_left_keypoints_2d",
+                ]:
+                    points = np.array(feature[key]).reshape(-1, 2)
+                    image = draw.draw_pose(
+                        image=image,
+                        points=points,
+                        edges=edges[key],
+                        circle_radius=1 if "face" not in key else 0,
+                        line_thickness=1,
+                    )
+                h, w, c = image.shape
+
+                if no_calibration:
+                    f_x = 1600.0 / 1920.0 * w
+                    f_y = 1600.0 / 1080.0 * h
+                    c_x = w / 2
+                    c_y = h / 2
+
+                K = np.array(
+                    [
+                        [f_x, 0.0, c_x],
+                        [0.0, f_y, c_y],
+                        [0.0, 0.0, 1.0],
+                    ]
+                )
+                K_inverse = np.linalg.inv(K)
+
+                def gaze_vector_2d(eye_keypoints_key: str, gaze_key: str):
+                    points_2d = np.array(feature[eye_keypoints_key]).reshape(-1, 2)
+                    eye_center_2d = points_2d[[21, 23, 25, 27]].mean(axis=-2)
+                    eye_center_2d = np.concatenate([eye_center_2d, np.ones(1)])
+                    eye_center_3d = depth * K_inverse @ eye_center_2d
+                    gaze_3d = eye_center_3d + 0.1 * np.array(feature[gaze_key])
+                    gaze_2d = (K @ (gaze_3d / np.maximum(gaze_3d[-1], 1e-8)))[:-1]
+                    return eye_center_2d, gaze_2d
+
+                center_right, gaze_right = gaze_vector_2d(
+                    eye_keypoints_key="eye_right_keypoints_2d",
+                    gaze_key="gaze_right_3d",
+                )
+                center_left, gaze_left = gaze_vector_2d(
+                    eye_keypoints_key="eye_left_keypoints_2d",
+                    gaze_key="gaze_left_3d",
+                )
+
+                image = draw.draw_pose(
+                    image=image,
+                    points=np.stack([center_right, gaze_right, center_left, gaze_left]),
+                    edges=((0, 1), (2, 3)),
+                    circle_radius=1,
+                    line_thickness=1,
+                )
+
+                visualization_writer.write(image=image)

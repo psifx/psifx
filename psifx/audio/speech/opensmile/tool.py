@@ -85,7 +85,10 @@ class OpenSmileSpeechTool(SpeechTool):
             end = int(end * 1000)
             cropped = audio[start:end].fade_in(duration=30).fade_out(duration=30)
             waveform = audio_segment_to_waveform(audio=cropped)
-            feature = self.smile.process_signal(signal=waveform, sampling_rate=audio.frame_rate,)
+            feature = self.smile.process_signal(
+                signal=waveform,
+                sampling_rate=audio.frame_rate,
+            )
             features.append(feature)
         features = pd.concat(features)
 
@@ -95,66 +98,3 @@ class OpenSmileSpeechTool(SpeechTool):
             overwrite=self.overwrite,
             verbose=self.verbose,
         )
-
-
-def inference_main():
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--audio",
-        type=Path,
-        required=True,
-        help="Path to the audio file.",
-    )
-    parser.add_argument(
-        "--diarization",
-        type=Path,
-        required=True,
-        help="Path to the diarization file.",
-    )
-    parser.add_argument(
-        "--features",
-        type=Path,
-        required=True,
-        help="Path to the features file.",
-    )
-    parser.add_argument(
-        "--feature_set",
-        type=str,
-        default="ComParE_2016",
-        help=f"Available sets: {list(FEATURE_SETS.keys())}",
-    )
-    parser.add_argument(
-        "--feature_level",
-        type=str,
-        default="func",
-        help=f"Available levels: {list(FEATURE_LEVELS.keys())}",
-    )
-    parser.add_argument(
-        "--overwrite",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Overwrite existing files, otherwise raises an error.",
-    )
-    parser.add_argument(
-        "--verbose",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Verbosity of the script.",
-    )
-    args = parser.parse_args()
-
-    tool = OpenSmileSpeechTool(
-        feature_set=args.feature_set,
-        feature_level=args.feature_level,
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
-    tool.inference(
-        audio_path=args.audio,
-        diarization_path=args.diarization,
-        features_path=args.features,
-    )
-    del tool
-

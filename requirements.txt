@@ -1,14 +1,13 @@
+argcomplete
 ffmpeg-python
 mediapipe
-numpy==1.20
 openai-whisper
 opensmile
-pyannote-audio@git+https://github.com/pyannote/pyannote-audio.git#egg=b56add2
+pyannote-audio @ git+https://github.com/pyannote/pyannote-audio.git@bc0920f
 pydub
 scikit-image
-scikit-video
-#torch==1.13.1
-torch
+scikit-video @ git+https://github.com/rk-exxec/scikit-video.git@de2a668
+torch==2.0.1
 torchvision
 torchaudio
 tqdm

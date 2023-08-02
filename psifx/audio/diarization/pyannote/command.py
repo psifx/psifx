@@ -1,0 +1,97 @@
+import argparse
+from pathlib import Path
+
+from psifx.audio.diarization.pyannote.tool import PyannoteDiarizationTool
+from psifx.command import Command, register_command
+
+
+class PyannoteCommand(Command):
+    """
+    Tool for running Pyannote.
+    """
+
+    @staticmethod
+    def setup(parser: argparse.ArgumentParser):
+        subparsers = parser.add_subparsers(title="available commands")
+
+        from psifx.audio.diarization.command import VisualizationCommand
+
+        register_command(subparsers, "inference", PyannoteInferenceCommand)
+        register_command(subparsers, "visualization", VisualizationCommand)
+
+    @staticmethod
+    def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        parser.print_help()
+
+
+class PyannoteInferenceCommand(Command):
+    """
+    Tool for diarizing an audio track with Pyannote.
+    """
+
+    @staticmethod
+    def setup(parser: argparse.ArgumentParser):
+        parser.add_argument(
+            "--audio",
+            type=Path,
+            required=True,
+            help="Path to the audio file.",
+        )
+        parser.add_argument(
+            "--diarization",
+            type=Path,
+            required=True,
+            help="Path to the diarization file.",
+        )
+        parser.add_argument(
+            "--num_speakers",
+            type=int,
+            default=None,
+            help="Number of speaking participants, if ignored the model will try to guess it, it is advised to specify it. ",
+        )
+        parser.add_argument(
+            "--model_name",
+            type=str,
+            default="2.1.1",
+            help="Version number of the pyannote/speaker-diarization model, c.f. https://huggingface.co/pyannote/speaker-diarization/tree/main/reproducible_research",
+        )
+        parser.add_argument(
+            "--api_token",
+            type=str,
+            default=None,
+            help="API token for the downloading the models from HuggingFace.",
+        )
+        parser.add_argument(
+            "--device",
+            type=str,
+            default="cpu",
+            help="Device on which to run the inference, either 'cpu' or 'cuda'.",
+        )
+        parser.add_argument(
+            "--overwrite",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="Overwrite existing files, otherwise raises an error.",
+        )
+        parser.add_argument(
+            "--verbose",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="Verbosity of the script.",
+        )
+
+    @staticmethod
+    def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        tool = PyannoteDiarizationTool(
+            model_name=args.model_name,
+            api_token=args.api_token,
+            device=args.device,
+            overwrite=args.overwrite,
+            verbose=args.verbose,
+        )
+        tool.inference(
+            audio_path=args.audio,
+            diarization_path=args.diarization,
+            num_speakers=args.num_speakers,
+        )
+        del tool

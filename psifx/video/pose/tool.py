@@ -6,12 +6,12 @@ import json
 
 import numpy as np
 
-from psifx.tool import BaseTool
+from psifx.video.tool import VideoTool
 from psifx.utils import draw
 from psifx.io import tar, video
 
 
-class PoseEstimationTool(BaseTool):
+class PoseEstimationTool(VideoTool):
     def inference(
         self,
         video_path: Union[str, Path],
@@ -105,62 +105,10 @@ class PoseEstimationTool(BaseTool):
                     image = draw.draw_pose(
                         image=image,
                         points=points,
-                        confidences=confidences >= confidence_threshold,
                         edges=edges[key],
+                        confidences=confidences >= confidence_threshold,
                         circle_radius=1 if "face" not in key else 0,
                         line_thickness=1,
                     )
                     # TODO Single color for face? Ellipse with image relative thickness?
                 visualization_writer.write(image=image)
-
-
-def visualization_main():
-    import argparse
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--video",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--poses",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--visualization",
-        type=Path,
-        required=True,
-    )
-    parser.add_argument(
-        "--confidence_threshold",
-        type=float,
-        default=0.0,
-    )
-    parser.add_argument(
-        "--overwrite",
-        default=False,
-        action=argparse.BooleanOptionalAction,
-        help="Overwrite existing files, otherwise raises an error.",
-    )
-    parser.add_argument(
-        "--verbose",
-        default=True,
-        action=argparse.BooleanOptionalAction,
-        help="Verbosity of the script.",
-    )
-    args = parser.parse_args()
-
-    tool = PoseEstimationTool(
-        device="cpu",
-        overwrite=args.overwrite,
-        verbose=args.verbose,
-    )
-    tool.visualization(
-        video_path=args.video,
-        poses_path=args.poses,
-        visualization_path=args.visualization,
-        confidence_threshold=args.confidence_threshold,
-    )
-    del tool

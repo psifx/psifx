@@ -34,6 +34,7 @@ dependencies = {file = ["requirements.txt"]}
 
 [tool.pylint]
 disable = [
+    "E0611",
     "E1101",
     "C0114",
     "C0415",

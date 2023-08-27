@@ -8,15 +8,14 @@ We recommend using the Docker image for compatibility.
 
 ---
 
-### Using Docker
+### Docker Installation
 
 1. Install [Docker Engine](https://docs.docker.com/engine/install/#server) and make sure to follow
    the [post-install instructions](https://docs.docker.com/engine/install/linux-postinstall/). Otherwise,
    install [Docker Desktop](https://docs.docker.com/desktop/).
 2. If you have a GPU and want to use it to accelerate compute:
     1. Install [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-downloads).
-    2.
-    Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html).
+    2. Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/index.html).
 3. Pull the latest image and run it on your machine:
    ```bash
    docker pull guillaumerochette/psifx:latest
@@ -30,9 +29,7 @@ We recommend using the Docker image for compatibility.
        psifx ...
    ```
 
-### Local
-
-To install `psifx` is a Python package, install the following:
+### Local Installation
 
 1. Install the following system-wide:
    ```bash
@@ -53,7 +50,6 @@ To install `psifx` is a Python package, install the following:
    academic, research or non-commercial purposes.
     1. Install the following system-wide:
        ```bash
-       # Install these system-wide.
        sudo apt install \
        build-essential \
        cmake \

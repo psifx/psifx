@@ -54,7 +54,6 @@ def _draw_circles(
     assert points.shape[-2] == colors.shape[-2]
     assert image.shape[-1] == colors.shape[-1]
 
-    h, w, _ = image.shape
     n, _ = points.shape
 
     image = image.copy()
@@ -145,7 +144,7 @@ def draw_points(
     points = points.reshape((-1,) + points.shape[-2:])
     points = points.round().astype(dtype=np.int64)
 
-    b, _, _, c = image.shape
+    b, _, _, _ = image.shape
     _, n, _ = points.shape
 
     if colors is None:
@@ -186,7 +185,6 @@ def _draw_lines(
     assert start_points.shape[-2] == end_points.shape[-2] == colors.shape[-2]
     assert image.shape[-1] == colors.shape[-1]
 
-    h, w, _ = image.shape
     n, _ = start_points.shape
 
     image = image.copy()
@@ -292,7 +290,7 @@ def draw_lines(
     start_points = start_points.round().astype(dtype=np.int64)
     end_points = end_points.round().astype(dtype=np.int64)
 
-    b, _, _, c = image.shape
+    b, _, _, _ = image.shape
     _, n, _ = start_points.shape
 
     if colors is None:

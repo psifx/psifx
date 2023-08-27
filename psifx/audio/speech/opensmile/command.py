@@ -36,43 +36,43 @@ class OpenSmileInferenceCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="Path to the audio file.",
+            help="path to the audio",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="Path to the diarization file.",
+            help="path to the diarization",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="Path to the features file.",
+            help="path to the feature archive",
         )
         parser.add_argument(
             "--feature_set",
             type=str,
             default="ComParE_2016",
-            help=f"Available sets: {list(FEATURE_SETS.keys())}",
+            help=f"available sets: {list(FEATURE_SETS.keys())}",
         )
         parser.add_argument(
             "--feature_level",
             type=str,
             default="func",
-            help=f"Available levels: {list(FEATURE_LEVELS.keys())}",
+            help=f"available levels: {list(FEATURE_LEVELS.keys())}",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

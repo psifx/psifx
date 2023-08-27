@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional, Union
+from typing import Dict, Optional, Union
 
 from pathlib import Path
 
@@ -8,6 +8,10 @@ from skvideo.io import FFmpegReader, FFmpegWriter
 
 
 class VideoReader(FFmpegReader):
+    """
+    Video reader object.
+    """
+
     def __init__(
         self,
         path: Union[str, Path],
@@ -32,6 +36,10 @@ class VideoReader(FFmpegReader):
 
 
 class VideoWriter(FFmpegWriter):
+    """
+    Video writer object.
+    """
+
     def __init__(
         self,
         path: Union[str, Path],
@@ -55,4 +63,9 @@ class VideoWriter(FFmpegWriter):
         )
 
     def write(self, image: ndarray):
+        """
+        Appends an image to the existing video
+        :param image: [H, W, 3] ndarray.
+        :return:
+        """
         self.writeFrame(im=image)

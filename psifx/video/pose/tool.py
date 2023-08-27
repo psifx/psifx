@@ -1,8 +1,8 @@
 from typing import Union
 
+import json
 from pathlib import Path
 from tqdm import tqdm
-import json
 
 import numpy as np
 
@@ -12,11 +12,22 @@ from psifx.io import tar, video
 
 
 class PoseEstimationTool(VideoTool):
+    """
+    Base class for pose estimation tools from video.
+    """
+
     def inference(
         self,
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
     ):
+        """
+        Skeleton of the inference method.
+
+        :param video_path: Path to the video file.
+        :param poses_path: Path to the pose archive.
+        :return:
+        """
         video_path = Path(video_path)
         poses_path = Path(poses_path)
 
@@ -36,6 +47,14 @@ class PoseEstimationTool(VideoTool):
         visualization_path: Union[str, Path],
         confidence_threshold: float = 0.0,
     ):
+        """
+        Renders a visualization where the estimated poses are overlaid on top of the video.
+        :param video_path: Path to the video file.
+        :param poses_path: Path to the pose archive.
+        :param visualization_path: Path to the visualization file.
+        :param confidence_threshold: Threshold for not displaying low confidence keypoints.
+        :return:
+        """
         assert 0.0 <= confidence_threshold <= 1.0
 
         video_path = Path(video_path)
@@ -87,15 +106,13 @@ class PoseEstimationTool(VideoTool):
                 overwrite=self.overwrite,
             ) as visualization_writer,
         ):
-            for i, (image, pose) in enumerate(
-                zip(
-                    tqdm(
-                        video_reader,
-                        desc="Processing",
-                        disable=not self.verbose,
-                    ),
-                    poses.values(),
-                )
+            for image, pose in zip(
+                tqdm(
+                    video_reader,
+                    desc="Processing",
+                    disable=not self.verbose,
+                ),
+                poses.values(),
             ):
                 image = image.copy()
                 for key, value in pose.items():
@@ -110,5 +127,5 @@ class PoseEstimationTool(VideoTool):
                         circle_radius=1 if "face" not in key else 0,
                         line_thickness=1,
                     )
-                    # TODO Single color for face? Ellipse with image relative thickness?
+                    # Single color for face? Ellipse with image relative thickness?
                 visualization_writer.write(image=image)

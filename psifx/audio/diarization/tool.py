@@ -13,11 +13,22 @@ from psifx.io import rttm
 
 
 class DiarizationTool(BaseTool):
+    """
+    Base class for diarization tools.
+    """
+
     def inference(
         self,
         audio_path: Union[str, Path],
         diarization_path: Union[str, Path],
     ):
+        """
+        Skeleton of the inference method.
+
+        :param audio_path: Path to the audio track.
+        :param diarization_path: Path to the diarization file.
+        :return:
+        """
         audio_path = Path(audio_path)
         diarization_path = Path(diarization_path)
 
@@ -34,6 +45,13 @@ class DiarizationTool(BaseTool):
         diarization_path: Union[str, Path],
         visualization_path: Union[str, Path],
     ):
+        """
+        Plots a time series representing the diarized segments of an audio track.
+
+        :param diarization_path: Path to the diarization file.
+        :param visualization_path: Path to the visualization file.
+        :return:
+        """
         diarization_path = Path(diarization_path)
         visualization_path = Path(visualization_path)
 
@@ -75,6 +93,6 @@ class DiarizationTool(BaseTool):
         visualization_path.parent.mkdir(parents=True, exist_ok=True)
 
         plt.rcParams["figure.figsize"] = (notebook.width, 2)
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         notebook.plot_annotation(annotation, ax=ax)
         plt.savefig(visualization_path, bbox_inches="tight")

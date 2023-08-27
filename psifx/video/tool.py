@@ -2,4 +2,6 @@ from psifx.tool import BaseTool
 
 
 class VideoTool(BaseTool):
-    pass
+    """
+    Base class for video tools.
+    """

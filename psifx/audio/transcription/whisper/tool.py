@@ -10,6 +10,10 @@ from psifx.io import vtt, wav
 
 
 class WhisperTranscriptionTool(TranscriptionTool):
+    """
+    Whisper transcription and translation tool.
+    """
+
     def __init__(
         self,
         model_name: str = "small",
@@ -38,6 +42,14 @@ class WhisperTranscriptionTool(TranscriptionTool):
         transcription_path: Union[str, Path],
         language: Optional[str] = None,
     ):
+        """
+        Whisper's backed transcription method.
+
+        :param audio_path: Path to the audio track.
+        :param transcription_path: Path to the transcription file.
+        :param language: Country-code string of the spoken language.
+        :return:
+        """
         audio_path = Path(audio_path)
         transcription_path = Path(transcription_path)
 
@@ -62,7 +74,5 @@ class WhisperTranscriptionTool(TranscriptionTool):
 
         # POST-PROCESSING
         vtt.VTTWriter.write(
-            segments=segments,
-            path=transcription_path,
-            overwrite=self.overwrite,
+            segments=segments, path=transcription_path, overwrite=self.overwrite
         )

@@ -2,4 +2,6 @@ from psifx.tool import BaseTool
 
 
 class AudioTool(BaseTool):
-    pass
+    """
+    Base class for audio tools.
+    """

@@ -3,7 +3,6 @@ from mediapipe.python.solutions.holistic import (
     HandLandmark,
     POSE_CONNECTIONS,
     HAND_CONNECTIONS,
-    FACEMESH_CONTOURS,
     FACEMESH_TESSELATION,
 )
 from mediapipe.python.solutions.face_mesh import FACEMESH_NUM_LANDMARKS

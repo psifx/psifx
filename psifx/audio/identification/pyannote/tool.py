@@ -24,6 +24,14 @@ def cropped_waveform(
     end: float,
     sample_rate: int = 16000,
 ) -> Tensor:
+    """
+    Crops an audio track and returns its corresponding waveform.
+    :param path: Path to the audio track.
+    :param start: Start of segment in seconds.
+    :param end: End of the segment in seconds.
+    :param sample_rate: Sample rate of the audio track.
+    :return: Tensor containing the waveform of the audio segment.
+    """
     waveform, sample_rate = Audio(
         sample_rate=sample_rate,
     ).crop(
@@ -35,6 +43,10 @@ def cropped_waveform(
 
 
 class PyannoteIdentificationTool(IdentificationTool):
+    """
+    Pyannote identification tool.
+    """
+
     def __init__(
         self,
         model_names: Sequence[str],
@@ -69,6 +81,15 @@ class PyannoteIdentificationTool(IdentificationTool):
         mono_audio_paths: Sequence[Union[str, Path]],
         identification_path: Union[str, Path],
     ):
+        """
+        Pyannote's backed inference method.
+
+        :param mixed_audio_path: Path to the mixed audio track.
+        :param diarization_path: Path to the diarization file.
+        :param mono_audio_paths:Path to the mono audio tracks.
+        :param identification_path: Path to the identification file.
+        :return:
+        """
         mixed_audio_path = Path(mixed_audio_path)
         diarization_path = Path(diarization_path)
         mono_audio_paths = [Path(path) for path in mono_audio_paths]
@@ -79,8 +100,8 @@ class PyannoteIdentificationTool(IdentificationTool):
 
         wav.WAVReader.check(mixed_audio_path)
         rttm.RTTMReader.check(diarization_path)
-        for p in mono_audio_paths:
-            wav.WAVReader.check(p)
+        for path in mono_audio_paths:
+            wav.WAVReader.check(path)
         json.JSONWriter.check(identification_path)
 
         segments = rttm.RTTMReader.read(path=diarization_path, verbose=self.verbose)
@@ -149,12 +170,7 @@ class PyannoteIdentificationTool(IdentificationTool):
             desc="Voting",
             disable=not self.verbose,
         ):
-            mapping = {
-                speaker_name: mono_audio_name
-                for speaker_name, mono_audio_name in zip(
-                    speaker_names, mono_audio_names
-                )
-            }
+            mapping = dict(zip(speaker_names, mono_audio_names))
             speaker_ids = np.stack(
                 [
                     mono_audio_names.index(mapping[name])

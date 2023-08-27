@@ -1,7 +1,11 @@
 from typing import Union
 
 
-class BaseTool(object):
+class BaseTool:
+    """
+    Base class for any tool.
+    """
+
     def __init__(
         self,
         device: str,

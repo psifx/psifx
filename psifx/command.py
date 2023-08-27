@@ -2,8 +2,8 @@ import argparse
 import argcomplete
 
 
-class Command(object):
-    """Interface for defining commands.
+class Command:
+    """Base class for defining commands.
 
     Command instances must implement the `setup()` method, and they should
     implement the `execute()` method if they perform any functionality beyond
@@ -31,7 +31,13 @@ class Command(object):
         raise NotImplementedError("subclass must implement execute()")
 
 
-def has_subparsers(parser: argparse.ArgumentParser):
+def has_subparsers(parser: argparse.ArgumentParser) -> bool:
+    """
+    Checks whether the parser had subparsers.
+
+    :param parser:
+    :return:
+    """
     for action in parser._actions:
         if isinstance(action, argparse._SubParsersAction):
             return True
@@ -40,6 +46,12 @@ def has_subparsers(parser: argparse.ArgumentParser):
 
 
 def iter_subparsers(parser: argparse.ArgumentParser):
+    """
+    Iterates through the subparsers.
+
+    :param parser:
+    :return:
+    """
     for action in parser._actions:
         if isinstance(action, argparse._SubParsersAction):
             for subparser in action.choices.values():
@@ -53,7 +65,7 @@ class RecursiveHelpAction(argparse._HelpAction):
 
     @staticmethod
     def _recurse(parser: argparse.ArgumentParser):
-        print("\n%s\n%s" % ("*" * 79, parser.format_help()))
+        print("", "*" * 79, parser.format_help(), sep="\n")
         for subparser in iter_subparsers(parser):
             RecursiveHelpAction._recurse(subparser)
 
@@ -61,6 +73,15 @@ class RecursiveHelpAction(argparse._HelpAction):
 def register_command(
     parent: argparse.ArgumentParser, name: str, command: Command, recursive_help=True
 ) -> argparse.ArgumentParser:
+    """
+    Registers a command to a parent subparser and returns the newly created parser.
+
+    :param parent:
+    :param name:
+    :param command:
+    :param recursive_help:
+    :return:
+    """
     parser = parent.add_parser(
         name,
         help=command.__doc__.splitlines()[0],
@@ -84,6 +105,14 @@ def register_command(
 def register_main_command(
     command: Command, version: str = None, recursive_help: bool = True
 ) -> argparse.ArgumentParser:
+    """
+    Registers the main command entrypoint and returns the parser.
+
+    :param command:
+    :param version:
+    :param recursive_help:
+    :return:
+    """
     parser = argparse.ArgumentParser(description=command.__doc__.rstrip())
 
     parser.set_defaults(execute=lambda args: command.execute(parser, args))
@@ -110,7 +139,7 @@ def register_main_command(
 
 
 class PsifxCommand(Command):
-    """The psifx command-line interface."""
+    """psifx command-line interface."""
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
@@ -122,25 +151,16 @@ class PsifxCommand(Command):
         register_command(subparsers, "video", VideoCommand)
         register_command(subparsers, "audio", AudioCommand)
 
-        # parser.add_argument(
-        #     "--overwrite",
-        #     default=False,
-        #     action=argparse.BooleanOptionalAction,
-        #     help="Overwrite existing files, otherwise raises an error.",
-        # )
-        # parser.add_argument(
-        #     "--verbose",
-        #     default=True,
-        #     action=argparse.BooleanOptionalAction,
-        #     help="Verbosity of the script.",
-        # )
-
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
         parser.print_help()
 
 
 def main():
+    """
+    Entrypoint of the psifx package.
+    :return:
+    """
     parser = register_main_command(PsifxCommand, version="0.0.0")
     args = parser.parse_args()
     args.execute(args)

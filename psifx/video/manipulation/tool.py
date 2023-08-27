@@ -7,6 +7,10 @@ from psifx.video.tool import VideoTool
 
 
 class ManipulationTool(VideoTool):
+    """
+    Video manipulation tool.
+    """
+
     def __init__(
         self,
         overwrite: bool = False,
@@ -31,6 +35,21 @@ class ManipulationTool(VideoTool):
         width: Optional[int] = None,
         height: Optional[int] = None,
     ):
+        """
+        Offers to trim, crop and resize your video (in that exact order).
+
+        :param in_video_path:
+        :param out_video_path:
+        :param start:
+        :param end:
+        :param x_min:
+        :param y_min:
+        :param x_max:
+        :param y_max:
+        :param width:
+        :param height:
+        :return:
+        """
         in_video_path = Path(in_video_path)
         out_video_path = Path(out_video_path)
 
@@ -78,4 +97,4 @@ class ManipulationTool(VideoTool):
                 raise FileExistsError(out_video_path)
         out_video_path.parent.mkdir(parents=True, exist_ok=True)
 
-        output.overwrite_output().run(quiet=not self.verbose > 1)
+        output.overwrite_output().run(quiet=self.verbose <= 1)

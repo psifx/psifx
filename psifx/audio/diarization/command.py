@@ -35,25 +35,25 @@ class VisualizationCommand(Command):
             "--diarization",
             type=Path,
             required=True,
-            help="Path to the diarization file.",
+            help="path to the diarization",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="Path to the visualization file.",
+            help="path to the visualization",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

@@ -9,11 +9,22 @@ from psifx.io import vtt, rttm, json
 
 
 class TranscriptionTool(BaseTool):
+    """
+    Base class for transcription tools.
+    """
+
     def inference(
         self,
         audio_path: Union[str, Path],
         transcription_path: Union[str, Path],
     ):
+        """
+        Skeleton of the inference method.
+
+        :param audio_path: Path to the audio track.
+        :param transcription_path: Path to the transcription file.
+        :return:
+        """
         audio_path = Path(audio_path)
         transcription_path = Path(transcription_path)
 
@@ -25,10 +36,6 @@ class TranscriptionTool(BaseTool):
 
         raise NotImplementedError
 
-    def visualization(self, *args, **kwargs):
-        print("Just open the .vtt file with a video player like VLC.")
-        raise NotImplementedError
-
     def enhance(
         self,
         transcription_path: Union[str, Path],
@@ -36,6 +43,16 @@ class TranscriptionTool(BaseTool):
         identification_path: Union[str, Path],
         enhanced_transcription_path: Union[str, Path],
     ):
+        """
+        Enhances an audio transcription by fusing the transcribed audio with inferred
+         speaker diarization and identification.
+
+        :param transcription_path: Path to the transcription file.
+        :param diarization_path:  Path to the diarization file.
+        :param identification_path:  Path to the identification file.
+        :param enhanced_transcription_path:  Path to the enhanced diarization file.
+        :return:
+        """
         transcription_path = Path(transcription_path)
         diarization_path = Path(diarization_path)
         identification_path = Path(identification_path)
@@ -99,8 +116,8 @@ class TranscriptionTool(BaseTool):
             segments.append(segment)
 
         vtt.VTTWriter.write(
-            path=enhanced_transcription_path,
             segments=segments,
-            verbose=self.verbose,
+            path=enhanced_transcription_path,
             overwrite=self.overwrite,
+            verbose=self.verbose,
         )

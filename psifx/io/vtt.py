@@ -13,6 +13,11 @@ SPEAKER_PATTERN = re.compile(r"<v .+>")
 
 
 def seconds2timestamp(seconds: float) -> str:
+    """
+    Converts floating point seconds into timestamp string.
+    :param seconds: Floating point seconds.
+    :return: Timestamp string.
+    """
     assert seconds >= 0
     time = round(seconds * 1000.0)
     hours = time // (60 * 60 * 1000)
@@ -26,20 +31,34 @@ def seconds2timestamp(seconds: float) -> str:
 
 
 def timestamp2seconds(timestamp: str) -> float:
-    x = timestamp.split(":")
-    assert len(x) == 3
-    y = x[2].split(".")
-    assert len(y) == 2
-    hours = int(x[0])
-    minutes = int(x[1])
-    seconds = int(y[0])
-    milliseconds = int(y[1])
+    """
+    Converts timestamp string into floating point seconds.
+    :param timestamp: Timestamp string.
+    :return: Floating point seconds.
+    """
+    parts = timestamp.split(":")
+    assert len(parts) == 3
+    sub_parts = parts[2].split(".")
+    assert len(sub_parts) == 2
+    hours = int(parts[0])
+    minutes = int(parts[1])
+    seconds = int(sub_parts[0])
+    milliseconds = int(sub_parts[1])
     return hours * 60.0 * 60.0 + minutes * 60.0 + seconds + milliseconds / 1000.0
 
 
-class VTTReader(object):
+class VTTReader:
+    """
+    Safe VTT subtitle reader.
+    """
+
     @staticmethod
     def check(path: Union[str, Path]):
+        """
+        Checks that a file exists and is of the correct format.
+        :param path: Path to the file.
+        :return:
+        """
         path = Path(path)
         if path.suffix != ".vtt":
             raise NameError(path)
@@ -51,6 +70,12 @@ class VTTReader(object):
         path: Union[str, Path],
         verbose: bool = True,
     ) -> Sequence[Dict[str, Union[float, str]]]:
+        """
+        Reads and parses a VTT file.
+        :param path: Path to the file.
+        :param verbose: Verbosity of the method.
+        :return: Subtitle segments.
+        """
         path = Path(path)
         VTTReader.check(path)
 
@@ -99,20 +124,38 @@ class VTTReader(object):
         return segments
 
 
-class VTTWriter(object):
+class VTTWriter:
+    """
+    Safe VTT subtitle writer.
+    """
+
     @staticmethod
     def check(path: Union[str, Path]):
+        """
+        Checks that a file is of the correct format.
+        :param path: Path to the file.
+        :return:
+        """
         path = Path(path)
         if path.suffix != ".vtt":
             raise NameError(path)
 
     @staticmethod
     def write(
-        path: Union[str, Path],
         segments: Sequence[Dict[str, Union[float, str]]],
+        path: Union[str, Path],
         overwrite: bool = False,
         verbose: bool = True,
     ):
+        """
+        Writes transcribed audio segments into a VTT subtitle file.
+
+        :param segments: Transcribed audio segments.
+        :param path: Path to the file.
+        :param overwrite: Whether to overwrite, in case of an existing file.
+        :param verbose: Verbosity of the method.
+        :return:
+        """
         path = Path(path)
         VTTWriter.check(path)
 
@@ -124,7 +167,7 @@ class VTTWriter(object):
         path.parent.mkdir(parents=True, exist_ok=True)
 
         with path.open(mode="w", encoding="utf-8") as file:
-            kwargs = dict(sep="\n", end="\n\n", file=file, flush=True)
+            kwargs = {"sep": "\n", "end": "\n\n", "file": file, "flush": True}
 
             print("WEBVTT", **kwargs)
             for segment in tqdm(

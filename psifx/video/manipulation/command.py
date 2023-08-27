@@ -33,63 +33,73 @@ class ProcessCommand(Command):
             "--in_video",
             type=Path,
             required=True,
+            help="path to the input video",
         )
         parser.add_argument(
             "--out_video",
             type=Path,
             required=True,
+            help="path to the output video",
         )
         parser.add_argument(
             "--start",
             type=float,
             default=None,
+            help="trim: timestamp in seconds of the start of the selection",
         )
         parser.add_argument(
             "--end",
             type=float,
             default=None,
+            help="trim: timestamp in seconds of the end of the selection",
         )
         parser.add_argument(
             "--x_min",
             type=int,
             default=None,
+            help="crop: x-axis coordinate of the top-left corner in pixels",
         )
         parser.add_argument(
             "--y_min",
             type=int,
             default=None,
+            help="crop: y-axis coordinate of the top-left corner in pixels",
         )
         parser.add_argument(
             "--x_max",
             type=int,
             default=None,
+            help="crop: x-axis coordinate of the bottom-right corner in pixels",
         )
         parser.add_argument(
             "--y_max",
             type=int,
             default=None,
+            help="crop: y-axis coordinate of the bottom-right corner in pixels",
         )
         parser.add_argument(
             "--width",
             type=int,
             default=None,
+            help="resize: width of the resized output",
         )
         parser.add_argument(
             "--height",
             type=int,
             default=None,
+            help="resize: height of the resized output",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

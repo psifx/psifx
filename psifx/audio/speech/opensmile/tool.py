@@ -30,12 +30,21 @@ FEATURE_LEVELS = {
 
 
 def audio_segment_to_waveform(audio: AudioSegment) -> np.ndarray:
+    """
+    Converts an audio segment to a ndarray normalized waveform.
+    :param audio: Audio segment
+    :return: ndarray waveform.
+    """
     samples = [c.get_array_of_samples() for c in audio.split_to_mono()]
     waveform = np.array(samples, dtype=np.float32) / np.iinfo(samples[0].typecode).max
     return waveform
 
 
 class OpenSmileSpeechTool(SpeechTool):
+    """
+    openSMILE speech processing tool.
+    """
+
     def __init__(
         self,
         feature_set: str = "ComParE_2016",
@@ -60,6 +69,14 @@ class OpenSmileSpeechTool(SpeechTool):
         diarization_path: Union[str, Path],
         features_path: Union[str, Path],
     ):
+        """
+        openSMILE inference method.
+
+        :param audio_path: Path to the audio track.
+        :param diarization_path: Path to the diarization file.
+        :param features_path: Path to the feature file.
+        :return:
+        """
         audio_path = Path(audio_path)
         diarization_path = Path(diarization_path)
         features_path = Path(features_path)

@@ -6,12 +6,24 @@ from psifx.tool import BaseTool
 
 
 class SpeechTool(BaseTool):
+    """
+    Base class for non-verbal speech processing tools.
+    """
+
     def inference(
         self,
         audio_path: Union[str, Path],
         diarization_path: Union[str, Path],
         features_path: Union[str, Path],
     ):
+        """
+        Skeleton of the inference method.
+
+        :param audio_path: Path to the audio track.
+        :param diarization_path: Path to the diarization file.
+        :param features_path: Path to the feature file.
+        :return:
+        """
         audio_path = Path(audio_path)
         diarization_path = Path(diarization_path)
         features_path = Path(features_path)

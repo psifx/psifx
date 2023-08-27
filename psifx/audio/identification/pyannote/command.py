@@ -29,29 +29,29 @@ class PyannoteInferenceCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         parser.add_argument(
-            "--audio",
+            "--mixed_audio",
             type=Path,
             required=True,
-            help="Path to the audio file.",
+            help="path to the mixed audio",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="Path to the diarization file.",
+            help="path to the diarization",
         )
         parser.add_argument(
             "--mono_audios",
             nargs="+",
             type=Path,
             required=True,
-            help="Paths to the mono audio files.",
+            help="paths to the mono audios",
         )
         parser.add_argument(
             "--identification",
             type=Path,
             required=True,
-            help="Path to the identification file.",
+            help="path to the identification",
         )
         parser.add_argument(
             "--model_names",
@@ -61,31 +61,31 @@ class PyannoteInferenceCommand(Command):
                 "pyannote/embedding",
                 "speechbrain/spkrec-ecapa-voxceleb",
             ],
-            help="Version number of the pyannote/speaker-diarization model, c.f. https://huggingface.co/pyannote/speaker-diarization/tree/main/reproducible_research",
-        )  # TODO
+            help="names of the embedding models",
+        )
         parser.add_argument(
             "--api_token",
             type=str,
             default=None,
-            help="API token for the downloading the models from HuggingFace.",
+            help="API token for the downloading the models from HuggingFace",
         )
         parser.add_argument(
             "--device",
             type=str,
             default="cpu",
-            help="Device on which to run the inference, either 'cpu' or 'cuda'.",
+            help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod
@@ -98,7 +98,7 @@ class PyannoteInferenceCommand(Command):
             verbose=args.verbose,
         )
         tool.inference(
-            mixed_audio_path=args.audio,
+            mixed_audio_path=args.mixed_audio,
             diarization_path=args.diarization,
             mono_audio_paths=args.mono_audios,
             identification_path=args.identification,

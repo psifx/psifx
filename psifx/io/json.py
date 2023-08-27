@@ -5,9 +5,18 @@ from pathlib import Path
 from tqdm import tqdm
 
 
-class JSONReader(object):
+class JSONReader:
+    """
+    Safe JSON reader.
+    """
+
     @staticmethod
     def check(path: Union[str, Path]):
+        """
+        Checks that a file exists and is of the correct format.
+        :param path: Path to the file.
+        :return:
+        """
         path = Path(path)
         if path.suffix != ".json":
             raise NameError(path)
@@ -19,11 +28,17 @@ class JSONReader(object):
         path: Union[str, Path],
         verbose: Union[bool, int] = True,
     ) -> Union[List, Dict]:
+        """
+        Reads and parses a JSON file.
+        :param path: Path to the file.
+        :param verbose: Verbosity of the method.
+        :return: Deserialized data.
+        """
         path = Path(path)
         JSONReader.check(path)
 
         with path.open(mode="r") as file:
-            for i in tqdm(
+            for _ in tqdm(
                 range(1),
                 desc="Reading",
                 disable=not verbose,
@@ -33,9 +48,18 @@ class JSONReader(object):
         return data
 
 
-class JSONWriter(object):
+class JSONWriter:
+    """
+    Safe JSON writer.
+    """
+
     @staticmethod
     def check(path: Union[str, Path]):
+        """
+        Checks that a file is of the correct format.
+        :param path: Path to the file.
+        :return:
+        """
         path = Path(path)
         if path.suffix != ".json":
             raise NameError(path)
@@ -47,6 +71,15 @@ class JSONWriter(object):
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
     ):
+        """
+        Writes serializable data into a JSON file.
+
+        :param data: Serializable data.
+        :param path: Path to the file.
+        :param overwrite: Whether to overwrite, in case of an existing file.
+        :param verbose: Verbosity of the method.
+        :return:
+        """
         path = Path(path)
         JSONWriter.check(path)
 
@@ -58,5 +91,5 @@ class JSONWriter(object):
         path.parent.mkdir(parents=True, exist_ok=True)
 
         with path.open(mode="w") as file:
-            for i in tqdm(range(1), desc="Writing", disable=not verbose):
+            for _ in tqdm(range(1), desc="Writing", disable=not verbose):
                 json.dump(data, file)

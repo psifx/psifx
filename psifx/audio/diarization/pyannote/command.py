@@ -35,49 +35,51 @@ class PyannoteInferenceCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="Path to the audio file.",
+            help="path to the audio",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="Path to the diarization file.",
+            help="Path to the diarization",
         )
         parser.add_argument(
             "--num_speakers",
             type=int,
             default=None,
-            help="Number of speaking participants, if ignored the model will try to guess it, it is advised to specify it. ",
+            help="number of speaking participants, if ignored the model will try to"
+            " guess it, it is advised to specify it",
         )
         parser.add_argument(
             "--model_name",
             type=str,
             default="2.1.1",
-            help="Version number of the pyannote/speaker-diarization model, c.f. https://huggingface.co/pyannote/speaker-diarization/tree/main/reproducible_research",
+            help="version number of the pyannote/speaker-diarization model, c.f."
+            " https://huggingface.co/pyannote/speaker-diarization/tree/main/reproducible_research",
         )
         parser.add_argument(
             "--api_token",
             type=str,
             default=None,
-            help="API token for the downloading the models from HuggingFace.",
+            help="API token for the downloading the models from HuggingFace",
         )
         parser.add_argument(
             "--device",
             type=str,
             default="cpu",
-            help="Device on which to run the inference, either 'cpu' or 'cuda'.",
+            help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

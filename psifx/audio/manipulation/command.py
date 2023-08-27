@@ -35,23 +35,25 @@ class ExtractionCommand(Command):
             "--video",
             type=Path,
             required=True,
+            help="path to the video",
         )
         parser.add_argument(
             "--audio",
             type=Path,
             required=True,
+            help="path to the audio",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod
@@ -78,23 +80,25 @@ class ConversionCommand(Command):
             "--audio",
             type=Path,
             required=True,
+            help="path to the audio",
         )
         parser.add_argument(
             "--mono_audio",
             type=Path,
             required=True,
+            help="path to the mono audio",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod
@@ -122,23 +126,25 @@ class MixDownCommand(Command):
             nargs="+",
             type=Path,
             required=True,
+            help="path to the mono audios",
         )
         parser.add_argument(
             "--mixed_audio",
             type=Path,
             required=True,
+            help="path to the mixed audio",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod
@@ -165,23 +171,25 @@ class NormalizationCommand(Command):
             "--audio",
             type=Path,
             required=True,
+            help="path to the audio",
         )
         parser.add_argument(
             "--normalized_audio",
             type=Path,
             required=True,
+            help="path to the normalized audio",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

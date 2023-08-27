@@ -1,8 +1,8 @@
 from typing import Any, Dict, List, Tuple, Union
 
+import json
 from pathlib import Path
 from tqdm import tqdm
-import json
 
 import numpy as np
 from mediapipe.python.solutions.holistic import Holistic
@@ -13,6 +13,10 @@ from psifx.io import tar, video
 
 
 class MediaPipePoseEstimationTool(PoseEstimationTool):
+    """
+    MediaPipe pose estimation tool.
+    """
+
     def __init__(
         self,
         model_complexity: int = 2,
@@ -37,6 +41,13 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
         size: Tuple[int, int],
         n_points: int,
     ) -> List[float]:
+        """
+        Processes MediaPipe output into a simple flattened list of coordinates.
+        :param landmarks: MediaPipe landmarks.
+        :param size: Image resolution.
+        :param n_points: Expected number of points.
+        :return: Processed keypoint coordinates.
+        """
         h, w = size
         if landmarks is not None:
             landmarks = [[p.x, p.y, p.visibility] for p in landmarks.landmark]
@@ -52,6 +63,12 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
         results,
         size: Tuple[int, int],
     ) -> Dict[str, Any]:
+        """
+        Process all the parts estimated by MediaPipe, e.g. body, face, hands.
+        :param results: MediaPipe output.
+        :param size: Image resolution.
+        :return: Processed keypoints for every part.
+        """
         return {
             "pose_keypoints_2d": self.process_part(
                 landmarks=results.pose_landmarks,
@@ -80,6 +97,12 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
         video_path: Union[str, Path],
         poses_path: Union[str, Path],
     ):
+        """
+        Runs MediaPipe pose estimation model on a video.
+        :param video_path: Path to the video file.
+        :param poses_path: Path to the pose archive.
+        :return:
+        """
         video_path = Path(video_path)
         poses_path = Path(poses_path)
 
@@ -118,7 +141,7 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
                     disable=not self.verbose,
                 )
             ):
-                h, w, c = image.shape
+                h, w, _ = image.shape
                 results = model.process(image)
                 poses[f"{i: 015d}"] = self.process_pose(
                     results=results,
@@ -142,6 +165,10 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
 
 
 class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
+    """
+    MediaPipe pose estimation and binary segmentation tool.
+    """
+
     def __init__(
         self,
         model_complexity: int = 2,
@@ -167,6 +194,13 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         size: Tuple[int, int],
         threshold: float,
     ) -> np.ndarray:
+        """
+        Processed the floating point 2D array into a binary array given a confidence threshold.
+        :param mask: Floating point mask array
+        :param size: Expected image resolution
+        :param threshold: Confidence threshold
+        :return: Binary mask array.
+        """
         h, w = size
         if mask is not None:
             mask = np.where(
@@ -185,6 +219,13 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
         poses_path: Union[str, Path],
         masks_path: Union[str, Path],
     ):
+        """
+        Runs MediaPipe pose estimation and segmentation model on a video.
+        :param video_path: Path to the video file.
+        :param poses_path: Path to the pose archive.
+        :param masks_path: Path to the mask video file.
+        :return:
+        """
         video_path = Path(video_path)
         poses_path = Path(poses_path)
         masks_path = Path(masks_path)
@@ -231,7 +272,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
                     disable=not self.verbose,
                 )
             ):
-                h, w, c = image.shape
+                h, w, _ = image.shape
                 results = model.process(image)
                 poses[f"{i: 015d}"] = self.process_pose(
                     results=results,

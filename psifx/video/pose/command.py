@@ -35,33 +35,37 @@ class VisualizationCommand(Command):
             "--video",
             type=Path,
             required=True,
+            help="path to the input video",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
+            help="path to the pose archive",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
+            help="path to the visualization video",
         )
         parser.add_argument(
             "--confidence_threshold",
             type=float,
             default=0.0,
+            help="threshold for not displaying low confidence keypoints",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

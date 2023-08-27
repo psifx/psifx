@@ -33,23 +33,25 @@ class OpenFaceInferenceCommand(Command):
             "--video",
             type=Path,
             required=True,
+            help="path to the input video",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
+            help="path to the feature archive",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod
@@ -76,53 +78,61 @@ class OpenFaceVisualizationCommand(Command):
             "--video",
             type=Path,
             required=True,
+            help="path to the input video",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
+            help="path to the feature archive",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
+            help="path to the visualization video",
         )
         parser.add_argument(
             "--depth",
             type=float,
             default=3.0,
+            help="projection: assumed static depth of the subject",
         )
         parser.add_argument(
             "--f_x",
             type=float,
             default=None,
+            help="projection: x-axis of the focal length",
         )
         parser.add_argument(
             "--f_y",
             type=float,
             default=None,
+            help="projection: y-axis of the focal length",
         )
         parser.add_argument(
             "--c_x",
             type=float,
             default=None,
+            help="projection: x-axis of the principal point",
         )
         parser.add_argument(
             "--c_y",
             type=float,
             default=None,
+            help="projection: y-axis of the principal point",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

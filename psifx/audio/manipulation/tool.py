@@ -9,6 +9,10 @@ from psifx.tool import BaseTool
 
 
 class ManipulationTool(BaseTool):
+    """
+    Audio manipulation tool.
+    """
+
     def __init__(
         self,
         overwrite: bool = False,
@@ -25,6 +29,12 @@ class ManipulationTool(BaseTool):
         video_path: Union[str, Path],
         audio_path: Union[str, Path],
     ):
+        """
+        Extracts the audio track from a video.
+        :param video_path: Path to the video.
+        :param audio_path: Path to the audio track.
+        :return:
+        """
         video_path = Path(video_path)
         audio_path = Path(audio_path)
 
@@ -42,7 +52,7 @@ class ManipulationTool(BaseTool):
             ffmpeg.input(str(video_path))
             .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 16000})
             .overwrite_output()
-            .run(quiet=not self.verbose > 1)
+            .run(quiet=self.verbose <= 1)
         )
 
     def convert(
@@ -50,6 +60,13 @@ class ManipulationTool(BaseTool):
         audio_path: Union[str, Path],
         mono_audio_path: Union[str, Path],
     ):
+        """
+        Converts an audio track to a .wav audio track with 16kHz sample rate.
+
+        :param audio_path: Path to the audio track.
+        :param mono_audio_path: Path to the converted audio track.
+        :return:
+        """
         audio_path = Path(audio_path)
         mono_audio_path = Path(mono_audio_path)
 
@@ -81,6 +98,13 @@ class ManipulationTool(BaseTool):
         mono_audio_paths: Sequence[Union[str, Path]],
         mixed_audio_path: Union[str, Path],
     ):
+        """
+        Mixes multiple mono audio tracks.
+
+        :param mono_audio_paths: Paths to mono audio tracks.
+        :param mixed_audio_path: Path to the mixed audio track.
+        :return:
+        """
         mono_audio_paths = [Path(path) for path in mono_audio_paths]
         mixed_audio_path = Path(mixed_audio_path)
 
@@ -108,6 +132,13 @@ class ManipulationTool(BaseTool):
         audio_path: Union[str, Path],
         normalized_audio_path: Union[str, Path],
     ):
+        """
+        Normalizes an audio track.
+
+        :param audio_path: Path to the audio track.
+        :param normalized_audio_path: Path to the normalized audio track.
+        :return:
+        """
         audio_path = Path(audio_path)
         normalized_audio_path = Path(normalized_audio_path)
 

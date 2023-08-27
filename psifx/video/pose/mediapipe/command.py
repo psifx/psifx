@@ -38,51 +38,56 @@ class MediaPipeInferenceCommand(Command):
             "--video",
             type=Path,
             required=True,
+            help="path to the input video",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
+            help="path to the pose archive",
         )
         parser.add_argument(
             "--masks",
             type=Path,
             default=None,
+            help="path to the binary mask video",
         )
         parser.add_argument(
             "--mask_threshold",
             type=float,
             default=0.1,
+            help="threshold for the binarization of the segmentation mask",
         )
         parser.add_argument(
             "--model_complexity",
             type=int,
             default=2,
-            help="Complexity of the model, either 0, 1 or 2. Higher means more FLOPs, but also more accurate results.",
+            help="complexity of the model: {0, 1, 2}, higher means more FLOPs, "
+            "but also more accurate results",
         )
         parser.add_argument(
             "--smooth",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Whether to temporally smooth the inference results to reduce the jitter.",
+            help="temporally smooth the inference results to reduce the jitter",
         )
         parser.add_argument(
             "--device",
             type=str,
             default="cpu",
-            help="Device on which to run the inference, either 'cpu' or 'cuda'.",
+            help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

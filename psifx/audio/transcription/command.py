@@ -35,37 +35,37 @@ class EnhancedTranscriptionCommand(Command):
             "--transcription",
             type=Path,
             required=True,
-            help="Path to the transcription file.",
+            help="path to the transcription",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="Path to the diarization file.",
+            help="path to the diarization",
         )
         parser.add_argument(
             "--identification",
             type=Path,
             required=True,
-            help="Path to the identification file.",
+            help="path to the identification",
         )
         parser.add_argument(
             "--enhanced_transcription",
             type=Path,
             required=True,
-            help="Path to the enhanced transcription file.",
+            help="path to the enhanced transcription",
         )
         parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
-            help="Overwrite existing files, otherwise raises an error.",
+            help="overwrite existing files, otherwise raises an error",
         )
         parser.add_argument(
             "--verbose",
             default=True,
             action=argparse.BooleanOptionalAction,
-            help="Verbosity of the script.",
+            help="verbosity of the script",
         )
 
     @staticmethod

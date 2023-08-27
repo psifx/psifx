@@ -12,6 +12,10 @@ from psifx.io import rttm, wav
 
 
 class PyannoteDiarizationTool(DiarizationTool):
+    """
+    Pyannote diarization tool.
+    """
+
     def __init__(
         self,
         model_name: str = "2.1.1",
@@ -43,6 +47,14 @@ class PyannoteDiarizationTool(DiarizationTool):
         diarization_path: Union[str, Path],
         num_speakers: Optional[int] = None,
     ):
+        """
+        Implementation of Pyannote's diarization inference method.
+        :param audio_path: Path to the audio track.
+        :param diarization_path: Path to the diarization file.
+        :param num_speakers: Number of speaking participants, if ignored the model
+        will try to guess it, it is advised to specify it.
+        :return:
+        """
         audio_path = Path(audio_path)
         diarization_path = Path(diarization_path)
 
@@ -57,7 +69,7 @@ class PyannoteDiarizationTool(DiarizationTool):
         # Nothing to do here, the model wants the path of the audio.
 
         # INFERENCE
-        for i in tqdm(
+        for _ in tqdm(
             range(1),
             desc="Processing",
             disable=not self.verbose,
@@ -88,7 +100,5 @@ class PyannoteDiarizationTool(DiarizationTool):
             )
         ]
         rttm.RTTMWriter.write(
-            path=diarization_path,
-            segments=segments,
-            overwrite=self.overwrite,
+            segments=segments, path=diarization_path, overwrite=self.overwrite
         )

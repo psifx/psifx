@@ -1,3 +1,4 @@
+# pylint: skip-file
 # fmt: off
 CLEAN_FIELDS = [
     "gaze_right_3d",

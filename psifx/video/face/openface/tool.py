@@ -4,12 +4,13 @@ import shlex
 import shutil
 import subprocess
 from pathlib import Path
-from tqdm import tqdm
 import json
 import time
+from tqdm import tqdm
 
 import pandas as pd
 import numpy as np
+from numpy import ndarray
 
 from psifx.video.face.tool import FaceAnalysisTool
 from psifx.video.face.openface import skeleton, fields
@@ -20,7 +21,37 @@ EXECUTABLE_PATH = Path(shutil.which("FeatureExtraction")).resolve(strict=True)
 DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
 
 
+def gaze_vector_2d(
+    eye_2d: ndarray,
+    gaze_3d,
+    depth: float,
+    K: ndarray,
+    K_inverse: ndarray,
+):
+    """
+    Projects the gaze vector in 2D starting from the center of the eye.
+    :param eye_2d:
+    :param gaze_3d:
+    :param depth:
+    :param K:
+    :param K_inverse:
+    :return:
+    """
+    eye_center_2d = eye_2d[[21, 23, 25, 27]].mean(axis=-2)
+    eye_center_2d = np.concatenate([eye_center_2d, np.ones(1)])
+    eye_center_3d = depth * K_inverse @ eye_center_2d
+    gaze_keypoint_3d = eye_center_3d + 0.1 * gaze_3d
+    gaze_keypoint_2d = (
+        K @ (gaze_keypoint_3d / np.maximum(gaze_keypoint_3d[-1], 1e-8))
+    )[:-1]
+    return eye_center_2d, gaze_keypoint_2d
+
+
 class OpenFaceTool(FaceAnalysisTool):
+    """
+    OpenFace analysis tool.
+    """
+
     def __init__(
         self,
         overwrite: bool = False,
@@ -84,7 +115,7 @@ class OpenFaceTool(FaceAnalysisTool):
         for clean, dirty in zip(fields.CLEAN_FIELDS, fields.DIRTY_FIELDS):
             clean_dataframe[clean] = dirty_dataframe[dirty].values.tolist()
 
-        n_rows, n_cols = clean_dataframe.shape
+        n_rows, _ = clean_dataframe.shape
         features = {
             "edges": {
                 "eye_right_keypoints_2d": skeleton.EYE_EDGES,
@@ -173,7 +204,8 @@ class OpenFaceTool(FaceAnalysisTool):
                 disable=not self.verbose,
             )
         }
-
+        h, w = None, None
+        K, K_inverse = None, None
         with (
             video.VideoReader(path=video_path) as video_reader,
             video.VideoWriter(
@@ -187,15 +219,13 @@ class OpenFaceTool(FaceAnalysisTool):
                 overwrite=self.overwrite,
             ) as visualization_writer,
         ):
-            for i, (image, feature) in enumerate(
-                zip(
-                    tqdm(
-                        video_reader,
-                        desc="Processing",
-                        disable=not self.verbose,
-                    ),
-                    features.values(),
-                )
+            for image, feature in zip(
+                tqdm(
+                    video_reader,
+                    desc="Processing",
+                    disable=not self.verbose,
+                ),
+                features.values(),
             ):
                 image = image.copy()
                 for key in [
@@ -211,39 +241,40 @@ class OpenFaceTool(FaceAnalysisTool):
                         circle_radius=1 if "face" not in key else 0,
                         line_thickness=1,
                     )
-                h, w, c = image.shape
+                h_, w_, _ = image.shape
 
-                if no_calibration:
-                    f_x = 1600.0 / 1920.0 * w
-                    f_y = 1600.0 / 1080.0 * h
-                    c_x = w / 2
-                    c_y = h / 2
+                if h != h_ or w != w_:
+                    h, w = h_, w_
 
-                K = np.array(
-                    [
-                        [f_x, 0.0, c_x],
-                        [0.0, f_y, c_y],
-                        [0.0, 0.0, 1.0],
-                    ]
-                )
-                K_inverse = np.linalg.inv(K)
+                    if no_calibration:
+                        f_x = 1600.0 / 1920.0 * w
+                        f_y = 1600.0 / 1080.0 * h
+                        c_x = w / 2
+                        c_y = h / 2
 
-                def gaze_vector_2d(eye_keypoints_key: str, gaze_key: str):
-                    points_2d = np.array(feature[eye_keypoints_key]).reshape(-1, 2)
-                    eye_center_2d = points_2d[[21, 23, 25, 27]].mean(axis=-2)
-                    eye_center_2d = np.concatenate([eye_center_2d, np.ones(1)])
-                    eye_center_3d = depth * K_inverse @ eye_center_2d
-                    gaze_3d = eye_center_3d + 0.1 * np.array(feature[gaze_key])
-                    gaze_2d = (K @ (gaze_3d / np.maximum(gaze_3d[-1], 1e-8)))[:-1]
-                    return eye_center_2d, gaze_2d
+                    K = np.array(
+                        [
+                            [f_x, 0.0, c_x],
+                            [0.0, f_y, c_y],
+                            [0.0, 0.0, 1.0],
+                        ]
+                    )
+                    K_inverse = np.linalg.inv(K)
 
                 center_right, gaze_right = gaze_vector_2d(
-                    eye_keypoints_key="eye_right_keypoints_2d",
-                    gaze_key="gaze_right_3d",
+                    eye_2d=np.array(feature["eye_right_keypoints_2d"]).reshape(-1, 2),
+                    gaze_3d=np.array(feature["gaze_right_3d"]),
+                    depth=depth,
+                    K=K,
+                    K_inverse=K_inverse,
                 )
+
                 center_left, gaze_left = gaze_vector_2d(
-                    eye_keypoints_key="eye_left_keypoints_2d",
-                    gaze_key="gaze_left_3d",
+                    eye_2d=np.array(feature["eye_left_keypoints_2d"]).reshape(-1, 2),
+                    gaze_3d=np.array(feature["gaze_left_3d"]),
+                    depth=depth,
+                    K=K,
+                    K_inverse=K_inverse,
                 )
 
                 image = draw.draw_pose(

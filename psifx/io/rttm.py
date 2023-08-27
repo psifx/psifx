@@ -20,9 +20,18 @@ COLUMN_NAMES = [
 ]
 
 
-class RTTMReader(object):
+class RTTMReader:
+    """
+    Safe RTTM reader.
+    """
+
     @staticmethod
     def check(path: Union[str, Path]):
+        """
+        Checks that a file exists and is of the correct format.
+        :param path: Path to the file.
+        :return:
+        """
         path = Path(path)
         if path.suffix != ".rttm":
             raise NameError(path)
@@ -34,6 +43,12 @@ class RTTMReader(object):
         path: Union[str, Path],
         verbose: bool = True,
     ) -> List[Dict[str, Union[str, float]]]:
+        """
+        Reads and parse an RTTM file.
+        :param path: Path to the file.
+        :param verbose: Verbosity of the method.
+        :return:
+        """
         path = Path(path)
         RTTMReader.check(path)
 
@@ -65,19 +80,35 @@ class RTTMReader(object):
         return segments
 
 
-class RTTMWriter(object):
+class RTTMWriter:
+    """
+    Safe RTTM writer.
+    """
+
     @staticmethod
     def check(path: Union[str, Path]):
+        """
+        Checks that a file is of the correct format.
+        :param path: Path to the file.
+        :return:
+        """
         path = Path(path)
         if path.suffix != ".rttm":
             raise NameError(path)
 
     @staticmethod
     def write(
-        path: Union[str, Path],
         segments: List[Dict[str, Union[str, float]]],
+        path: Union[str, Path],
         overwrite: bool = False,
     ):
+        """
+        Writes diarized audio segment information in the RTTM format.
+        :param path: Path to the file.
+        :param segments: Audio segment information.
+        :param overwrite: Whether to overwrite, in case of an existing file.
+        :return:
+        """
         path = Path(path)
         RTTMWriter.check(path)
 

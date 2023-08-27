@@ -6,11 +6,22 @@ from psifx.video.tool import VideoTool
 
 
 class FaceAnalysisTool(VideoTool):
+    """
+    Base tool for face analysis.
+    """
+
     def inference(
         self,
         video_path: Union[str, Path],
         features_path: Union[str, Path],
     ):
+        """
+        Skeleton of the inference method.
+
+        :param video_path: Path to the video file.
+        :param features_path: Path to the feature archive.
+        :return:
+        """
         video_path = Path(video_path)
         features_path = Path(features_path)
 
@@ -29,4 +40,12 @@ class FaceAnalysisTool(VideoTool):
         features_path: Union[str, Path],
         visualization_path: Union[str, Path],
     ):
+        """
+        Skeleton of the visualization method.
+
+        :param video_path: Path to the video file.
+        :param features_path: Path to the feature archive.
+        :param visualization_path: Path to the visualization file.
+        :return:
+        """
         raise NotImplementedError

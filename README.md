@@ -1,6 +1,7 @@
 # `psifx` - Psychological and Social Interactions Feature Extraction
 
 ---
+[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 
 ## Setup
 

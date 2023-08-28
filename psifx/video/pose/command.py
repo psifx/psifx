@@ -27,6 +27,9 @@ class PoseEstimationCommand(Command):
 class VisualizationCommand(Command):
     """
     Tool for visualizing the poses over the video.
+    Expected video input extension: path/to/video.{any ffmpeg readable}
+    Expected pose input extension: path/to/poses.tar
+    Expected visualization video output extension: path/to/visualization-video.{any ffmpeg readable}
     """
 
     @staticmethod

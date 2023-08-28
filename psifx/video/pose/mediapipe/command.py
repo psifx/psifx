@@ -30,6 +30,9 @@ class MediaPipeCommand(Command):
 class MediaPipeInferenceCommand(Command):
     """
     Tool for inferring human pose with MediaPipe Holistic.
+    Expected video input extension: path/to/video.{any ffmpeg readable}
+    Expected pose output extension: path/to/poses.tar
+    Expected mask input extension (optional): path/to/masks.{any ffmpeg readable}
     """
 
     @staticmethod

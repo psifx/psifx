@@ -25,6 +25,8 @@ class ProcessCommand(Command):
     """
     Tool for processing videos.
     The trimming, cropping and resizing can be performed all at once, and in that order.
+    Expected video input extension: path/to/video.{any ffmpeg readable}
+    Expected processed video output extension: path/to/processed-video.{any ffmpeg readable}
     """
 
     @staticmethod

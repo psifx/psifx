@@ -27,6 +27,8 @@ class DiarizationCommand(Command):
 class VisualizationCommand(Command):
     """
     Tool for visualizing the diarization of a track.
+    Expected diarization input extension: path/to/diarization.rttm
+    Expected diarization visualization output extension: path/to/diarization-visualization.png
     """
 
     @staticmethod

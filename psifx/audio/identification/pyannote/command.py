@@ -24,6 +24,10 @@ class PyannoteCommand(Command):
 class PyannoteInferenceCommand(Command):
     """
     Tool for identifying speakers from an audio track with Pyannote.
+    Expected mono audio input extension(s): path/to/mono-audio.wav
+    Expected mixed audio input extension: path/to/mixed-audio.wav
+    Expected diarization input extension: path/to/diarization.rttm
+    Expected identification output extension: path/to/identification.json
     """
 
     @staticmethod

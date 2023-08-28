@@ -27,6 +27,8 @@ class WhisperCommand(Command):
 class WhisperTranscriptionCommand(Command):
     """
     Tool for transcribing an audio track with Whisper.
+    Expected audio input extension: path/to/audio.wav
+    Expected transcription output extension: path/to/transcription.vtt
     """
 
     @staticmethod

@@ -27,6 +27,10 @@ class TranscriptionCommand(Command):
 class EnhancedTranscriptionCommand(Command):
     """
     Tool for enhancing a transcription with diarization and identification.
+    Expected transcription input extension: path/to/transcription.vtt
+    Expected diarization input extension: path/to/diarization.rttm
+    Expected identification input extension: path/to/identification.json
+    Expected enhanced transcription output extension: path/to/enhanced-transcription.vtt
     """
 
     @staticmethod

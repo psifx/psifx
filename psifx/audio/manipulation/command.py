@@ -27,6 +27,8 @@ class ManipulationCommand(Command):
 class ExtractionCommand(Command):
     """
     Tool for extracting the audio track from a video.
+    Expected video input extension: path/to/video.{any ffmpeg-readable}
+    Expected audio output extension: path/to/audio.wav
     """
 
     @staticmethod
@@ -72,6 +74,8 @@ class ExtractionCommand(Command):
 class ConversionCommand(Command):
     """
     Tool for converting an audio track to a .wav audio track with 16kHz sample rate.
+    Expected audio input extension: path/to/audio.{any ffmpeg-readable}
+    Expected audio output extension: path/to/audio.wav
     """
 
     @staticmethod
@@ -117,6 +121,8 @@ class ConversionCommand(Command):
 class MixDownCommand(Command):
     """
     Tool for mixing multiple mono audio tracks.
+    Expected mono audio input extension(s): path/to/mono-audio.wav
+    Expected mixed audio output extension: path/to/mixed-audio.wav
     """
 
     @staticmethod
@@ -163,6 +169,8 @@ class MixDownCommand(Command):
 class NormalizationCommand(Command):
     """
     Tool for normalizing an audio track.
+    Expected audio input extension: path/to/audio.wav
+    Expected normalized audio output extension: path/to/normalized-audio.wav
     """
 
     @staticmethod

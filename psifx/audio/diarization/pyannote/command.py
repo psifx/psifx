@@ -27,6 +27,8 @@ class PyannoteCommand(Command):
 class PyannoteInferenceCommand(Command):
     """
     Tool for diarizing an audio track with Pyannote.
+    Expected audio input extension: path/to/audio.wav
+    Expected diarization output extension: path/to/diarization.rttm
     """
 
     @staticmethod

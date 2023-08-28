@@ -25,6 +25,8 @@ class OpenFaceCommand(Command):
 class OpenFaceInferenceCommand(Command):
     """
     Tool for inferring face features from videos with OpenFace.
+    Expected video input extension: path/to/video.{any ffmpeg readable}
+    Expected OpenFace features output extension: path/to/openface-features.tar
     """
 
     @staticmethod
@@ -70,6 +72,9 @@ class OpenFaceInferenceCommand(Command):
 class OpenFaceVisualizationCommand(Command):
     """
     Tool for visualizing face features from videos with OpenFace.
+    Expected video input extension: path/to/video.{any ffmpeg readable}
+    Expected OpenFace features input extension: path/to/openface-features.tar
+    Expected visualization video output extension: path/to/visualization-features.{any ffmpeg readable}
     """
 
     @staticmethod

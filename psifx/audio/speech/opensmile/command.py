@@ -28,6 +28,9 @@ class OpenSmileCommand(Command):
 class OpenSmileInferenceCommand(Command):
     """
     Tool for extracting non-verbal speech features from an audio track with OpenSmile.
+    Expected audio input extension: path/to/audio.wav
+    Expected diarization input extension: path/to/diarization.rttm
+    Expected feature extraction output extension: path/to/opensmile-features.tar
     """
 
     @staticmethod

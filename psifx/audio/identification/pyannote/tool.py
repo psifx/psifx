@@ -86,7 +86,7 @@ class PyannoteIdentificationTool(IdentificationTool):
 
         :param mixed_audio_path: Path to the mixed audio track.
         :param diarization_path: Path to the diarization file.
-        :param mono_audio_paths:Path to the mono audio tracks.
+        :param mono_audio_paths: Path to the mono audio tracks.
         :param identification_path: Path to the identification file.
         :return:
         """

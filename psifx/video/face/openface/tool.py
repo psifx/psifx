@@ -41,10 +41,8 @@ def gaze_vector_2d(
     eye_center_2d = np.concatenate([eye_center_2d, np.ones(1)])
     eye_center_3d = depth * K_inverse @ eye_center_2d
     gaze_keypoint_3d = eye_center_3d + 0.1 * gaze_3d
-    gaze_keypoint_2d = (
-        K @ (gaze_keypoint_3d / np.maximum(gaze_keypoint_3d[-1], 1e-8))
-    )[:-1]
-    return eye_center_2d, gaze_keypoint_2d
+    gaze_keypoint_2d = K @ (gaze_keypoint_3d / np.maximum(gaze_keypoint_3d[-1], 1e-8))
+    return eye_center_2d[:-1], gaze_keypoint_2d[:-1]
 
 
 class OpenFaceTool(FaceAnalysisTool):

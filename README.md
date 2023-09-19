@@ -20,13 +20,19 @@ We recommend using the Docker image for compatibility.
    ```bash
    docker pull guillaumerochette/psifx:latest
    ```
-4. Run it!
+4. Run the latest image:
    ```bash
    docker run \
-       --gpus all \
-       --mount ...
-       guillaumerochette/psifx:latest \
-       psifx ...
+      --user $(id -u):$(id -g)
+      --gpus all \
+      --volume /path/to/data:/path/to/data
+      --interactive
+      --tty
+      guillaumerochette/psifx:latest
+   ```
+5. Check out and run `psifx` available commands!
+   ```bash
+   psifx --all-help
    ```
 
 ### Local Installation

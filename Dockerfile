@@ -39,9 +39,22 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.2-0-Linux-x86_
 RUN conda update -n base -c defaults conda
 
 # OPENFACE
+ENV OPENFACE_PREFIX="/opt/openface"
+ENV PATH="$OPENFACE_PREFIX/build/bin:${PATH}"
 RUN wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
-    python install.py --silent_install && \
+    python install.py \
+    --license_accepted \
+    --install_path $OPENFACE_PREFIX \
+    --overwrite_install \
+    --minimal_install \
+    --no-add_to_login_shell && \
     rm install.py
 
 # PSIFX
 RUN pip install 'git+https://github.com/GuillaumeRochette/psifx.git'
+
+# CREATE DIRECTORIES WHERE MODEL CHECKPOINTS WILL BE DOWNLOADED BY ANY USERS
+RUN mkdir --mode 777 \
+    /.config \
+    /.cache && \
+    chmod --recursive 777 /opt/conda

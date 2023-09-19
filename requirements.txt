@@ -1,4 +1,3 @@
-argcomplete
 ffmpeg-python
 mediapipe
 openai-whisper

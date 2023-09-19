@@ -1,5 +1,4 @@
 import argparse
-import argcomplete
 
 
 class Command:
@@ -134,7 +133,6 @@ def register_main_command(
             help="show help recursively and exit",
         )
 
-    argcomplete.autocomplete(parser)
     return parser
 
 

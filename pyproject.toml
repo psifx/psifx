@@ -31,15 +31,3 @@ psifx = "psifx.command:main"
 
 [tool.setuptools.dynamic]
 dependencies = {file = ["requirements.txt"]}
-
-[tool.pylint]
-disable = [
-    "E0611",
-    "E1101",
-    "C0114",
-    "C0415",
-    "R0401",
-    "R0903",
-    "R0913",
-    "R0914",
-]

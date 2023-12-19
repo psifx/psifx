@@ -9,6 +9,7 @@ RUN apt-get -y update && \
     curl \
     ffmpeg \
     git \
+    htop \
     libboost-all-dev \
     libdlib-dev \
     libopenblas-dev \
@@ -23,6 +24,7 @@ RUN apt-get -y update && \
     nano \
     ninja-build \
     software-properties-common \
+    sudo \
     ubuntu-restricted-extras \
     unzip \
     wget && \
@@ -30,16 +32,24 @@ RUN apt-get -y update && \
     apt-get -y autoclean  && \
     apt-get -y clean
 
+ARG USERNAME="root"
+ENV HOME="/$USERNAME"
+RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
+    chown --recursive $USERNAME:$USERNAME $HOME && \
+    chmod --recursive a+rwx $HOME
+
 # CONDA
-ENV CONDA_PREFIX="/opt/conda"
+ARG CONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+ARG CONDA_PREFIX="$HOME/conda"
 ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:${PATH}"
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py39_23.5.2-0-Linux-x86_64.sh -O miniconda.sh && \
-    bash miniconda.sh -b -p $CONDA_PREFIX && \
-    rm miniconda.sh
-RUN conda update -n base -c defaults conda
+RUN curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
+    bash $HOME/miniconda.sh -b -p $CONDA_PREFIX && \
+    rm $HOME/miniconda.sh && \
+    conda update -y -c defaults conda && \
+    conda install -y python=3.9 pip
 
 # OPENFACE
-ENV OPENFACE_PREFIX="/opt/openface"
+ARG OPENFACE_PREFIX="$HOME/openface"
 ENV PATH="$OPENFACE_PREFIX/build/bin:${PATH}"
 RUN wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
     python install.py \
@@ -50,11 +60,13 @@ RUN wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/ins
     --no-add_to_login_shell && \
     rm install.py
 
-# PSIFX
-RUN pip install 'git+https://github.com/GuillaumeRochette/psifx.git'
+# HUGGINGFACE
+ARG HF_TOKEN
+RUN echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc
 
-# CREATE DIRECTORIES WHERE MODEL CHECKPOINTS WILL BE DOWNLOADED BY ANY USERS
-RUN mkdir --mode 777 \
-    /.config \
-    /.cache && \
-    chmod --recursive 777 /opt/conda
+# PSIFX
+ARG VERSION
+RUN pip install git+https://github.com/GuillaumeRochette/psifx.git@$VERSION && \
+    pip cache purge
+
+RUN chmod --recursive a+rwx $HOME

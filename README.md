@@ -23,11 +23,11 @@ We recommend using the Docker image for compatibility.
 4. Run the latest image:
    ```bash
    docker run \
-      --user $(id -u):$(id -g)
+      --user $(id -u):$(id -g) \
       --gpus all \
-      --volume /path/to/data:/path/to/data
-      --interactive
-      --tty
+      --mount type=bind,source=/path/to/data,target=/path/to/data \
+      --interactive \
+      --tty \
       guillaumerochette/psifx:latest
    ```
 5. Check out and run `psifx` available commands!
@@ -73,3 +73,21 @@ We recommend using the Docker image for compatibility.
        ```
 
 ## Usage
+
+## Development
+
+### Variables
+
+```bash
+export VERSION="0.0.1"
+export HF_TOKEN="write-your-hf-token-here"
+```
+
+### Build
+
+```bash
+docker buildx build \
+  --build-arg VERSION=$VERSION \
+  --build-arg HF_TOKEN=$HF_TOKEN \
+  --tag "psifx:$VERSION" .
+```

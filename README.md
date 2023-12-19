@@ -28,7 +28,7 @@ We recommend using the Docker image for compatibility.
       --mount type=bind,source=/path/to/data,target=/path/to/data \
       --interactive \
       --tty \
-      guillaumerochette/psifx:latest
+      guillaumerochette/psifx:0.0.1
    ```
 5. Check out and run `psifx` available commands!
    ```bash

@@ -30,9 +30,6 @@ class PyannoteDiarizationTool(DiarizationTool):
             verbose=verbose,
         )
 
-        if api_token is None:
-            api_token = "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"
-
         self.model_name = model_name
         self.api_token = api_token
 

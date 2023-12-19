@@ -4,7 +4,6 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "psifx"
-version = "0.0.0"
 description = "Psychological and Social Interactions Feature Extraction"
 readme = "README.md"
 requires-python = ">=3.7"
@@ -19,7 +18,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
 ]
-dynamic = ["dependencies"]
+dynamic = ["dependencies", "version"]
 
 [project.urls]
 homepage = "https://github.com/GuillaumeRochette/psifx"
@@ -30,4 +29,5 @@ repository = "https://github.com/GuillaumeRochette/psifx"
 psifx = "psifx.command:main"
 
 [tool.setuptools.dynamic]
+version = {attr = "psifx.__version__"}
 dependencies = {file = ["requirements.txt"]}

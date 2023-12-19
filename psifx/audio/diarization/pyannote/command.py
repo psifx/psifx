@@ -2,7 +2,6 @@ import argparse
 from pathlib import Path
 
 from psifx.utils.command import Command, register_command
-from psifx.audio.diarization.command import VisualizationCommand
 from psifx.audio.diarization.pyannote.tool import PyannoteDiarizationTool
 
 
@@ -13,6 +12,8 @@ class PyannoteCommand(Command):
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        from psifx.audio.diarization.command import VisualizationCommand
+
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "inference", PyannoteInferenceCommand)

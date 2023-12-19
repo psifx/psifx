@@ -1,8 +1,9 @@
 import argparse
 from pathlib import Path
 
+from psifx.utils.command import Command, register_command
+from psifx.audio.transcription.whisper.command import WhisperCommand
 from psifx.audio.transcription.tool import TranscriptionTool
-from psifx.command import Command, register_command
 
 
 class TranscriptionCommand(Command):
@@ -13,8 +14,6 @@ class TranscriptionCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.audio.transcription.whisper.command import WhisperCommand
 
         register_command(subparsers, "whisper", WhisperCommand)
         register_command(subparsers, "enhance", EnhancedTranscriptionCommand)

@@ -1,8 +1,8 @@
 import argparse
 from pathlib import Path
 
+from psifx.utils.command import Command, register_command
 from psifx.audio.identification.pyannote.tool import PyannoteIdentificationTool
-from psifx.command import Command, register_command
 
 
 class PyannoteCommand(Command):

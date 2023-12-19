@@ -1,8 +1,9 @@
 import argparse
 from pathlib import Path
 
+from psifx.utils.command import Command, register_command
+from psifx.audio.diarization.pyannote.command import PyannoteCommand
 from psifx.audio.diarization.tool import DiarizationTool
-from psifx.command import Command, register_command
 
 
 class DiarizationCommand(Command):
@@ -13,8 +14,6 @@ class DiarizationCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.audio.diarization.pyannote.command import PyannoteCommand
 
         register_command(subparsers, "visualization", VisualizationCommand)
         register_command(subparsers, "pyannote", PyannoteCommand)

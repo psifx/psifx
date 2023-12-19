@@ -1,12 +1,12 @@
 import argparse
 from pathlib import Path
 
+from psifx.utils.command import Command, register_command
 from psifx.audio.speech.opensmile.tool import (
     FEATURE_SETS,
     FEATURE_LEVELS,
     OpenSmileSpeechTool,
 )
-from psifx.command import Command, register_command
 
 
 class OpenSmileCommand(Command):

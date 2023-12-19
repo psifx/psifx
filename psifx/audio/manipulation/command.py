@@ -1,8 +1,8 @@
 import argparse
 from pathlib import Path
 
+from psifx.utils.command import Command, register_command
 from psifx.audio.manipulation.tool import ManipulationTool
-from psifx.command import Command, register_command
 
 
 class ManipulationCommand(Command):

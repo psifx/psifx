@@ -1,6 +1,6 @@
 import argparse
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
 
 
 class SpeechCommand(Command):

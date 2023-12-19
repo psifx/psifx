@@ -1,6 +1,7 @@
 import argparse
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
+from psifx.audio.identification.pyannote.command import PyannoteCommand
 
 
 class IdentificationCommand(Command):
@@ -11,8 +12,6 @@ class IdentificationCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.audio.identification.pyannote.command import PyannoteCommand
 
         register_command(subparsers, "pyannote", PyannoteCommand)
 

@@ -1,6 +1,11 @@
 import argparse
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
+from psifx.audio.diarization.command import DiarizationCommand
+from psifx.audio.identification.command import IdentificationCommand
+from psifx.audio.manipulation.command import ManipulationCommand
+from psifx.audio.speech.command import SpeechCommand
+from psifx.audio.transcription.command import TranscriptionCommand
 
 
 class AudioCommand(Command):
@@ -11,12 +16,6 @@ class AudioCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.audio.diarization.command import DiarizationCommand
-        from psifx.audio.identification.command import IdentificationCommand
-        from psifx.audio.manipulation.command import ManipulationCommand
-        from psifx.audio.speech.command import SpeechCommand
-        from psifx.audio.transcription.command import TranscriptionCommand
 
         register_command(subparsers, "diarization", DiarizationCommand)
         register_command(subparsers, "identification", IdentificationCommand)

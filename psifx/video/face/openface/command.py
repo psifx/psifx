@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
 from psifx.video.face.openface.tool import OpenFaceTool
 
 

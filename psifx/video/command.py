@@ -1,6 +1,9 @@
 import argparse
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
+from psifx.video.pose.command import PoseEstimationCommand
+from psifx.video.manipulation.command import ManipulationCommand
+from psifx.video.face.command import FaceAnalysisCommand
 
 
 class VideoCommand(Command):
@@ -11,10 +14,6 @@ class VideoCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.video.pose.command import PoseEstimationCommand
-        from psifx.video.manipulation.command import ManipulationCommand
-        from psifx.video.face.command import FaceAnalysisCommand
 
         register_command(subparsers, "pose", PoseEstimationCommand)
         register_command(subparsers, "manipulation", ManipulationCommand)

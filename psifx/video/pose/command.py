@@ -1,7 +1,8 @@
 import argparse
 from pathlib import Path
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
+from psifx.video.pose.mediapipe.command import MediaPipeCommand
 from psifx.video.pose.tool import PoseEstimationTool
 
 
@@ -13,8 +14,6 @@ class PoseEstimationCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.video.pose.mediapipe.command import MediaPipeCommand
 
         register_command(subparsers, "visualization", VisualizationCommand)
         register_command(subparsers, "mediapipe", MediaPipeCommand)

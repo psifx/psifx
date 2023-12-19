@@ -1,6 +1,7 @@
 import argparse
 
-from psifx.command import Command, register_command
+from psifx.utils.command import Command, register_command
+from psifx.video.face.openface.command import OpenFaceCommand
 
 
 class FaceAnalysisCommand(Command):
@@ -11,8 +12,6 @@ class FaceAnalysisCommand(Command):
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
-
-        from psifx.video.face.openface.command import OpenFaceCommand
 
         register_command(subparsers, "openface", OpenFaceCommand)
 

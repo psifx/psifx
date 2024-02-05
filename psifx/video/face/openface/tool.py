@@ -18,7 +18,9 @@ from psifx.video.face.openface import skeleton, fields
 from psifx.io import tar, video
 from psifx.utils import draw
 
-EXECUTABLE_PATH = Path(shutil.which("FeatureExtraction")).resolve(strict=True)
+EXECUTABLE_PATH = shutil.which("FeatureExtraction")
+if EXECUTABLE_PATH is not None:
+    EXECUTABLE_PATH = Path(EXECUTABLE_PATH).resolve(strict=True)
 DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
 
 

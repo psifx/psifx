@@ -2,6 +2,7 @@ from typing import Union
 
 import json
 from pathlib import Path
+from PIL import Image
 from tqdm import tqdm
 
 import numpy as np
@@ -114,7 +115,7 @@ class PoseEstimationTool(VideoTool):
                 ),
                 poses.values(),
             ):
-                image = image.copy()
+                image = Image.fromarray(image.copy())
                 for key, value in pose.items():
                     value = np.array(value).reshape(-1, 3)
                     points = value[..., :-1]
@@ -124,8 +125,10 @@ class PoseEstimationTool(VideoTool):
                         points=points,
                         edges=edges[key],
                         confidences=confidences >= confidence_threshold,
-                        circle_radius=1 if "face" not in key else 0,
-                        line_thickness=1,
+                        circle_radius=3 if "face" not in key else 0,
+                        circle_thickness=1 if "face" not in key else 0,
+                        line_thickness=3 if "face" not in key else 1,
                     )
                     # Single color for face? Ellipse with image relative thickness?
+                image = np.asarray(image)
                 visualization_writer.write(image=image)

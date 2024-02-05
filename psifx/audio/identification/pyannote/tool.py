@@ -61,9 +61,6 @@ class PyannoteIdentificationTool(IdentificationTool):
             verbose=verbose,
         )
 
-        if api_token is None:
-            api_token = "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"
-
         self.api_token = api_token
         self.models = {
             name: PretrainedSpeakerEmbedding(

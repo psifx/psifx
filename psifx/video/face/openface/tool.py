@@ -4,6 +4,7 @@ import shlex
 import shutil
 import subprocess
 from pathlib import Path
+from PIL import Image
 import json
 import time
 from tqdm import tqdm
@@ -225,7 +226,8 @@ class OpenFaceTool(FaceAnalysisTool):
                 ),
                 features.values(),
             ):
-                image = image.copy()
+                h_, w_, _ = image.shape
+                image = Image.fromarray(image.copy())
                 for key in [
                     "face_keypoints_2d",
                     "eye_right_keypoints_2d",
@@ -236,10 +238,10 @@ class OpenFaceTool(FaceAnalysisTool):
                         image=image,
                         points=points,
                         edges=edges[key],
-                        circle_radius=1 if "face" not in key else 0,
+                        circle_radius=0,
+                        circle_thickness=0,
                         line_thickness=1,
                     )
-                h_, w_, _ = image.shape
 
                 if h != h_ or w != w_:
                     h, w = h_, w_
@@ -280,7 +282,8 @@ class OpenFaceTool(FaceAnalysisTool):
                     points=np.stack([center_right, gaze_right, center_left, gaze_left]),
                     edges=((0, 1), (2, 3)),
                     circle_radius=1,
+                    circle_thickness=1,
                     line_thickness=1,
                 )
-
+                image = np.asarray(image)
                 visualization_writer.write(image=image)

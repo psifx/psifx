@@ -26,10 +26,6 @@ class TranscriptionCommand(Command):
 class EnhancedTranscriptionCommand(Command):
     """
     Tool for enhancing a transcription with diarization and identification.
-    Expected transcription input extension: path/to/transcription.vtt
-    Expected diarization input extension: path/to/diarization.rttm
-    Expected identification input extension: path/to/identification.json
-    Expected enhanced transcription output extension: path/to/enhanced-transcription.vtt
     """
 
     @staticmethod
@@ -38,25 +34,25 @@ class EnhancedTranscriptionCommand(Command):
             "--transcription",
             type=Path,
             required=True,
-            help="path to the transcription",
+            help="path to the input transcription file, such as '/path/to/transcription.vtt'",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the diarization",
+            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
         )
         parser.add_argument(
             "--identification",
             type=Path,
             required=True,
-            help="path to the identification",
+            help="path to the input identification file, such as '/path/to/identification.json'",
         )
         parser.add_argument(
             "--enhanced_transcription",
             type=Path,
             required=True,
-            help="path to the enhanced transcription",
+            help="path to the output transcription file, such as '/path/to/enhanced-transcription.vtt'",
         )
         parser.add_argument(
             "--overwrite",

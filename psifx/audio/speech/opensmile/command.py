@@ -28,9 +28,6 @@ class OpenSmileCommand(Command):
 class OpenSmileInferenceCommand(Command):
     """
     Tool for extracting non-verbal speech features from an audio track with OpenSmile.
-    Expected audio input extension: path/to/audio.wav
-    Expected diarization input extension: path/to/diarization.rttm
-    Expected feature extraction output extension: path/to/opensmile-features.tar
     """
 
     @staticmethod
@@ -39,19 +36,19 @@ class OpenSmileInferenceCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the audio",
+            help="path to the input audio file, such as '/path/to/audio.wav'",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the diarization",
+            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the feature archive",
+            help="path to the output feature archive, such as '/path/to/opensmile.tar.gz'",
         )
         parser.add_argument(
             "--feature_set",

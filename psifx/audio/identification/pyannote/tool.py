@@ -44,7 +44,7 @@ def cropped_waveform(
 
 class PyannoteIdentificationTool(IdentificationTool):
     """
-    Pyannote identification tool.
+    pyannote identification tool.
     """
 
     def __init__(
@@ -79,7 +79,7 @@ class PyannoteIdentificationTool(IdentificationTool):
         identification_path: Union[str, Path],
     ):
         """
-        Pyannote's backed inference method.
+        pyannote's backed inference method.
 
         :param mixed_audio_path: Path to the mixed audio track.
         :param diarization_path: Path to the diarization file.

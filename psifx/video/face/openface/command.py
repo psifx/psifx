@@ -25,8 +25,6 @@ class OpenFaceCommand(Command):
 class OpenFaceInferenceCommand(Command):
     """
     Tool for inferring face features from videos with OpenFace.
-    Expected video input extension: path/to/video.{any ffmpeg readable}
-    Expected OpenFace features output extension: path/to/openface-features.tar
     """
 
     @staticmethod
@@ -35,13 +33,13 @@ class OpenFaceInferenceCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video",
+            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the feature archive",
+            help="path to the output feature archive, such as '/path/to/openface.tar.gz'",
         )
         parser.add_argument(
             "--overwrite",
@@ -72,9 +70,6 @@ class OpenFaceInferenceCommand(Command):
 class OpenFaceVisualizationCommand(Command):
     """
     Tool for visualizing face features from videos with OpenFace.
-    Expected video input extension: path/to/video.{any ffmpeg readable}
-    Expected OpenFace features input extension: path/to/openface-features.tar
-    Expected visualization video output extension: path/to/visualization-features.{any ffmpeg readable}
     """
 
     @staticmethod
@@ -83,25 +78,25 @@ class OpenFaceVisualizationCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video",
+            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the feature archive",
+            help="path to the input feature archive, such as '/path/to/openface.tar.gz'",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="path to the visualization video",
+            help="path to the output video file, such as '/path/to/visualization.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--depth",
             type=float,
             default=3.0,
-            help="projection: assumed static depth of the subject",
+            help="projection: assumed static depth of the subject in meters",
         )
         parser.add_argument(
             "--f_x",

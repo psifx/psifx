@@ -27,8 +27,6 @@ class WhisperCommand(Command):
 class WhisperTranscriptionCommand(Command):
     """
     Tool for transcribing an audio track with Whisper.
-    Expected audio input extension: path/to/audio.wav
-    Expected transcription output extension: path/to/transcription.vtt
     """
 
     @staticmethod
@@ -37,13 +35,13 @@ class WhisperTranscriptionCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the audio",
+            help="path to the input audio file, such as '/path/to/audio.wav'",
         )
         parser.add_argument(
             "--transcription",
             type=Path,
             required=True,
-            help="path to the transcription",
+            help="path to the output transcription file, such as '/path/to/transcription.vtt'",
         )
         parser.add_argument(
             "--language",

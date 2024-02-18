@@ -27,8 +27,6 @@ class ManipulationCommand(Command):
 class ExtractionCommand(Command):
     """
     Tool for extracting the audio track from a video.
-    Expected video input extension: path/to/video.{any ffmpeg-readable}
-    Expected audio output extension: path/to/audio.wav
     """
 
     @staticmethod
@@ -37,13 +35,13 @@ class ExtractionCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the video",
+            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--audio",
             type=Path,
             required=True,
-            help="path to the audio",
+            help="path to the output audio file, such as '/path/to/audio.wav'",
         )
         parser.add_argument(
             "--overwrite",
@@ -73,9 +71,7 @@ class ExtractionCommand(Command):
 
 class ConversionCommand(Command):
     """
-    Tool for converting an audio track to a .wav audio track with 16kHz sample rate.
-    Expected audio input extension: path/to/audio.{any ffmpeg-readable}
-    Expected audio output extension: path/to/audio.wav
+    Tool for converting any audio track to a mono audio track at 16kHz sample rate.
     """
 
     @staticmethod
@@ -84,13 +80,13 @@ class ConversionCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the audio",
+            help="path to the input audio file, such as '/path/to/audio.wav' (or .mp3, etc.)",
         )
         parser.add_argument(
             "--mono_audio",
             type=Path,
             required=True,
-            help="path to the mono audio",
+            help="path to the output audio file, such as '/path/to/mono-audio.wav'",
         )
         parser.add_argument(
             "--overwrite",
@@ -121,8 +117,6 @@ class ConversionCommand(Command):
 class MixDownCommand(Command):
     """
     Tool for mixing multiple mono audio tracks.
-    Expected mono audio input extension(s): path/to/mono-audio.wav
-    Expected mixed audio output extension: path/to/mixed-audio.wav
     """
 
     @staticmethod
@@ -132,13 +126,13 @@ class MixDownCommand(Command):
             nargs="+",
             type=Path,
             required=True,
-            help="path to the mono audios",
+            help="paths to the input mono audio files, such as '/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav'",
         )
         parser.add_argument(
             "--mixed_audio",
             type=Path,
             required=True,
-            help="path to the mixed audio",
+            help="path to the output mixed audio file, such as '/path/to/mixed-audio.wav'",
         )
         parser.add_argument(
             "--overwrite",
@@ -169,8 +163,6 @@ class MixDownCommand(Command):
 class NormalizationCommand(Command):
     """
     Tool for normalizing an audio track.
-    Expected audio input extension: path/to/audio.wav
-    Expected normalized audio output extension: path/to/normalized-audio.wav
     """
 
     @staticmethod
@@ -179,13 +171,13 @@ class NormalizationCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the audio",
+            help="path to the input audio file, such as '/path/to/audio.wav'",
         )
         parser.add_argument(
             "--normalized_audio",
             type=Path,
             required=True,
-            help="path to the normalized audio",
+            help="path to the output normalized audio file, such as '/path/to/normalized-audio.wav'",
         )
         parser.add_argument(
             "--overwrite",

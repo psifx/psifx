@@ -7,7 +7,7 @@ from psifx.audio.identification.pyannote.tool import PyannoteIdentificationTool
 
 class PyannoteCommand(Command):
     """
-    Tool for running Pyannote.
+    Tool for running pyannote.
     """
 
     @staticmethod
@@ -23,11 +23,7 @@ class PyannoteCommand(Command):
 
 class PyannoteInferenceCommand(Command):
     """
-    Tool for identifying speakers from an audio track with Pyannote.
-    Expected mono audio input extension(s): path/to/mono-audio.wav
-    Expected mixed audio input extension: path/to/mixed-audio.wav
-    Expected diarization input extension: path/to/diarization.rttm
-    Expected identification output extension: path/to/identification.json
+    Tool for identifying speakers from an audio track with pyannote.
     """
 
     @staticmethod
@@ -36,26 +32,26 @@ class PyannoteInferenceCommand(Command):
             "--mixed_audio",
             type=Path,
             required=True,
-            help="path to the mixed audio",
+            help="path to the input mixed audio file, such as '/path/to/mixed-audio.wav'",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the diarization",
+            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
         )
         parser.add_argument(
             "--mono_audios",
             nargs="+",
             type=Path,
             required=True,
-            help="paths to the mono audios",
+            help="paths to the input mono audio files, such as '/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav'",
         )
         parser.add_argument(
             "--identification",
             type=Path,
             required=True,
-            help="path to the identification",
+            help="path to the output identification file, such as '/path/to/identification.json'",
         )
         parser.add_argument(
             "--model_names",

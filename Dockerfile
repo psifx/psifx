@@ -65,8 +65,8 @@ ARG HF_TOKEN
 RUN echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc
 
 # PSIFX
-ARG VERSION
-RUN pip install git+https://github.com/GuillaumeRochette/psifx.git@$VERSION && \
+ARG PSIFX_VERSION
+RUN pip install git+https://github.com/GuillaumeRochette/psifx.git@$PSIFX_VERSION && \
     pip cache purge
 
 RUN chmod --recursive a+rwx $HOME

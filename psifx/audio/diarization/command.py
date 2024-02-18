@@ -15,8 +15,8 @@ class DiarizationCommand(Command):
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
 
-        register_command(subparsers, "visualization", VisualizationCommand)
         register_command(subparsers, "pyannote", PyannoteCommand)
+        register_command(subparsers, "visualization", VisualizationCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -26,8 +26,6 @@ class DiarizationCommand(Command):
 class VisualizationCommand(Command):
     """
     Tool for visualizing the diarization of a track.
-    Expected diarization input extension: path/to/diarization.rttm
-    Expected diarization visualization output extension: path/to/diarization-visualization.png
     """
 
     @staticmethod
@@ -36,13 +34,13 @@ class VisualizationCommand(Command):
             "--diarization",
             type=Path,
             required=True,
-            help="path to the diarization",
+            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="path to the visualization",
+            help="path to the output visualization file, such as '/path/to/visualization.png'",
         )
         parser.add_argument(
             "--overwrite",

@@ -13,7 +13,7 @@ from psifx.io import rttm, wav
 
 class PyannoteDiarizationTool(DiarizationTool):
     """
-    Pyannote diarization tool.
+    pyannote diarization tool.
     """
 
     def __init__(
@@ -45,7 +45,7 @@ class PyannoteDiarizationTool(DiarizationTool):
         num_speakers: Optional[int] = None,
     ):
         """
-        Implementation of Pyannote's diarization inference method.
+        Implementation of pyannote's diarization inference method.
         :param audio_path: Path to the audio track.
         :param diarization_path: Path to the diarization file.
         :param num_speakers: Number of speaking participants, if ignored the model

@@ -30,9 +30,6 @@ class MediaPipeCommand(Command):
 class MediaPipeInferenceCommand(Command):
     """
     Tool for inferring human pose with MediaPipe Holistic.
-    Expected video input extension: path/to/video.{any ffmpeg readable}
-    Expected pose output extension: path/to/poses.tar
-    Expected mask input extension (optional): path/to/masks.{any ffmpeg readable}
     """
 
     @staticmethod
@@ -41,19 +38,19 @@ class MediaPipeInferenceCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video",
+            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
-            help="path to the pose archive",
+            help="path to the output pose archive, such as '/path/to/poses.tar.gz'",
         )
         parser.add_argument(
             "--masks",
             type=Path,
             default=None,
-            help="path to the binary mask video",
+            help="path to the output segmentation mask video file, such as '/path/to/masks.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--mask_threshold",

@@ -13,8 +13,8 @@ class PsifxCommand(Command):
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
 
-        register_command(subparsers, "video", VideoCommand)
         register_command(subparsers, "audio", AudioCommand)
+        register_command(subparsers, "video", VideoCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -29,3 +29,7 @@ def main():
     parser = register_main_command(PsifxCommand, version=psifx.__version__)
     args = parser.parse_args()
     args.execute(args)
+
+
+if __name__ == "__main__":
+    main()

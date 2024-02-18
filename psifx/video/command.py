@@ -15,8 +15,8 @@ class VideoCommand(Command):
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
 
-        register_command(subparsers, "pose", PoseEstimationCommand)
         register_command(subparsers, "manipulation", ManipulationCommand)
+        register_command(subparsers, "pose", PoseEstimationCommand)
         register_command(subparsers, "face", FaceAnalysisCommand)
 
     @staticmethod

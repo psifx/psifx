@@ -15,8 +15,8 @@ class PoseEstimationCommand(Command):
     def setup(parser: argparse.ArgumentParser):
         subparsers = parser.add_subparsers(title="available commands")
 
-        register_command(subparsers, "visualization", VisualizationCommand)
         register_command(subparsers, "mediapipe", MediaPipeCommand)
+        register_command(subparsers, "visualization", VisualizationCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -26,9 +26,6 @@ class PoseEstimationCommand(Command):
 class VisualizationCommand(Command):
     """
     Tool for visualizing the poses over the video.
-    Expected video input extension: path/to/video.{any ffmpeg readable}
-    Expected pose input extension: path/to/poses.tar
-    Expected visualization video output extension: path/to/visualization-video.{any ffmpeg readable}
     """
 
     @staticmethod
@@ -37,19 +34,19 @@ class VisualizationCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video",
+            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
-            help="path to the pose archive",
+            help="path to the input pose archive, such as '/path/to/poses.tar.gz'",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="path to the visualization video",
+            help="path to the output visualization video file, such as '/path/to/visualization.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--confidence_threshold",

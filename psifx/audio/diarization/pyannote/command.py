@@ -7,7 +7,7 @@ from psifx.audio.diarization.pyannote.tool import PyannoteDiarizationTool
 
 class PyannoteCommand(Command):
     """
-    Tool for running Pyannote.
+    Tool for running pyannote.
     """
 
     @staticmethod
@@ -26,9 +26,7 @@ class PyannoteCommand(Command):
 
 class PyannoteInferenceCommand(Command):
     """
-    Tool for diarizing an audio track with Pyannote.
-    Expected audio input extension: path/to/audio.wav
-    Expected diarization output extension: path/to/diarization.rttm
+    Tool for diarizing an audio track with pyannote.
     """
 
     @staticmethod
@@ -37,13 +35,13 @@ class PyannoteInferenceCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the audio",
+            help="path to the input audio file, such as '/path/to/audio.wav'",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="Path to the diarization",
+            help="path to the output diarization file, such as '/path/to/diarization.rttm'",
         )
         parser.add_argument(
             "--num_speakers",

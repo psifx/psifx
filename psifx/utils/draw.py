@@ -93,7 +93,7 @@ def draw_lines(
         draw.line(
             xy=[tuple(start_point), tuple(end_point)],
             fill=tuple(color),
-            width=thickness
+            width=thickness,
         )
 
     return image

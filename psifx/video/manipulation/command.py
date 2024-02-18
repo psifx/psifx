@@ -25,8 +25,6 @@ class ProcessCommand(Command):
     """
     Tool for processing videos.
     The trimming, cropping and resizing can be performed all at once, and in that order.
-    Expected video input extension: path/to/video.{any ffmpeg readable}
-    Expected processed video output extension: path/to/processed-video.{any ffmpeg readable}
     """
 
     @staticmethod
@@ -35,13 +33,13 @@ class ProcessCommand(Command):
             "--in_video",
             type=Path,
             required=True,
-            help="path to the input video",
+            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--out_video",
             type=Path,
             required=True,
-            help="path to the output video",
+            help="path to the output video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--start",

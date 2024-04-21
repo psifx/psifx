@@ -18,7 +18,7 @@ class PyannoteDiarizationTool(DiarizationTool):
 
     def __init__(
         self,
-        model_name: str = "2.1.1",
+        model_name: str = "pyannote/speaker-diarization@2.1.1",
         api_token: Optional[str] = None,
         device: str = "cpu",
         overwrite: bool = False,
@@ -34,7 +34,7 @@ class PyannoteDiarizationTool(DiarizationTool):
         self.api_token = api_token
 
         self.model: Pipeline = Pipeline.from_pretrained(
-            checkpoint_path=f"pyannote/speaker-diarization@{model_name}",
+            checkpoint_path=model_name,
             use_auth_token=api_token,
         ).to(device=torch.device(device))
 

@@ -53,8 +53,8 @@ class PyannoteInferenceCommand(Command):
         parser.add_argument(
             "--model_name",
             type=str,
-            default="2.1.1",
-            help="version number of the pyannote/speaker-diarization model, c.f."
+            default="pyannote/speaker-diarization@2.1.1",
+            help="name of the diarization model used, c.f."
             " https://huggingface.co/pyannote/speaker-diarization/tree/main/reproducible_research",
         )
         parser.add_argument(

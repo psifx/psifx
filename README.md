@@ -139,8 +139,8 @@ psifx audio manipulation extraction [-h] --video VIDEO --audio AUDIO
 
 optional arguments:
   -h, --help            show this help message and exit
-  --video VIDEO         path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
-  --audio AUDIO         path to the output audio file, such as '/path/to/audio.wav'
+  --video VIDEO         path to the input video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
+  --audio AUDIO         path to the output audio file, such as `/path/to/audio.wav`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -159,9 +159,9 @@ psifx audio manipulation conversion [-h] --audio AUDIO --mono_audio
 
 optional arguments:
   -h, --help            show this help message and exit
-  --audio AUDIO         path to the input audio file, such as '/path/to/audio.wav' (or .mp3, etc.)
+  --audio AUDIO         path to the input audio file, such as `/path/to/audio.wav` (or .mp3, etc.)
   --mono_audio MONO_AUDIO
-                        path to the output audio file, such as '/path/to/mono-audio.wav'
+                        path to the output audio file, such as `/path/to/mono-audio.wav`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -182,9 +182,9 @@ psifx audio manipulation mixdown [-h] --mono_audios MONO_AUDIOS
 optional arguments:
   -h, --help            show this help message and exit
   --mono_audios MONO_AUDIOS [MONO_AUDIOS ...]
-                        paths to the input mono audio files, such as '/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav'
+                        paths to the input mono audio files, such as `/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav`
   --mixed_audio MIXED_AUDIO
-                        path to the output mixed audio file, such as '/path/to/mixed-audio.wav'
+                        path to the output mixed audio file, such as `/path/to/mixed-audio.wav`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -204,9 +204,9 @@ psifx audio manipulation normalization [-h] --audio AUDIO
 
 optional arguments:
   -h, --help            show this help message and exit
-  --audio AUDIO         path to the input audio file, such as '/path/to/audio.wav'
+  --audio AUDIO         path to the input audio file, such as `/path/to/audio.wav`
   --normalized_audio NORMALIZED_AUDIO
-                        path to the output normalized audio file, such as '/path/to/normalized-audio.wav'
+                        path to the output normalized audio file, such as `/path/to/normalized-audio.wav`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -232,9 +232,9 @@ psifx audio diarization pyannote inference [-h] --audio AUDIO
 
 optional arguments:
   -h, --help            show this help message and exit
-  --audio AUDIO         path to the input audio file, such as '/path/to/audio.wav'
+  --audio AUDIO         path to the input audio file, such as `/path/to/audio.wav`
   --diarization DIARIZATION
-                        path to the output diarization file, such as '/path/to/diarization.rttm'
+                        path to the output diarization file, such as `/path/to/diarization.rttm`
   --num_speakers NUM_SPEAKERS
                         number of speaking participants, if ignored the model will try to guess it, it is advised to specify it
   --model_name MODEL_NAME
@@ -263,9 +263,9 @@ psifx audio diarization pyannote visualization [-h] --diarization
 optional arguments:
   -h, --help            show this help message and exit
   --diarization DIARIZATION
-                        path to the input diarization file, such as '/path/to/diarization.rttm'
+                        path to the input diarization file, such as `/path/to/diarization.rttm`
   --visualization VISUALIZATION
-                        path to the output visualization file, such as '/path/to/visualization.png'
+                        path to the output visualization file, such as `/path/to/visualization.png`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -295,13 +295,13 @@ psifx audio identification pyannote inference [-h] --mixed_audio
 optional arguments:
   -h, --help            show this help message and exit
   --mixed_audio MIXED_AUDIO
-                        path to the input mixed audio file, such as '/path/to/mixed-audio.wav'
+                        path to the input mixed audio file, such as `/path/to/mixed-audio.wav`
   --diarization DIARIZATION
-                        path to the input diarization file, such as '/path/to/diarization.rttm'
+                        path to the input diarization file, such as `/path/to/diarization.rttm`
   --mono_audios MONO_AUDIOS [MONO_AUDIOS ...]
-                        paths to the input mono audio files, such as '/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav'
+                        paths to the input mono audio files, such as `/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav`
   --identification IDENTIFICATION
-                        path to the output identification file, such as '/path/to/identification.json'
+                        path to the output identification file, such as `/path/to/identification.json`
   --model_names MODEL_NAMES [MODEL_NAMES ...]
                         names of the embedding models
   --api_token API_TOKEN
@@ -332,9 +332,9 @@ psifx audio transcription whisper inference [-h] --audio AUDIO
 
 optional arguments:
   -h, --help            show this help message and exit
-  --audio AUDIO         path to the input audio file, such as '/path/to/audio.wav'
+  --audio AUDIO         path to the input audio file, such as `/path/to/audio.wav`
   --transcription TRANSCRIPTION
-                        path to the output transcription file, such as '/path/to/transcription.vtt'
+                        path to the output transcription file, such as `/path/to/transcription.vtt`
   --language LANGUAGE   language of the audio, if ignore, the model will try to guess it, it is advised to specify it
   --model_name MODEL_NAME
                         name of the model, check https://github.com/openai/whisper#available-models-and-languages
@@ -364,13 +364,13 @@ psifx audio transcription whisper enhance [-h] --transcription
 optional arguments:
   -h, --help            show this help message and exit
   --transcription TRANSCRIPTION
-                        path to the input transcription file, such as '/path/to/transcription.vtt'
+                        path to the input transcription file, such as `/path/to/transcription.vtt`
   --diarization DIARIZATION
-                        path to the input diarization file, such as '/path/to/diarization.rttm'
+                        path to the input diarization file, such as `/path/to/diarization.rttm`
   --identification IDENTIFICATION
-                        path to the input identification file, such as '/path/to/identification.json'
+                        path to the input identification file, such as `/path/to/identification.json`
   --enhanced_transcription ENHANCED_TRANSCRIPTION
-                        path to the output transcription file, such as '/path/to/enhanced-transcription.vtt'
+                        path to the output transcription file, such as `/path/to/enhanced-transcription.vtt`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -393,10 +393,10 @@ psifx audio speech opensmile inference [-h] --audio AUDIO --diarization
 
 optional arguments:
   -h, --help            show this help message and exit
-  --audio AUDIO         path to the input audio file, such as '/path/to/audio.wav'
+  --audio AUDIO         path to the input audio file, such as `/path/to/audio.wav`
   --diarization DIARIZATION
-                        path to the input diarization file, such as '/path/to/diarization.rttm'
-  --features FEATURES   path to the output feature archive, such as '/path/to/opensmile.tar.gz'
+                        path to the input diarization file, such as `/path/to/diarization.rttm`
+  --features FEATURES   path to the output feature archive, such as `/path/to/opensmile.tar.gz`
   --feature_set FEATURE_SET
                         available sets: ['ComParE_2016', 'GeMAPSv01a', 'GeMAPSv01b', 'eGeMAPSv01a', 'eGeMAPSv01b', 'eGeMAPSv02', 'emobase']
   --feature_level FEATURE_LEVEL
@@ -427,9 +427,9 @@ psifx video manipulation process [-h] --in_video IN_VIDEO --out_video
 
 optional arguments:
   -h, --help            show this help message and exit
-  --in_video IN_VIDEO   path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
+  --in_video IN_VIDEO   path to the input video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
   --out_video OUT_VIDEO
-                        path to the output video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
+                        path to the output video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
   --start START         trim: timestamp in seconds of the start of the selection
   --end END             trim: timestamp in seconds of the end of the selection
   --x_min X_MIN         crop: x-axis coordinate of the top-left corner in pixels
@@ -462,9 +462,9 @@ psifx video pose mediapipe inference [-h] --video VIDEO --poses POSES
 
 optional arguments:
   -h, --help            show this help message and exit
-  --video VIDEO         path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
-  --poses POSES         path to the output pose archive, such as '/path/to/poses.tar.gz'
-  --masks MASKS         path to the output segmentation mask video file, such as '/path/to/masks.mp4' (or .avi, .mkv, etc.)
+  --video VIDEO         path to the input video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
+  --poses POSES         path to the output pose archive, such as `/path/to/poses.tar.gz`
+  --masks MASKS         path to the output segmentation mask video file, such as `/path/to/masks.mp4` (or .avi, .mkv, etc.)
   --mask_threshold MASK_THRESHOLD
                         threshold for the binarization of the segmentation mask
   --model_complexity MODEL_COMPLEXITY
@@ -492,10 +492,10 @@ psifx video pose mediapipe visualization [-h] --video VIDEO --poses
 
 optional arguments:
   -h, --help            show this help message and exit
-  --video VIDEO         path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
-  --poses POSES         path to the input pose archive, such as '/path/to/poses.tar.gz'
+  --video VIDEO         path to the input video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
+  --poses POSES         path to the input pose archive, such as `/path/to/poses.tar.gz`
   --visualization VISUALIZATION
-                        path to the output visualization video file, such as '/path/to/visualization.mp4' (or .avi, .mkv, etc.)
+                        path to the output visualization video file, such as `/path/to/visualization.mp4` (or .avi, .mkv, etc.)
   --confidence_threshold CONFIDENCE_THRESHOLD
                         threshold for not displaying low confidence keypoints
   --overwrite, --no-overwrite
@@ -518,8 +518,8 @@ psifx video face openface inference [-h] --video VIDEO --features
 
 optional arguments:
   -h, --help            show this help message and exit
-  --video VIDEO         path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
-  --features FEATURES   path to the output feature archive, such as '/path/to/openface.tar.gz'
+  --video VIDEO         path to the input video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
+  --features FEATURES   path to the output feature archive, such as `/path/to/openface.tar.gz`
   --overwrite, --no-overwrite
                         overwrite existing files, otherwise raises an error (default: False)
   --verbose, --no-verbose
@@ -541,10 +541,10 @@ psifx video face openface visualization [-h] --video VIDEO --features
 
 optional arguments:
   -h, --help            show this help message and exit
-  --video VIDEO         path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)
-  --features FEATURES   path to the input feature archive, such as '/path/to/openface.tar.gz'
+  --video VIDEO         path to the input video file, such as `/path/to/video.mp4` (or .avi, .mkv, etc.)
+  --features FEATURES   path to the input feature archive, such as `/path/to/openface.tar.gz`
   --visualization VISUALIZATION
-                        path to the output video file, such as '/path/to/visualization.mp4' (or .avi, .mkv, etc.)
+                        path to the output video file, such as `/path/to/visualization.mp4` (or .avi, .mkv, etc.)
   --depth DEPTH         projection: assumed static depth of the subject in meters
   --f_x F_X             projection: x-axis of the focal length
   --f_y F_Y             projection: y-axis of the focal length

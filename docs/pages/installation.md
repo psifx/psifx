@@ -39,11 +39,7 @@ We recommend using Docker for reducing compatibility issues.
    conda create -y -n psifx-env python=3.9 pip
    conda activate psifx-env
    ```
-3. Now install `psifx`:
-   ```bash
-   pip install 'psifx @ git+https://github.com/GuillaumeRochette/psifx.git'
-   ```
-4. We provide an API endpoint to use [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace), useable only if you
+3. [Optional] We provide an API endpoint to use [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace), useable **only** if you
    comply with
    their [license agreement](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/OpenFace-license.txt), e.g.
    academic, research or non-commercial purposes.
@@ -64,3 +60,7 @@ We recommend using Docker for reducing compatibility issues.
        wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
        python install.py
        ```
+4. Install `psifx`:
+   ```bash
+   pip install 'psifx @ git+https://github.com/GuillaumeRochette/psifx.git'
+   ```

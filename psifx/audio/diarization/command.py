@@ -1,3 +1,5 @@
+"""speaker diarization command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -8,11 +10,17 @@ from psifx.audio.diarization.tool import DiarizationTool
 
 class DiarizationCommand(Command):
     """
-    Tools for diarizing audio tracks.
+    Command-line interface for diarizing audio tracks.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "pyannote", PyannoteCommand)
@@ -20,16 +28,29 @@ class DiarizationCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class VisualizationCommand(Command):
     """
-    Tool for visualizing the diarization of a track.
+    Command-line interface for visualizing the diarization of a track.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--diarization",
             type=Path,
@@ -57,6 +78,13 @@ class VisualizationCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = DiarizationTool(
             device="cpu",
             overwrite=args.overwrite,

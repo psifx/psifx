@@ -1,3 +1,5 @@
+"""pose estimation command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -8,11 +10,17 @@ from psifx.video.pose.tool import PoseEstimationTool
 
 class PoseEstimationCommand(Command):
     """
-    Tools for estimating human poses from videos.
+    Command-line interface for estimating human poses from videos.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "mediapipe", MediaPipeCommand)
@@ -20,16 +28,29 @@ class PoseEstimationCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class VisualizationCommand(Command):
     """
-    Tool for visualizing the poses over the video.
+    Command-line interface for visualizing the poses over the video.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--video",
             type=Path,
@@ -69,6 +90,13 @@ class VisualizationCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = PoseEstimationTool(
             device="cpu",
             overwrite=args.overwrite,

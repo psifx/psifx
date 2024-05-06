@@ -1,3 +1,5 @@
+"""OpenFace's field conversion table."""
+
 # pylint: skip-file
 # fmt: off
 CLEAN_FIELDS = [

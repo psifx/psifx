@@ -1,3 +1,5 @@
+"""OpenFace's skeleton graphs."""
+
 EYE_EDGES = (
     (0, 1),
     (1, 2),

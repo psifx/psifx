@@ -1,11 +1,13 @@
+"""speaker identification tool."""
+
 from typing import Union, Sequence
 
 from pathlib import Path
 
-from psifx.tool import BaseTool
+from psifx.tool import Tool
 
 
-class IdentificationTool(BaseTool):
+class IdentificationTool(Tool):
     """
     Base class for identification tools.
     """
@@ -18,12 +20,13 @@ class IdentificationTool(BaseTool):
         identification_path: Union[str, Path],
     ):
         """
-        Skeleton of the inference method.
+        Template of the inference method.
 
         :param mixed_audio_path: Path to the audio track.
         :param diarization_path: Path to the diarization file.
-        :param mono_audio_paths:Path to the mono audio tracks.
+        :param mono_audio_paths: Path to the mono audio tracks.
         :param identification_path: Path to the identification file.
         :return:
         """
+
         raise NotImplementedError

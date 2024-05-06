@@ -1,3 +1,5 @@
+"""pyannote speaker identification tool."""
+
 from typing import Union, Optional, Sequence
 
 from itertools import permutations
@@ -26,6 +28,7 @@ def cropped_waveform(
 ) -> Tensor:
     """
     Crops an audio track and returns its corresponding waveform.
+
     :param path: Path to the audio track.
     :param start: Start of segment in seconds.
     :param end: End of the segment in seconds.
@@ -44,7 +47,13 @@ def cropped_waveform(
 
 class PyannoteIdentificationTool(IdentificationTool):
     """
-    pyannote identification tool.
+    pyannote speaker identification tool.
+
+    :param model_names: The names of the models to use.
+    :param api_token: The HuggingFace API token to use.
+    :param device: The device where the computation should be executed.
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -95,11 +104,11 @@ class PyannoteIdentificationTool(IdentificationTool):
         assert mixed_audio_path not in mono_audio_paths
         assert sorted(set(mono_audio_paths)) == sorted(mono_audio_paths)
 
-        wav.WAVReader.check(mixed_audio_path)
-        rttm.RTTMReader.check(diarization_path)
+        wav.WAVReader.check(path=mixed_audio_path)
+        rttm.RTTMReader.check(path=diarization_path)
         for path in mono_audio_paths:
-            wav.WAVReader.check(path)
-        json.JSONWriter.check(identification_path)
+            wav.WAVReader.check(path=path)
+        json.JSONWriter.check(path=identification_path, overwrite=self.overwrite)
 
         segments = rttm.RTTMReader.read(path=diarization_path, verbose=self.verbose)
         dataframe = pd.DataFrame.from_records(segments)

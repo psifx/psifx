@@ -1,3 +1,5 @@
+"""audio manipulation tool."""
+
 from typing import Sequence, Union
 
 from pathlib import Path
@@ -5,12 +7,15 @@ import ffmpeg
 
 from pydub import AudioSegment
 
-from psifx.tool import BaseTool
+from psifx.tool import Tool
 
 
-class ManipulationTool(BaseTool):
+class ManipulationTool(Tool):
     """
-    Audio manipulation tool.
+    audio manipulation tool.
+
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -31,6 +36,7 @@ class ManipulationTool(BaseTool):
     ):
         """
         Extracts the audio track from a video.
+
         :param video_path: Path to the video.
         :param audio_path: Path to the audio track.
         :return:

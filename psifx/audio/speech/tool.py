@@ -1,11 +1,13 @@
+"""speech processing tool."""
+
 from typing import Union
 
 from pathlib import Path
 
-from psifx.tool import BaseTool
+from psifx.tool import Tool
 
 
-class SpeechTool(BaseTool):
+class SpeechTool(Tool):
     """
     Base class for non-verbal speech processing tools.
     """
@@ -17,7 +19,7 @@ class SpeechTool(BaseTool):
         features_path: Union[str, Path],
     ):
         """
-        Skeleton of the inference method.
+        Template of the inference method.
 
         :param audio_path: Path to the audio track.
         :param diarization_path: Path to the diarization file.

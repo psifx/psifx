@@ -1,3 +1,5 @@
+"""command utilities."""
+
 import argparse
 from typing import Type
 
@@ -13,6 +15,12 @@ class Command:
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         """Setup the command-line arguments for the command.
 
         Args:
@@ -22,6 +30,13 @@ class Command:
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         """Executes the command on the given args.
 
         args:

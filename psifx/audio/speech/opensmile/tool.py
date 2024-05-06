@@ -1,3 +1,7 @@
+"""
+openSMILE speech processing tool.
+"""
+
 from typing import Union
 
 from pathlib import Path
@@ -32,6 +36,7 @@ FEATURE_LEVELS = {
 def audio_segment_to_waveform(audio: AudioSegment) -> np.ndarray:
     """
     Converts an audio segment to a ndarray normalized waveform.
+
     :param audio: Audio segment
     :return: ndarray waveform.
     """
@@ -86,9 +91,9 @@ class OpenSmileSpeechTool(SpeechTool):
             print(f"diarization     =   {diarization_path}")
             print(f"features        =   {features_path}")
 
-        wav.WAVReader.check(audio_path)
-        rttm.RTTMReader.check(diarization_path)
-        tar.TarWriter.check(features_path)
+        wav.WAVReader.check(path=audio_path)
+        rttm.RTTMReader.check(path=diarization_path)
+        tar.TarWriter.check(path=features_path, overwrite=self.overwrite)
 
         audio = AudioSegment.from_wav(audio_path)
 

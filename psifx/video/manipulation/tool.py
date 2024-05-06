@@ -1,3 +1,5 @@
+"""Video manipulation tool."""
+
 from typing import Optional, Union
 
 from pathlib import Path
@@ -9,6 +11,9 @@ from psifx.video.tool import VideoTool
 class ManipulationTool(VideoTool):
     """
     Video manipulation tool.
+
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -38,16 +43,16 @@ class ManipulationTool(VideoTool):
         """
         Offers to trim, crop and resize your video (in that exact order).
 
-        :param in_video_path:
-        :param out_video_path:
-        :param start:
-        :param end:
-        :param x_min:
-        :param y_min:
-        :param x_max:
-        :param y_max:
-        :param width:
-        :param height:
+        :param in_video_path: Path to input video.
+        :param out_video_path: Path to output video.
+        :param start: Start timestamp to trim the video.
+        :param end: End timestamp to trim the video.
+        :param x_min: Top coordinate to crop the video.
+        :param y_min: Left coordinate to crop the video.
+        :param x_max: Bottom coordinate to crop the video.
+        :param y_max: Right coordinate to crop the video.
+        :param width: Width to resize the video.
+        :param height: Height to resize the video.
         :return:
         """
         in_video_path = Path(in_video_path)

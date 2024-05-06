@@ -1,3 +1,5 @@
+"""Whisper transcription tool."""
+
 from typing import Union, Optional
 
 from pathlib import Path
@@ -12,6 +14,12 @@ from psifx.io import vtt, wav
 class WhisperTranscriptionTool(TranscriptionTool):
     """
     Whisper transcription and translation tool.
+
+    :param model_name: The name of the model to use.
+    :param task: Whether to "transcribe" or "translate".
+    :param device: The device where the computation should be executed.
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -22,6 +30,8 @@ class WhisperTranscriptionTool(TranscriptionTool):
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
     ):
+        assert task in ["transcribe", "translate"]
+
         super().__init__(
             device=device,
             overwrite=overwrite,
@@ -57,8 +67,8 @@ class WhisperTranscriptionTool(TranscriptionTool):
             print(f"audio           =   {audio_path}")
             print(f"transcription   =   {transcription_path}")
 
-        wav.WAVReader.check(audio_path)
-        vtt.VTTWriter.check(transcription_path)
+        wav.WAVReader.check(path=audio_path)
+        vtt.VTTWriter.check(path=transcription_path, overwrite=self.overwrite)
 
         # PRE-PROCESSING
         # Nothing to do here, the model wants the path of the audio.

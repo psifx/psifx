@@ -1,3 +1,5 @@
+"""OpenFace face analysis tool."""
+
 from typing import Optional, Union
 
 import shlex
@@ -33,6 +35,7 @@ def gaze_vector_2d(
 ):
     """
     Projects the gaze vector in 2D starting from the center of the eye.
+
     :param eye_2d:
     :param gaze_3d:
     :param depth:
@@ -50,7 +53,10 @@ def gaze_vector_2d(
 
 class OpenFaceTool(FaceAnalysisTool):
     """
-    OpenFace analysis tool.
+    OpenFace face analysis tool.
+
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -69,6 +75,13 @@ class OpenFaceTool(FaceAnalysisTool):
         video_path: Union[str, Path],
         features_path: Union[str, Path],
     ):
+        """
+        Implementation of OpenFace's face analysis inference method.
+
+        :param video_path: The path to the video file.
+        :param features_path: The path to the features archive.
+        :return:
+        """
         video_path = Path(video_path)
         features_path = Path(features_path)
 
@@ -77,7 +90,7 @@ class OpenFaceTool(FaceAnalysisTool):
             print(f"features    =   {features_path}")
 
         assert video_path.is_file()
-        tar.TarWriter.check(features_path)
+        tar.TarWriter.check(path=features_path, overwrite=self.overwrite)
 
         tmp_dir = Path(f"/tmp/TEMP_{time.time()}")
         tmp_dir.mkdir(parents=True)
@@ -166,6 +179,19 @@ class OpenFaceTool(FaceAnalysisTool):
         c_x: Optional[float] = None,
         c_y: Optional[float] = None,
     ):
+        """
+        Produces a visualization of the face pose and eye gaze vectors over a video.
+
+        :param video_path: The path to the video file.
+        :param features_path: The path to the features archive.
+        :param visualization_path: The path to the visualization file.
+        :param depth: The (guesstimated) depth between the camera and the subject.
+        :param f_x: The (guesstimated) focal length of the x-axis.
+        :param f_y: The (guesstimated) focal length of the y-axis.
+        :param c_x: The (guesstimated) principal point of the x-axis.
+        :param c_y: The (guesstimated) principal point of the x-axis.
+        :return:
+        """
         video_path = Path(video_path)
         features_path = Path(features_path)
         visualization_path = Path(visualization_path)
@@ -176,7 +202,7 @@ class OpenFaceTool(FaceAnalysisTool):
             print(f"visualization   =   {visualization_path}")
 
         assert video_path != visualization_path
-        tar.TarReader.check(features_path)
+        tar.TarReader.check(path=features_path)
 
         calibration = all(p is not None for p in [f_x, f_y, c_x, c_y])
         no_calibration = all(p is None for p in [f_x, f_y, c_x, c_y])

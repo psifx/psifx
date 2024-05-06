@@ -1,3 +1,5 @@
+"""speaker diarization tool."""
+
 from typing import Union
 
 from pathlib import Path
@@ -8,11 +10,11 @@ import matplotlib.pyplot as plt
 from pyannote.core.annotation import Segment, Annotation
 from pyannote.core import notebook
 
-from psifx.tool import BaseTool
+from psifx.tool import Tool
 from psifx.io import rttm
 
 
-class DiarizationTool(BaseTool):
+class DiarizationTool(Tool):
     """
     Base class for diarization tools.
     """
@@ -23,7 +25,7 @@ class DiarizationTool(BaseTool):
         diarization_path: Union[str, Path],
     ):
         """
-        Skeleton of the inference method.
+        Template of the inference method.
 
         :param audio_path: Path to the audio track.
         :param diarization_path: Path to the diarization file.
@@ -59,7 +61,7 @@ class DiarizationTool(BaseTool):
             print(f"diarization     =   {diarization_path}")
             print(f"visualization   =   {visualization_path}")
 
-        rttm.RTTMReader.check(diarization_path)
+        rttm.RTTMReader.check(path=diarization_path)
 
         segments = rttm.RTTMReader.read(path=diarization_path, verbose=True)
 

@@ -1,3 +1,5 @@
+"""OpenFace face analysis command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -7,11 +9,17 @@ from psifx.video.face.openface.tool import OpenFaceTool
 
 class OpenFaceCommand(Command):
     """
-    Tool for running OpenFace.
+    Command-line interface for running OpenFace.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "inference", OpenFaceInferenceCommand)
@@ -19,16 +27,29 @@ class OpenFaceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class OpenFaceInferenceCommand(Command):
     """
-    Tool for inferring face features from videos with OpenFace.
+    Command-line interface for inferring face features from videos with OpenFace.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--video",
             type=Path,
@@ -56,6 +77,13 @@ class OpenFaceInferenceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = OpenFaceTool(
             overwrite=args.overwrite,
             verbose=args.verbose,
@@ -69,11 +97,17 @@ class OpenFaceInferenceCommand(Command):
 
 class OpenFaceVisualizationCommand(Command):
     """
-    Tool for visualizing face features from videos with OpenFace.
+    Command-line interface for visualizing face features from videos with OpenFace.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--video",
             type=Path,
@@ -137,6 +171,13 @@ class OpenFaceVisualizationCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = OpenFaceTool(
             overwrite=args.overwrite,
             verbose=args.verbose,

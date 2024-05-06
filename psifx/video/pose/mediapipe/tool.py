@@ -1,3 +1,5 @@
+"""MediaPipe pose estimation tool."""
+
 from typing import Any, Dict, List, Tuple, Union
 
 import json
@@ -15,6 +17,12 @@ from psifx.io import tar, video
 class MediaPipePoseEstimationTool(PoseEstimationTool):
     """
     MediaPipe pose estimation tool.
+
+    :param model_complexity: Complexity of the model: {0, 1, 2}, higher means more FLOPs, but also more accurate results
+    :param smooth: Whether to temporally smooth the inference results to reduce the jitter.
+    :param device: The device where the computation should be executed.
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -43,6 +51,7 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
     ) -> List[float]:
         """
         Processes MediaPipe output into a simple flattened list of coordinates.
+
         :param landmarks: MediaPipe landmarks.
         :param size: Image resolution.
         :param n_points: Expected number of points.
@@ -65,6 +74,7 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
     ) -> Dict[str, Any]:
         """
         Process all the parts estimated by MediaPipe, e.g. body, face, hands.
+
         :param results: MediaPipe output.
         :param size: Image resolution.
         :return: Processed keypoints for every part.
@@ -99,6 +109,7 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
     ):
         """
         Runs MediaPipe pose estimation model on a video.
+
         :param video_path: Path to the video file.
         :param poses_path: Path to the pose archive.
         :return:
@@ -110,7 +121,7 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
             print(f"video   =   {video_path}")
             print(f"poses   =   {poses_path}")
 
-        tar.TarWriter.check(poses_path)
+        tar.TarWriter.check(path=poses_path, overwrite=self.overwrite)
 
         poses = {
             "edges": {
@@ -167,6 +178,13 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
 class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
     """
     MediaPipe pose estimation and binary segmentation tool.
+
+    :param model_complexity: Complexity of the model: {0, 1, 2}, higher means more FLOPs, but also more accurate results
+    :param smooth: Whether to temporally smooth the inference results to reduce the jitter.
+    :param mask_threshold: The threshold for the binarization of the segmentation mask.
+    :param device: The device where the computation should be executed.
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
@@ -196,6 +214,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
     ) -> np.ndarray:
         """
         Processed the floating point 2D array into a binary array given a confidence threshold.
+
         :param mask: Floating point mask array
         :param size: Expected image resolution
         :param threshold: Confidence threshold
@@ -221,6 +240,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
     ):
         """
         Runs MediaPipe pose estimation and segmentation model on a video.
+
         :param video_path: Path to the video file.
         :param poses_path: Path to the pose archive.
         :param masks_path: Path to the mask video file.
@@ -235,7 +255,7 @@ class MediaPipePoseEstimationAndSegmentationTool(MediaPipePoseEstimationTool):
             print(f"poses   =   {poses_path}")
             print(f"masks   =   {masks_path}")
 
-        tar.TarWriter.check(poses_path)
+        tar.TarWriter.check(path=poses_path, overwrite=self.overwrite)
 
         poses = {
             "edges": {

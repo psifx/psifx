@@ -1,3 +1,5 @@
+"""Mediapipe's skeleton graph.'"""
+
 from mediapipe.python.solutions.holistic import (
     PoseLandmark,
     HandLandmark,

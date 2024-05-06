@@ -1,3 +1,5 @@
+"""MediaPipe pose estimation command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -10,11 +12,17 @@ from psifx.video.pose.mediapipe.tool import (
 
 class MediaPipeCommand(Command):
     """
-    Tool for running MediaPipe.
+    Command-line interface for running MediaPipe.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         from psifx.video.pose.command import VisualizationCommand
 
         subparsers = parser.add_subparsers(title="available commands")
@@ -24,16 +32,29 @@ class MediaPipeCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class MediaPipeInferenceCommand(Command):
     """
-    Tool for inferring human pose with MediaPipe Holistic.
+    Command-line interface for inferring human pose with MediaPipe Holistic.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--video",
             type=Path,
@@ -92,6 +113,13 @@ class MediaPipeInferenceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         if args.masks is None:
             tool = MediaPipePoseEstimationTool(
                 model_complexity=args.model_complexity,

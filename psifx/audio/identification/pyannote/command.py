@@ -1,3 +1,5 @@
+"""pyannote speaker identification command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -7,27 +9,46 @@ from psifx.audio.identification.pyannote.tool import PyannoteIdentificationTool
 
 class PyannoteCommand(Command):
     """
-    Tool for running pyannote.
+    Command-line interface for running pyannote identification tool.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "inference", PyannoteInferenceCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class PyannoteInferenceCommand(Command):
     """
-    Tool for identifying speakers from an audio track with pyannote.
+    Command-line interface for identifying speakers from an audio track with pyannote.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--mixed_audio",
             type=Path,
@@ -90,6 +111,13 @@ class PyannoteInferenceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = PyannoteIdentificationTool(
             model_names=args.model_names,
             api_token=args.api_token,

@@ -1,0 +1,7 @@
+furo
+m2r2
+myst_parser
+sphinx
+sphinx-argparse
+sphinx-copybutton
+sphinx_toolbox

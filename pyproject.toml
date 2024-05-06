@@ -14,11 +14,11 @@ authors = [
 keywords = ["TODO"]
 classifiers = [
     "Development Status :: 1 - Planning",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
 ]
-dynamic = ["dependencies", "version"]
+dynamic = ["dependencies", "optional-dependencies", "version"]
 
 [project.urls]
 homepage = "https://github.com/GuillaumeRochette/psifx"
@@ -31,3 +31,7 @@ psifx = "psifx.command:main"
 [tool.setuptools.dynamic]
 version = {attr = "psifx.__version__"}
 dependencies = {file = ["requirements.txt"]}
+optional-dependencies.docs = { file = ["docs/requirements.txt"] }
+
+[tool.setuptools.packages.find]
+include = ["psifx"]

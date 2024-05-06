@@ -1,3 +1,5 @@
+"""Video I/O module."""
+
 from typing import Dict, Optional, Union
 
 from pathlib import Path
@@ -10,6 +12,10 @@ from skvideo.io import FFmpegReader, FFmpegWriter
 class VideoReader(FFmpegReader):
     """
     Video reader object.
+
+    :param path: The path to the video file.
+    :param input_dict: Input options.
+    :param output_dict: Output options.
     """
 
     def __init__(
@@ -38,6 +44,11 @@ class VideoReader(FFmpegReader):
 class VideoWriter(FFmpegWriter):
     """
     Video writer object.
+
+    :param path: The path to the video file.
+    :param input_dict: Input options.
+    :param output_dict: Output options.
+    :param overwrite: Whether to overwrite existing files.
     """
 
     def __init__(
@@ -49,12 +60,9 @@ class VideoWriter(FFmpegWriter):
     ):
         path = Path(path)
 
-        if path.exists():
-            if overwrite:
-                path.unlink()
-            else:
-                raise FileExistsError(path)
         path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and overwrite:
+            path.unlink()
 
         super().__init__(
             filename=str(path),
@@ -64,7 +72,8 @@ class VideoWriter(FFmpegWriter):
 
     def write(self, image: ndarray):
         """
-        Appends an image to the existing video
+        Appends an image to the existing video.
+
         :param image: [H, W, 3] ndarray.
         :return:
         """

@@ -1,3 +1,5 @@
+"""JSON I/O module."""
+
 from typing import Dict, List, Union
 
 import json
@@ -13,7 +15,8 @@ class JSONReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file exists and is of the correct format.
+        Checks that a file has of the correct extension and exists.
+
         :param path: Path to the file.
         :return:
         """
@@ -30,12 +33,13 @@ class JSONReader:
     ) -> Union[List, Dict]:
         """
         Reads and parses a JSON file.
+
         :param path: Path to the file.
         :param verbose: Verbosity of the method.
         :return: Deserialized data.
         """
         path = Path(path)
-        JSONReader.check(path)
+        JSONReader.check(path=path)
 
         with path.open(mode="r") as file:
             for _ in tqdm(
@@ -54,15 +58,18 @@ class JSONWriter:
     """
 
     @staticmethod
-    def check(path: Union[str, Path]):
+    def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file is of the correct format.
+        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
-        if path.suffix != ".json":
+        if ".tar" not in path.suffixes:
             raise NameError(path)
+        if path.exists() and not overwrite:
+            raise FileExistsError(path)
 
     @staticmethod
     def write(
@@ -81,14 +88,11 @@ class JSONWriter:
         :return:
         """
         path = Path(path)
-        JSONWriter.check(path)
+        JSONWriter.check(path=path, overwrite=overwrite)
 
-        if path.exists():
-            if overwrite:
-                path.unlink()
-            else:
-                raise FileExistsError(path)
         path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and overwrite:
+            path.unlink()
 
         with path.open(mode="w") as file:
             for _ in tqdm(range(1), desc="Writing", disable=not verbose):

@@ -1,3 +1,5 @@
+"""VTT I/O module."""
+
 from typing import Dict, Sequence, Union
 
 import re
@@ -15,6 +17,7 @@ SPEAKER_PATTERN = re.compile(r"<v .+>")
 def seconds2timestamp(seconds: float) -> str:
     """
     Converts floating point seconds into timestamp string.
+
     :param seconds: Floating point seconds.
     :return: Timestamp string.
     """
@@ -33,6 +36,7 @@ def seconds2timestamp(seconds: float) -> str:
 def timestamp2seconds(timestamp: str) -> float:
     """
     Converts timestamp string into floating point seconds.
+
     :param timestamp: Timestamp string.
     :return: Floating point seconds.
     """
@@ -55,7 +59,8 @@ class VTTReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file exists and is of the correct format.
+        Checks that a file has of the correct extension and exists.
+
         :param path: Path to the file.
         :return:
         """
@@ -72,12 +77,13 @@ class VTTReader:
     ) -> Sequence[Dict[str, Union[float, str]]]:
         """
         Reads and parses a VTT file.
+
         :param path: Path to the file.
         :param verbose: Verbosity of the method.
         :return: Subtitle segments.
         """
         path = Path(path)
-        VTTReader.check(path)
+        VTTReader.check(path=path)
 
         with path.open(encoding="utf-8") as file:
             lines = file.readlines()
@@ -130,15 +136,18 @@ class VTTWriter:
     """
 
     @staticmethod
-    def check(path: Union[str, Path]):
+    def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file is of the correct format.
+        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
-        if path.suffix != ".vtt":
+        if ".tar" not in path.suffixes:
             raise NameError(path)
+        if path.exists() and not overwrite:
+            raise FileExistsError(path)
 
     @staticmethod
     def write(
@@ -157,14 +166,11 @@ class VTTWriter:
         :return:
         """
         path = Path(path)
-        VTTWriter.check(path)
+        VTTWriter.check(path=path, overwrite=overwrite)
 
-        if path.exists():
-            if overwrite:
-                path.unlink()
-            else:
-                raise FileExistsError(path)
         path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and overwrite:
+            path.unlink()
 
         with path.open(mode="w", encoding="utf-8") as file:
             kwargs = {"sep": "\n", "end": "\n\n", "file": file, "flush": True}

@@ -1,3 +1,5 @@
+"""pyannote speaker diarization tool."""
+
 from typing import Optional, Union
 
 from pathlib import Path
@@ -14,11 +16,17 @@ from psifx.io import rttm, wav
 class PyannoteDiarizationTool(DiarizationTool):
     """
     pyannote diarization tool.
+
+    :param model_name: The name of the model to use.
+    :param api_token: The HuggingFace API token to use.
+    :param device: The device where the computation should be executed.
+    :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+    :param verbose: Whether to execute the computation verbosely.
     """
 
     def __init__(
         self,
-        model_name: str = "pyannote/speaker-diarization@2.1.1",
+        model_name: str = "pyannote/speaker-diarization-3.1",
         api_token: Optional[str] = None,
         device: str = "cpu",
         overwrite: bool = False,
@@ -46,10 +54,10 @@ class PyannoteDiarizationTool(DiarizationTool):
     ):
         """
         Implementation of pyannote's diarization inference method.
+
         :param audio_path: Path to the audio track.
         :param diarization_path: Path to the diarization file.
-        :param num_speakers: Number of speaking participants, if ignored the model
-        will try to guess it, it is advised to specify it.
+        :param num_speakers: Number of speaking participants, if ignored the model will try to guess it, it is advised to specify it.
         :return:
         """
         audio_path = Path(audio_path)
@@ -59,8 +67,8 @@ class PyannoteDiarizationTool(DiarizationTool):
             print(f"audio           =   {audio_path}")
             print(f"diarization     =   {diarization_path}")
 
-        wav.WAVReader.check(audio_path)
-        rttm.RTTMWriter.check(diarization_path)
+        wav.WAVReader.check(path=audio_path)
+        rttm.RTTMWriter.check(path=diarization_path, overwrite=self.overwrite)
 
         # PRE-PROCESSING
         # Nothing to do here, the model wants the path of the audio.

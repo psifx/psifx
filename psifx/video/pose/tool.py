@@ -1,3 +1,5 @@
+"""pose estimation tool."""
+
 from typing import Union
 
 import json
@@ -23,7 +25,7 @@ class PoseEstimationTool(VideoTool):
         poses_path: Union[str, Path],
     ):
         """
-        Skeleton of the inference method.
+        Template of the inference method.
 
         :param video_path: Path to the video file.
         :param poses_path: Path to the pose archive.
@@ -50,6 +52,7 @@ class PoseEstimationTool(VideoTool):
     ):
         """
         Renders a visualization where the estimated poses are overlaid on top of the video.
+
         :param video_path: Path to the video file.
         :param poses_path: Path to the pose archive.
         :param visualization_path: Path to the visualization file.
@@ -68,7 +71,7 @@ class PoseEstimationTool(VideoTool):
             print(f"visualization   =   {visualization_path}")
 
         assert video_path != visualization_path
-        tar.TarReader.check(poses_path)
+        tar.TarReader.check(path=poses_path)
 
         poses = tar.TarReader.read(
             poses_path,

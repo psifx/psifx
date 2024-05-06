@@ -1,3 +1,5 @@
+"""video processing command-line interface."""
+
 import argparse
 
 from psifx.utils.command import Command, register_command
@@ -8,11 +10,17 @@ from psifx.video.face.command import FaceAnalysisCommand
 
 class VideoCommand(Command):
     """
-    Tools for processing videos.
+    Command-line interface for processing videos.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "manipulation", ManipulationCommand)
@@ -21,4 +29,11 @@ class VideoCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()

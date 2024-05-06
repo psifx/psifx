@@ -1,3 +1,5 @@
+"""face analysis tool."""
+
 from typing import Union
 
 from pathlib import Path
@@ -16,7 +18,7 @@ class FaceAnalysisTool(VideoTool):
         features_path: Union[str, Path],
     ):
         """
-        Skeleton of the inference method.
+        Template of the inference method.
 
         :param video_path: Path to the video file.
         :param features_path: Path to the feature archive.
@@ -41,7 +43,7 @@ class FaceAnalysisTool(VideoTool):
         visualization_path: Union[str, Path],
     ):
         """
-        Skeleton of the visualization method.
+        Template of the visualization method.
 
         :param video_path: Path to the video file.
         :param features_path: Path to the feature archive.

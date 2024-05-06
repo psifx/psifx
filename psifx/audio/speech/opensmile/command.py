@@ -1,3 +1,5 @@
+"""openSMILE speech processing command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -11,44 +13,63 @@ from psifx.audio.speech.opensmile.tool import (
 
 class OpenSmileCommand(Command):
     """
-    Tool for running OpenSmile.
+    Command-line interface for running OpenSmile.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "inference", OpenSmileInferenceCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class OpenSmileInferenceCommand(Command):
     """
-    Tool for extracting non-verbal speech features from an audio track with OpenSmile.
+    Command-line interface for extracting non-verbal speech features from an audio track with OpenSmile.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the input diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the output feature archive, such as '/path/to/opensmile.tar.gz'",
+            help="path to the output feature archive, such as ``/path/to/opensmile.tar.gz``",
         )
         parser.add_argument(
             "--feature_set",
@@ -77,6 +98,13 @@ class OpenSmileInferenceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = OpenSmileSpeechTool(
             feature_set=args.feature_set,
             feature_level=args.feature_level,

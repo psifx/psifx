@@ -1,3 +1,5 @@
+"""RTTM I/O module."""
+
 from typing import Dict, List, Union
 
 from pathlib import Path
@@ -28,7 +30,8 @@ class RTTMReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file exists and is of the correct format.
+        Checks that a file has of the correct extension and exists.
+
         :param path: Path to the file.
         :return:
         """
@@ -45,12 +48,13 @@ class RTTMReader:
     ) -> List[Dict[str, Union[str, float]]]:
         """
         Reads and parse an RTTM file.
+
         :param path: Path to the file.
         :param verbose: Verbosity of the method.
         :return:
         """
         path = Path(path)
-        RTTMReader.check(path)
+        RTTMReader.check(path=path)
 
         dataframe = pd.read_csv(
             path,
@@ -86,15 +90,18 @@ class RTTMWriter:
     """
 
     @staticmethod
-    def check(path: Union[str, Path]):
+    def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file is of the correct format.
+        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
-        if path.suffix != ".rttm":
+        if ".tar" not in path.suffixes:
             raise NameError(path)
+        if path.exists() and not overwrite:
+            raise FileExistsError(path)
 
     @staticmethod
     def write(
@@ -104,22 +111,21 @@ class RTTMWriter:
     ):
         """
         Writes diarized audio segment information in the RTTM format.
-        :param path: Path to the file.
+
         :param segments: Audio segment information.
+        :param path: Path to the file.
         :param overwrite: Whether to overwrite, in case of an existing file.
         :return:
         """
         path = Path(path)
-        RTTMWriter.check(path)
+        RTTMWriter.check(path=path, overwrite=overwrite)
 
         dataframe = pd.DataFrame.from_records(segments)
 
-        if path.exists():
-            if overwrite:
-                path.unlink()
-            else:
-                raise FileExistsError(path)
         path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and overwrite:
+            path.unlink()
+
         dataframe.to_csv(
             path,
             sep=" ",

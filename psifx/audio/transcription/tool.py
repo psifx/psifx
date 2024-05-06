@@ -1,14 +1,16 @@
+"""transcription tool."""
+
 from typing import Union
 
 from pathlib import Path
 
 import pandas as pd
 
-from psifx.tool import BaseTool
+from psifx.tool import Tool
 from psifx.io import vtt, rttm, json
 
 
-class TranscriptionTool(BaseTool):
+class TranscriptionTool(Tool):
     """
     Base class for transcription tools.
     """
@@ -19,7 +21,7 @@ class TranscriptionTool(BaseTool):
         transcription_path: Union[str, Path],
     ):
         """
-        Skeleton of the inference method.
+        Template of the inference method.
 
         :param audio_path: Path to the audio track.
         :param transcription_path: Path to the transcription file.
@@ -44,8 +46,7 @@ class TranscriptionTool(BaseTool):
         enhanced_transcription_path: Union[str, Path],
     ):
         """
-        Enhances an audio transcription by fusing the transcribed audio with inferred
-         speaker diarization and identification.
+        Enhances an audio transcription by fusing the transcribed audio with inferred speaker diarization and identification.
 
         :param transcription_path: Path to the transcription file.
         :param diarization_path:  Path to the diarization file.
@@ -66,10 +67,10 @@ class TranscriptionTool(BaseTool):
             print(f"identification          =   {identification_path}")
             print(f"enhanced_transcription  =   {enhanced_transcription_path}")
 
-        vtt.VTTReader.check(transcription_path)
-        rttm.RTTMReader.check(diarization_path)
-        json.JSONReader.check(identification_path)
-        vtt.VTTWriter.check(enhanced_transcription_path)
+        vtt.VTTReader.check(path=transcription_path)
+        rttm.RTTMReader.check(path=diarization_path)
+        json.JSONReader.check(path=identification_path)
+        vtt.VTTWriter.check(path=enhanced_transcription_path, overwrite=self.overwrite)
 
         transcription = vtt.VTTReader.read(transcription_path)
         transcription = pd.DataFrame.from_records(transcription)

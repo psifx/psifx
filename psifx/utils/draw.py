@@ -1,3 +1,5 @@
+"""drawing utilities."""
+
 from typing import Optional, Tuple
 
 from colorsys import hls_to_rgb
@@ -39,6 +41,7 @@ def draw_points(
     thickness: int = 1,
 ) -> Image.Image:
     """
+    Draws points on an image.
 
     :param image:
     :param points: [N, 2]
@@ -73,6 +76,7 @@ def draw_lines(
     thickness: int = 3,
 ) -> Image.Image:
     """
+    Draws lines on an image.
 
     :param image:
     :param start_points: [N, 2]
@@ -111,6 +115,7 @@ def draw_pose(
     line_thickness: int = 3,
 ) -> Image.Image:
     """
+    Draws a skeleton pose on an image.
 
     :param image: [H, W, C]
     :param points: [N, 2]

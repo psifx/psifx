@@ -1,3 +1,5 @@
+"""command utilities."""
+
 import argparse
 from typing import Type
 
@@ -6,27 +8,40 @@ class Command:
     """
     Base class for defining commands.
 
-    Command instances must implement the `setup()` method, and they should
-    implement the `execute()` method if they perform any functionality beyond
+    Command instances must implement the ``setup()`` method, and they should
+    implement the ``execute()`` method if they perform any functionality beyond
     defining subparsers.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         """Setup the command-line arguments for the command.
 
         Args:
-            parser: an `argparse.ArgumentParser` instance
+            parser: an ``argparse.ArgumentParser`` instance
         """
         raise NotImplementedError("subclass must implement setup()")
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         """Executes the command on the given args.
 
         args:
-            parser: the `argparse.ArgumentParser` instance for the command
-            args: an `argparse.Namespace` instance containing the arguments
+            parser: the ``argparse.ArgumentParser`` instance for the command
+            args: an ``argparse.Namespace`` instance containing the arguments
                 for the command
         """
         raise NotImplementedError("subclass must implement execute()")

@@ -1,3 +1,5 @@
+"""WAV I/O module."""
+
 from typing import Union
 
 from pathlib import Path
@@ -11,7 +13,8 @@ class WAVReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file exists and is of the correct format.
+        Checks that a file has of the correct extension and exists.
+
         :param path: Path to the file.
         :return:
         """
@@ -28,12 +31,15 @@ class WAVWriter:
     """
 
     @staticmethod
-    def check(path: Union[str, Path]):
+    def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file is of the correct format.
+        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
-        if path.suffix != ".wav":
+        if ".tar" not in path.suffixes:
             raise NameError(path)
+        if path.exists() and not overwrite:
+            raise FileExistsError(path)

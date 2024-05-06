@@ -7,39 +7,58 @@ from psifx.video.manipulation.tool import ManipulationTool
 
 class ManipulationCommand(Command):
     """
-    Tool for manipulating videos.
+    Command-line interface for manipulating videos.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "process", ProcessCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class ProcessCommand(Command):
     """
-    Tool for processing videos.
+    Command-line interface for processing videos.
     The trimming, cropping and resizing can be performed all at once, and in that order.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--in_video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--out_video",
             type=Path,
             required=True,
-            help="path to the output video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the output video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--start",
@@ -104,6 +123,13 @@ class ProcessCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = ManipulationTool(
             overwrite=args.overwrite,
             verbose=args.verbose,

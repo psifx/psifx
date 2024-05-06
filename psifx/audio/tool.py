@@ -1,7 +1,9 @@
-from psifx.tool import BaseTool
+"""audio processing tool."""
+
+from psifx.tool import Tool
 
 
-class AudioTool(BaseTool):
+class AudioTool(Tool):
     """
     Base class for audio tools.
     """

@@ -1,3 +1,5 @@
+"""audio processing command-line interface."""
+
 import argparse
 
 from psifx.utils.command import Command, register_command
@@ -10,11 +12,17 @@ from psifx.audio.transcription.command import TranscriptionCommand
 
 class AudioCommand(Command):
     """
-    Tools for processing audio tracks.
+    Command-line interface for processing audio tracks.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "diarization", DiarizationCommand)
@@ -25,4 +33,11 @@ class AudioCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()

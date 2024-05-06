@@ -1,3 +1,5 @@
+"""TAR I/O module."""
+
 from typing import Any, Dict, Union
 
 import tarfile
@@ -14,7 +16,8 @@ class TarReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file exists and is of the correct format.
+        Checks that a file has of the correct extension and exists.
+
         :param path: Path to the file.
         :return:
         """
@@ -31,12 +34,13 @@ class TarReader:
     ) -> Dict[str, Any]:
         """
         Extracts the content from a TAR archive.
+
         :param path: Path to the file.
         :param verbose: Verbosity of the method.
         :return: Extracted data.
         """
         path = Path(path)
-        TarReader.check(path)
+        TarReader.check(path=path)
 
         with tarfile.open(path, mode="r") as tar:
             dictionary = {}
@@ -58,15 +62,18 @@ class TarWriter:
     """
 
     @staticmethod
-    def check(path: Union[str, Path]):
+    def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file is of the correct format.
+        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
         if ".tar" not in path.suffixes:
             raise NameError(path)
+        if path.exists() and not overwrite:
+            raise FileExistsError(path)
 
     @staticmethod
     def write(
@@ -76,8 +83,8 @@ class TarWriter:
         verbose: Union[bool, int] = True,
     ):
         """
-        Write a TAR archive of the dictionary, each key/value represents a single path
-         name and associated file.
+        Write a TAR archive of the dictionary, each key/value represents a single path name and associated file.
+
         :param dictionary: Dictionary to be archived.
         :param path: Path to the file.
         :param overwrite: Whether to overwrite, in case of an existing file.
@@ -85,14 +92,11 @@ class TarWriter:
         :return:
         """
         path = Path(path)
-        TarWriter.check(path)
+        TarWriter.check(path=path, overwrite=overwrite)
 
-        if path.exists():
-            if overwrite:
-                path.unlink()
-            else:
-                raise FileExistsError(path)
         path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and overwrite:
+            path.unlink()
 
         index = path.suffixes.index(".tar")
         if index == len(path.suffixes) - 1:

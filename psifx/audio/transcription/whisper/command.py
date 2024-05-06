@@ -1,3 +1,5 @@
+"""Whisper transcription command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -7,11 +9,17 @@ from psifx.audio.transcription.whisper.tool import WhisperTranscriptionTool
 
 class WhisperCommand(Command):
     """
-    Tool for running Whisper.
+    Command-line interface for running Whisper.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         from psifx.audio.transcription.command import EnhancedTranscriptionCommand
 
         subparsers = parser.add_subparsers(title="available commands")
@@ -21,27 +29,40 @@ class WhisperCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class WhisperTranscriptionCommand(Command):
     """
-    Tool for transcribing an audio track with Whisper.
+    Command-line interface for transcribing an audio track with Whisper.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--transcription",
             type=Path,
             required=True,
-            help="path to the output transcription file, such as '/path/to/transcription.vtt'",
+            help="path to the output transcription file, such as ``/path/to/transcription.vtt``",
         )
         parser.add_argument(
             "--language",
@@ -85,6 +106,13 @@ class WhisperTranscriptionCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = WhisperTranscriptionTool(
             model_name=args.model_name,
             task="transcribe" if not args.translate_to_english else "translate",

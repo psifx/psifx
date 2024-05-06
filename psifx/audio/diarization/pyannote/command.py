@@ -1,3 +1,5 @@
+"""pyannote speaker diarization command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -7,11 +9,17 @@ from psifx.audio.diarization.pyannote.tool import PyannoteDiarizationTool
 
 class PyannoteCommand(Command):
     """
-    Tool for running pyannote.
+    Command-line interface for running pyannote diarization tool.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         from psifx.audio.diarization.command import VisualizationCommand
 
         subparsers = parser.add_subparsers(title="available commands")
@@ -21,27 +29,40 @@ class PyannoteCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class PyannoteInferenceCommand(Command):
     """
-    Tool for diarizing an audio track with pyannote.
+    Command-line interface for diarizing an audio track with pyannote.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the output diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the output diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--num_speakers",
@@ -84,6 +105,13 @@ class PyannoteInferenceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = PyannoteDiarizationTool(
             model_name=args.model_name,
             api_token=args.api_token,

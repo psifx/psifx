@@ -1,3 +1,5 @@
+"""MediaPipe pose estimation command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -10,11 +12,17 @@ from psifx.video.pose.mediapipe.tool import (
 
 class MediaPipeCommand(Command):
     """
-    Tool for running MediaPipe.
+    Command-line interface for running MediaPipe.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         from psifx.video.pose.command import VisualizationCommand
 
         subparsers = parser.add_subparsers(title="available commands")
@@ -24,33 +32,46 @@ class MediaPipeCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class MediaPipeInferenceCommand(Command):
     """
-    Tool for inferring human pose with MediaPipe Holistic.
+    Command-line interface for inferring human pose with MediaPipe Holistic.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
-            help="path to the output pose archive, such as '/path/to/poses.tar.gz'",
+            help="path to the output pose archive, such as ``/path/to/poses.tar.gz``",
         )
         parser.add_argument(
             "--masks",
             type=Path,
             default=None,
-            help="path to the output segmentation mask video file, such as '/path/to/masks.mp4' (or .avi, .mkv, etc.)",
+            help="path to the output segmentation mask video file, such as ``/path/to/masks.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--mask_threshold",
@@ -92,6 +113,13 @@ class MediaPipeInferenceCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         if args.masks is None:
             tool = MediaPipePoseEstimationTool(
                 model_complexity=args.model_complexity,

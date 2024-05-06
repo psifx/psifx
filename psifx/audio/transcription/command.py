@@ -1,3 +1,5 @@
+"""transcription command-line interface."""
+
 import argparse
 from pathlib import Path
 
@@ -8,11 +10,17 @@ from psifx.audio.transcription.tool import TranscriptionTool
 
 class TranscriptionCommand(Command):
     """
-    Tools for transcribing audio tracks.
+    Command-line interface for transcribing audio tracks.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "whisper", WhisperCommand)
@@ -20,39 +28,52 @@ class TranscriptionCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         parser.print_help()
 
 
 class EnhancedTranscriptionCommand(Command):
     """
-    Tool for enhancing a transcription with diarization and identification.
+    Command-line interface for enhancing a transcription with diarization and identification.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--transcription",
             type=Path,
             required=True,
-            help="path to the input transcription file, such as '/path/to/transcription.vtt'",
+            help="path to the input transcription file, such as ``/path/to/transcription.vtt``",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the input diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--identification",
             type=Path,
             required=True,
-            help="path to the input identification file, such as '/path/to/identification.json'",
+            help="path to the input identification file, such as ``/path/to/identification.json``",
         )
         parser.add_argument(
             "--enhanced_transcription",
             type=Path,
             required=True,
-            help="path to the output transcription file, such as '/path/to/enhanced-transcription.vtt'",
+            help="path to the output transcription file, such as ``/path/to/enhanced-transcription.vtt``",
         )
         parser.add_argument(
             "--overwrite",
@@ -69,6 +90,13 @@ class EnhancedTranscriptionCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         tool = TranscriptionTool(
             device="cpu",
             overwrite=args.overwrite,

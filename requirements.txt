@@ -2,9 +2,10 @@ ffmpeg-python
 mediapipe
 openai-whisper
 opensmile
-pyannote-audio @ git+https://github.com/pyannote/pyannote-audio.git@bc0920f
+pyannote-audio @ git+https://github.com/pyannote/pyannote-audio.git@3.1.1
 pydub
 scikit-video @ git+https://github.com/rk-exxec/scikit-video.git@de2a668
+speechbrain<=0.5.16
 torch==2.0.1
 torchvision
 torchaudio

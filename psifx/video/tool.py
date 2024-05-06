@@ -1,7 +1,9 @@
-from psifx.tool import BaseTool
+"""video processing tool."""
+
+from psifx.tool import Tool
 
 
-class VideoTool(BaseTool):
+class VideoTool(Tool):
     """
     Base class for video tools.
     """

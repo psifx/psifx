@@ -1,4 +1,4 @@
-"""`psifx` base tool."""
+"""``psifx`` base tool."""
 
 from typing import Union
 

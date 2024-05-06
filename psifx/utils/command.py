@@ -8,8 +8,8 @@ class Command:
     """
     Base class for defining commands.
 
-    Command instances must implement the `setup()` method, and they should
-    implement the `execute()` method if they perform any functionality beyond
+    Command instances must implement the ``setup()`` method, and they should
+    implement the ``execute()`` method if they perform any functionality beyond
     defining subparsers.
     """
 
@@ -24,7 +24,7 @@ class Command:
         """Setup the command-line arguments for the command.
 
         Args:
-            parser: an `argparse.ArgumentParser` instance
+            parser: an ``argparse.ArgumentParser`` instance
         """
         raise NotImplementedError("subclass must implement setup()")
 
@@ -40,8 +40,8 @@ class Command:
         """Executes the command on the given args.
 
         args:
-            parser: the `argparse.ArgumentParser` instance for the command
-            args: an `argparse.Namespace` instance containing the arguments
+            parser: the ``argparse.ArgumentParser`` instance for the command
+            args: an ``argparse.Namespace`` instance containing the arguments
                 for the command
         """
         raise NotImplementedError("subclass must implement execute()")

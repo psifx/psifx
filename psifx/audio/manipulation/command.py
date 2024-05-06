@@ -56,13 +56,13 @@ class ExtractionCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--audio",
             type=Path,
             required=True,
-            help="path to the output audio file, such as '/path/to/audio.wav'",
+            help="path to the output audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--overwrite",
@@ -114,13 +114,13 @@ class ConversionCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav' (or .mp3, etc.)",
+            help="path to the input audio file, such as ``/path/to/audio.wav`` (or .mp3, etc.)",
         )
         parser.add_argument(
             "--mono_audio",
             type=Path,
             required=True,
-            help="path to the output audio file, such as '/path/to/mono-audio.wav'",
+            help="path to the output audio file, such as ``/path/to/mono-audio.wav``",
         )
         parser.add_argument(
             "--overwrite",
@@ -173,13 +173,13 @@ class MixDownCommand(Command):
             nargs="+",
             type=Path,
             required=True,
-            help="paths to the input mono audio files, such as '/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav'",
+            help="paths to the input mono audio files, such as ``/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav``",
         )
         parser.add_argument(
             "--mixed_audio",
             type=Path,
             required=True,
-            help="path to the output mixed audio file, such as '/path/to/mixed-audio.wav'",
+            help="path to the output mixed audio file, such as ``/path/to/mixed-audio.wav``",
         )
         parser.add_argument(
             "--overwrite",
@@ -231,13 +231,13 @@ class NormalizationCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--normalized_audio",
             type=Path,
             required=True,
-            help="path to the output normalized audio file, such as '/path/to/normalized-audio.wav'",
+            help="path to the output normalized audio file, such as ``/path/to/normalized-audio.wav``",
         )
         parser.add_argument(
             "--overwrite",

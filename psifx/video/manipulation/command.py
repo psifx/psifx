@@ -52,13 +52,13 @@ class ProcessCommand(Command):
             "--in_video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--out_video",
             type=Path,
             required=True,
-            help="path to the output video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the output video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--start",

@@ -55,19 +55,19 @@ class VisualizationCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
-            help="path to the input pose archive, such as '/path/to/poses.tar.gz'",
+            help="path to the input pose archive, such as ``/path/to/poses.tar.gz``",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="path to the output visualization video file, such as '/path/to/visualization.mp4' (or .avi, .mkv, etc.)",
+            help="path to the output visualization video file, such as ``/path/to/visualization.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--confidence_threshold",

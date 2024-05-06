@@ -55,13 +55,13 @@ class VisualizationCommand(Command):
             "--diarization",
             type=Path,
             required=True,
-            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the input diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="path to the output visualization file, such as '/path/to/visualization.png'",
+            help="path to the output visualization file, such as ``/path/to/visualization.png``",
         )
         parser.add_argument(
             "--overwrite",

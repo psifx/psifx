@@ -59,19 +59,19 @@ class MediaPipeInferenceCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--poses",
             type=Path,
             required=True,
-            help="path to the output pose archive, such as '/path/to/poses.tar.gz'",
+            help="path to the output pose archive, such as ``/path/to/poses.tar.gz``",
         )
         parser.add_argument(
             "--masks",
             type=Path,
             default=None,
-            help="path to the output segmentation mask video file, such as '/path/to/masks.mp4' (or .avi, .mkv, etc.)",
+            help="path to the output segmentation mask video file, such as ``/path/to/masks.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--mask_threshold",

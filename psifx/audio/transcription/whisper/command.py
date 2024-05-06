@@ -56,13 +56,13 @@ class WhisperTranscriptionCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--transcription",
             type=Path,
             required=True,
-            help="path to the output transcription file, such as '/path/to/transcription.vtt'",
+            help="path to the output transcription file, such as ``/path/to/transcription.vtt``",
         )
         parser.add_argument(
             "--language",

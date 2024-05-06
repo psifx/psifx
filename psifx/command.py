@@ -1,4 +1,4 @@
-"""`psifx` command-line interface."""
+"""``psifx`` command-line interface."""
 
 import argparse
 
@@ -9,7 +9,7 @@ from psifx.audio.command import AudioCommand
 
 
 class PsifxCommand(Command):
-    """`psifx` command-line interface."""
+    """``psifx`` command-line interface."""
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):

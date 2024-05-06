@@ -57,19 +57,19 @@ class OpenSmileInferenceCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the input diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the output feature archive, such as '/path/to/opensmile.tar.gz'",
+            help="path to the output feature archive, such as ``/path/to/opensmile.tar.gz``",
         )
         parser.add_argument(
             "--feature_set",

@@ -56,13 +56,13 @@ class PyannoteInferenceCommand(Command):
             "--audio",
             type=Path,
             required=True,
-            help="path to the input audio file, such as '/path/to/audio.wav'",
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the output diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the output diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--num_speakers",

@@ -54,13 +54,13 @@ class OpenFaceInferenceCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the output feature archive, such as '/path/to/openface.tar.gz'",
+            help="path to the output feature archive, such as ``/path/to/openface.tar.gz``",
         )
         parser.add_argument(
             "--overwrite",
@@ -112,19 +112,19 @@ class OpenFaceVisualizationCommand(Command):
             "--video",
             type=Path,
             required=True,
-            help="path to the input video file, such as '/path/to/video.mp4' (or .avi, .mkv, etc.)",
+            help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--features",
             type=Path,
             required=True,
-            help="path to the input feature archive, such as '/path/to/openface.tar.gz'",
+            help="path to the input feature archive, such as ``/path/to/openface.tar.gz``",
         )
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
-            help="path to the output video file, such as '/path/to/visualization.mp4' (or .avi, .mkv, etc.)",
+            help="path to the output video file, such as ``/path/to/visualization.mp4`` (or .avi, .mkv, etc.)",
         )
         parser.add_argument(
             "--depth",

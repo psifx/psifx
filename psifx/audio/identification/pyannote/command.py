@@ -53,26 +53,26 @@ class PyannoteInferenceCommand(Command):
             "--mixed_audio",
             type=Path,
             required=True,
-            help="path to the input mixed audio file, such as '/path/to/mixed-audio.wav'",
+            help="path to the input mixed audio file, such as ``/path/to/mixed-audio.wav``",
         )
         parser.add_argument(
             "--diarization",
             type=Path,
             required=True,
-            help="path to the input diarization file, such as '/path/to/diarization.rttm'",
+            help="path to the input diarization file, such as ``/path/to/diarization.rttm``",
         )
         parser.add_argument(
             "--mono_audios",
             nargs="+",
             type=Path,
             required=True,
-            help="paths to the input mono audio files, such as '/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav'",
+            help="paths to the input mono audio files, such as ``/path/to/mono-audio-1.wav /path/to/mono-audio-2.wav``",
         )
         parser.add_argument(
             "--identification",
             type=Path,
             required=True,
-            help="path to the output identification file, such as '/path/to/identification.json'",
+            help="path to the output identification file, such as ``/path/to/identification.json``",
         )
         parser.add_argument(
             "--model_names",

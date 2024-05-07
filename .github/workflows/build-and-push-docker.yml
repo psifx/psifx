@@ -1,0 +1,82 @@
+name: build-and-push-docker
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: checkout
+        id: checkout
+        uses: actions/checkout@v4
+      -
+        name: get-current-version
+        id: get-current-version
+        run: |
+          git fetch --tags
+          CURRENT_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+      -
+        name: log-in-docker
+        uses: docker/login-action@v3
+        with:
+          username: guillaumerochette
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      -
+        name: setup-qemu
+        id: setup-qemu
+        uses: docker/setup-qemu-action@v3
+      -
+        name: setup-docker-buildx
+        id: setup-docker-buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: build-and-push
+        id: build-and-push
+        uses: docker/build-push-action@v5
+        env:
+          CURRENT_VERSION: ${{ steps.get-current-version.outputs.CURRENT_VERSION }}
+        with:
+          context: .
+          build-args: |
+            PSIFX_VERSION=${{ env.CURRENT_VERSION }}
+          push: true
+          tags: |
+            guillaumerochette/psifx:${{ env.CURRENT_VERSION }}
+            guillaumerochette/psifx:latest
+  publish-docs:
+    runs-on: ubuntu-latest
+    needs: [build-and-push]
+    container:
+      image: guillaumerochette/psifx:latest
+    permissions:
+      id-token: write
+      pages: write
+    steps:
+      -
+        name: checkout
+        id: checkout
+        uses: actions/checkout@v4
+      -
+        name: install-packages
+        id: test
+        run: |
+          pip install .[docs]
+      -
+        name: build-docs
+        id: build-docs
+        run: |
+          sphinx-build --fresh-env --write-all docs public
+      -
+        name: upload-docs
+        id: upload-docs
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      -
+        name: deploy-docs
+        id: deploy-docs
+        uses: actions/deploy-pages@v4

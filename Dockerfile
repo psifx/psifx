@@ -10,7 +10,7 @@ RUN apt-get -y update && \
     ffmpeg \
     git \
     htop \
-    libboost-dev \
+    libboost-all-dev \
     libdlib-dev \
     libopenblas-dev \
     libopencv-dev \

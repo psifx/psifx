@@ -45,15 +45,15 @@ jobs:
           LATEST_VERSION: ${{ steps.get-latest-version.outputs.LATEST_VERSION }}
         run: |
           if [ "$CURRENT_VERSION" != "$LATEST_VERSION" ]; then
-            HAS_CHANGED_TAG=true
+            HAS_CHANGED_VERSION=true
           else
-            HAS_CHANGED_TAG=false
+            HAS_CHANGED_VERSION=false
           fi
-          echo "HAS_CHANGED_TAG=$HAS_CHANGED_TAG" >> $GITHUB_OUTPUT
+          echo "HAS_CHANGED_VERSION=$HAS_CHANGED_VERSION" >> $GITHUB_OUTPUT
       -
         name: create-tag
         id: create-tag
-        if: steps.has-changed-version.outputs.HAS_CHANGED_TAG == 'true'
+        if: steps.has-changed-version.outputs.HAS_CHANGED_VERSION == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           LATEST_VERSION: ${{ steps.get-latest-version.outputs.LATEST_VERSION }}
@@ -63,7 +63,7 @@ jobs:
       -
         name: create-release
         id: create-release
-        if: steps.has-changed-version.outputs.HAS_CHANGED_TAG == 'true'
+        if: steps.has-changed-version.outputs.HAS_CHANGED_VERSION == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           LATEST_VERSION: ${{ steps.get-latest-version.outputs.LATEST_VERSION }}

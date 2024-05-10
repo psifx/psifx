@@ -45,12 +45,12 @@ ARG HF_TOKEN
 ARG PSIFX_VERSION
 ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:${PATH}"
 ENV PATH="$OPENFACE_PREFIX/build/bin:${PATH}"
-RUN echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc
 RUN curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
     bash $HOME/miniconda.sh -b -p $CONDA_PREFIX && \
     rm $HOME/miniconda.sh && \
     conda update -y -c defaults conda && \
     conda install -y python=3.9 pip && \
+    conda clean -y --all && \
     wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
     python install.py \
         --license_accepted \

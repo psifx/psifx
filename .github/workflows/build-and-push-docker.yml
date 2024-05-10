@@ -38,11 +38,13 @@ jobs:
         id: build-and-push
         uses: docker/build-push-action@v5
         env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
           CURRENT_VERSION: ${{ steps.get-current-version.outputs.CURRENT_VERSION }}
         with:
           context: .
           build-args: |
             PSIFX_VERSION=${{ env.CURRENT_VERSION }}
+            HF_TOKEN=${{ env.HF_TOKEN }}
           push: true
           tags: |
             guillaumerochette/psifx:${{ env.CURRENT_VERSION }}

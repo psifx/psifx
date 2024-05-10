@@ -38,33 +38,27 @@ RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
     chown --recursive $USERNAME:$USERNAME $HOME && \
     chmod --recursive a+rwx $HOME
 
-# CONDA
 ARG CONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 ARG CONDA_PREFIX="$HOME/conda"
+ARG OPENFACE_PREFIX="$HOME/openface"
+ARG HF_TOKEN
+ARG PSIFX_VERSION
 ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:${PATH}"
+ENV PATH="$OPENFACE_PREFIX/build/bin:${PATH}"
+RUN echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc
 RUN curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
     bash $HOME/miniconda.sh -b -p $CONDA_PREFIX && \
     rm $HOME/miniconda.sh && \
     conda update -y -c defaults conda && \
-    conda install -y python=3.9 pip
-
-# OPENFACE
-ARG OPENFACE_PREFIX="$HOME/openface"
-ENV PATH="$OPENFACE_PREFIX/build/bin:${PATH}"
-RUN wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
+    conda install -y python=3.9 pip && \
+    wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
     python install.py \
-    --license_accepted \
-    --install_path $OPENFACE_PREFIX \
-    --overwrite_install \
-    --minimal_install \
-    --no-add_to_login_shell && \
-    rm install.py
-
-# HUGGINGFACE
-ARG HF_TOKEN
-RUN echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc
-
-# PSIFX
-ARG PSIFX_VERSION
-RUN pip install --no-cache-dir git+https://github.com/GuillaumeRochette/psifx.git@$PSIFX_VERSION && \
+        --license_accepted \
+        --install_path $OPENFACE_PREFIX \
+        --overwrite_install \
+        --minimal_install \
+        --no-add_to_login_shell && \
+    rm install.py && \
+    echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc && \
+    pip install --no-cache-dir git+https://github.com/GuillaumeRochette/psifx.git@$PSIFX_VERSION && \
     chmod --recursive a+rwx $CONDA_PREFIX/lib/python3.9/site-packages/mediapipe

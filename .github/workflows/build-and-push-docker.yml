@@ -23,7 +23,7 @@ jobs:
         name: log-in-docker
         uses: docker/login-action@v3
         with:
-          username: guillaumerochette
+          username: psifx
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       -
         name: setup-qemu
@@ -48,13 +48,13 @@ jobs:
           push: true
           no-cache: true
           tags: |
-            guillaumerochette/psifx:${{ env.CURRENT_VERSION }}
-            guillaumerochette/psifx:latest
+            psifx/psifx:${{ env.CURRENT_VERSION }}
+            psifx/psifx:latest
   publish-docs:
     runs-on: ubuntu-latest
     needs: [build-and-push]
     container:
-      image: guillaumerochette/psifx:latest
+      image: psifx/psifx:latest
     permissions:
       id-token: write
       pages: write

@@ -3,49 +3,49 @@ FROM nvidia/cuda:11.7.1-devel-ubuntu22.04
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -y update && \
     apt-get -y install \
-    build-essential \
-    ca-certificates \
-    cmake \
-    curl \
-    ffmpeg \
-    git \
-    htop \
-    libboost-all-dev \
-    libdlib-dev \
-    libopenblas-dev \
-    libopencv-dev \
-    libopencv-calib3d-dev \
-    libopencv-contrib-dev \
-    libopencv-features2d-dev \
-    libopencv-highgui-dev \
-    libopencv-imgproc-dev \
-    libopencv-video-dev \
-    libsqlite3-dev \
-    nano \
-    ninja-build \
-    software-properties-common \
-    sudo \
-    ubuntu-restricted-extras \
-    unzip \
-    wget && \
+        build-essential \
+        ca-certificates \
+        cmake \
+        curl \
+        ffmpeg \
+        git \
+        htop \
+        libdlib-dev \
+        libopencv-dev \
+        libopencv-calib3d-dev \
+        libopencv-contrib-dev \
+        libopencv-features2d-dev \
+        libopencv-highgui-dev \
+        libopencv-imgproc-dev \
+        libopencv-video-dev \
+        libsqlite3-dev \
+        nano \
+        ninja-build \
+        software-properties-common \
+        sudo \
+        ubuntu-restricted-extras \
+        unzip \
+        wget && \
     apt-get -y autoremove && \
     apt-get -y autoclean  && \
     apt-get -y clean
 
-ARG USERNAME="root"
-ENV HOME="/$USERNAME"
-RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
-    chown --recursive $USERNAME:$USERNAME $HOME && \
-    chmod --recursive a+rwx $HOME
+ARG PSIFX_VERSION
+ARG HF_TOKEN
 
 ARG CONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+ARG USERNAME="root"
+ENV HOME="/$USERNAME"
 ARG CONDA_PREFIX="$HOME/conda"
 ARG OPENFACE_PREFIX="$HOME/openface"
-ARG HF_TOKEN
-ARG PSIFX_VERSION
-ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:${PATH}"
-ENV PATH="$OPENFACE_PREFIX/build/bin:${PATH}"
-RUN curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
+ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:$OPENFACE_PREFIX/build/bin:${PATH}"
+ENV HF_TOKEN=$HF_TOKEN
+RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
+    chown --recursive $USERNAME:$USERNAME $HOME && \
+    chmod --recursive a+rwx $HOME && \
+    curl \
+        -sSf $CONDA_URL \
+        -o $HOME/miniconda.sh && \
     bash $HOME/miniconda.sh -b -p $CONDA_PREFIX && \
     rm $HOME/miniconda.sh && \
     conda update -y -c defaults conda && \
@@ -59,6 +59,9 @@ RUN curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
         --minimal_install \
         --no-add_to_login_shell && \
     rm install.py && \
-    echo "export HF_TOKEN=$HF_TOKEN" >> $HOME/.bashrc && \
-    pip install --no-cache-dir git+https://github.com/GuillaumeRochette/psifx.git@$PSIFX_VERSION && \
+    pip install \
+        --no-cache-dir \
+        git+https://github.com/GuillaumeRochette/psifx.git@$PSIFX_VERSION && \
+    pip cache purge && \
+    conda clean -y --all && \
     chmod --recursive a+rwx $CONDA_PREFIX/lib/python3.9/site-packages/mediapipe

@@ -46,6 +46,7 @@ jobs:
             PSIFX_VERSION=${{ env.CURRENT_VERSION }}
             HF_TOKEN=${{ env.HF_TOKEN }}
           push: true
+          no-cache: true
           tags: |
             guillaumerochette/psifx:${{ env.CURRENT_VERSION }}
             guillaumerochette/psifx:latest

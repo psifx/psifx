@@ -98,7 +98,7 @@ class RTTMWriter:
         :return:
         """
         path = Path(path)
-        if ".tar" not in path.suffixes:
+        if path.suffix != ".rttm":
             raise NameError(path)
         if path.exists() and not overwrite:
             raise FileExistsError(path)

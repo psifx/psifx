@@ -1,12 +1,13 @@
 ffmpeg-python
+matplotlib <= 3.8.4
 mediapipe
 openai-whisper
 opensmile
-pyannote-audio @ git+https://github.com/pyannote/pyannote-audio.git@3.1.1
+pyannote.audio
 pydub
 scikit-video @ git+https://github.com/rk-exxec/scikit-video.git@de2a668
-speechbrain<=0.5.16
-torch==2.0.1
+speechbrain <= 0.5.16
+torch
 torchvision
 torchaudio
 tqdm

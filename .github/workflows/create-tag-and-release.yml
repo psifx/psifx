@@ -23,7 +23,7 @@ jobs:
         name: install-packages
         id: install-packages
         run: |
-          pip install --upgrade pip setuptools wheel
+          python -m pip install --upgrade pip setuptools wheel
       -
         name: get-current-version
         id: get-current-version

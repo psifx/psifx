@@ -50,8 +50,9 @@ jobs:
             psifx/psifx:${{ env.CURRENT_VERSION }}
             psifx/psifx:latest
   publish-docs:
+    needs:
+      - build-and-push
     runs-on: ubuntu-latest
-    needs: [build-and-push]
     container:
       image: psifx/psifx:latest
     permissions:

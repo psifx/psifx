@@ -1,8 +1,9 @@
 .idea
 
+build
 dist
-public
 generated
+public
 
 *.pyc
 *.egg-info

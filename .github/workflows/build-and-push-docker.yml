@@ -43,7 +43,6 @@ jobs:
         with:
           context: .
           build-args: |
-            PSIFX_VERSION=${{ env.CURRENT_VERSION }}
             HF_TOKEN=${{ env.HF_TOKEN }}
           push: true
           no-cache: true

@@ -17,4 +17,7 @@ reference/api
 reference/cli
 ```
 
-Package for Psychological and Social Interactions Feature Extraction.
+Package for <u>P</u>sychological and <u>S</u>ocial <u>I</u>nteractions <u>F</u>eature e<u>X</u>traction
+
+- GitHub: https://github.com/psifx/psifx
+- Docker: https://hub.docker.com/r/psifx/psifx

@@ -1,0 +1,5 @@
+{
+  "provider": "hf",
+  "model": "meta-llama/Meta-Llama-3-8B-Instruct",
+  "quantization": "4bit"
+}

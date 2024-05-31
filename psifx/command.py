@@ -6,6 +6,7 @@ import psifx
 from psifx.utils.command import Command, register_command, register_main_command
 from psifx.video.command import VideoCommand
 from psifx.audio.command import AudioCommand
+from psifx.text.command import TextCommand
 
 
 class PsifxCommand(Command):
@@ -23,7 +24,7 @@ class PsifxCommand(Command):
 
         register_command(subparsers, "audio", AudioCommand)
         register_command(subparsers, "video", VideoCommand)
-
+        register_command(subparsers, "text", TextCommand)
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
         """

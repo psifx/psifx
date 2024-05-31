@@ -21,7 +21,7 @@ We recommend using Docker for reducing compatibility issues.
       --mount type=bind,source=$DATA_PATH,target=$DATA_PATH \
       --interactive \
       --tty \
-      guillaumerochette/psifx:$PSIFX_VERSION
+      psifx/psifx:$PSIFX_VERSION
    ```
 4. Check out `psifx` available commands!
    ```bash

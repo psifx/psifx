@@ -24,10 +24,10 @@ class HFCommand(Command):
             help='Quantization method (default: None)')
 
         parser.add_argument(
-            '--device_map',
+            '--token',
             type=str,
-            default='auto',
-            help='Device map (default: auto)')
+            default=None,
+            help='HuggingFace token (default: None)')
 
         parser.add_argument(
             '--max_new_tokens',

@@ -42,15 +42,15 @@ def get_lc_hf(**kwargs):
 
 
 
-def get_transformers_pipeline(model, quantization=None, device_map='auto', model_kwargs=None, max_new_tokens=None,
+def get_transformers_pipeline(model, token=None, quantization=None, model_kwargs=None, max_new_tokens=None,
                               pipeline_kwargs=None):
     """
         Create a text generation pipeline using a specified pre-trained language model.
 
         Parameters:
             model (str): The name or path of the pre-trained language model.
+            token (str, optional): HuggingFace token for authentification. Default is None.
             quantization (str, optional): The quantization type to apply to the model. Options are '4bit', '8bit', or None. Default is None.
-            device_map (str, optional): Device map for model execution. Default is 'auto'.
             model_kwargs (dict, optional): Additional keyword arguments to pass to the model during initialization. Default is None.
             max_new_tokens (int, optional): The maximum number of new tokens to generate. Default is None.
             pipeline_kwargs (dict, optional): Additional keyword arguments to pass to the pipeline during initialization. Default is None.
@@ -77,14 +77,10 @@ def get_transformers_pipeline(model, quantization=None, device_map='auto', model
         model_kwargs['quantization_config'] = BitsAndBytesConfig(
             load_in_8bit=True,
         )
-
-    # Set device map
-    model_kwargs['device_map'] = device_map
-
     try:
         # Load tokenizer and model
-        tokenizer = AutoTokenizer.from_pretrained(model)
-        llm = AutoModelForCausalLM.from_pretrained(model, **model_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(model, token = token)
+        llm = AutoModelForCausalLM.from_pretrained(model, token = token, **model_kwargs)
     except Exception as e:
         raise ValueError(f"Error initializing model '{model}': {str(e)}")
 

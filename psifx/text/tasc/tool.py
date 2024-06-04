@@ -21,71 +21,29 @@ class TascTool(LLMTool):
     def __init__(self, model, instruction: str, start_flag: str, separator: str, overwrite: bool = False,
                  verbose: Union[bool, int] = True):
         super().__init__(model, overwrite, verbose)
-        self._set_instruction(instruction)
-        self._set_parser(start_flag, separator)
-
-    def _set_instruction(self, instruction):
-        try:
-            instruction = TxtReader.read(path=instruction)
-        except NameError:
-            pass
-
-        self.instruction = ChatPromptTemplate.from_template(template=instruction)
-        # lambda text: ChatPromptTemplate.from_template(template=instruction).invoke(text) # same as .invoke({'one_field', text})
-
-    def _set_parser(self, start_flag: str, separator: str):
-
-        def parser(generation: AIMessage, message: str):
-            answer = generation.content.split(start_flag)[-1]
-            segments = answer.split(separator)
-            segments = [segment.strip() for segment in segments]
-
-            reconstruction = []
-            remaining_message = message
-
-            for segment in segments[:-1]:
-                if segment:
-                    match = re.search(re.escape(segment), remaining_message)
-                    if match:
-                        reconstruction.append(match.group().strip())
-                        remaining_message = remaining_message[match.end():]
-
-            if remaining_message.strip():
-                reconstruction.append(remaining_message.strip())
-
-            if reconstruction != segments:
-                print(
-                    f"PROBLEMATIC GENERATION: {generation.content}\nINPUT: {message}\nRECONSTRUCTION: {reconstruction}")
-            return reconstruction
-
-        self.parser = parser
-
-    @staticmethod
-    def _to_string_css(messages: list[str]):
-        return ' '.join([f"<c.segment>{s}</c>" for s in messages])
-
-    @staticmethod
-    def _dict_wrapper(function):
-        return lambda dictionary: function(**dictionary)
-
-    def get_chain(self) -> Chain:
-        return RunnableParallel(
+        self.instruction = self.load_template(instruction)
+        self.parser = lambda generation, message: self.split_parser(generation=generation,
+                                                                    message=message,
+                                                                    start_flag=start_flag,
+                                                                    separator=separator)
+        self.chain = RunnableParallel(
             {'generation': self.instruction | self.llm, 'message': RunnablePassthrough()}) | self._dict_wrapper(
             self.parser)
 
-    def segment_vtt(self, transcription_path, segmented_transcription_path, speaker):
-        VTTWriter.check(segmented_transcription_path, overwrite=self.overwrite)
+    def read_vtt(self, transcription_path, speaker):
         transcription = VTTReader.read(path=transcription_path)
         df = pd.DataFrame(transcription)
         if not (df['speaker'] == speaker).any():
             raise ValueError(f"The speaker {speaker} is not found in the .vtt file")
+        df.loc[df['speaker'] == speaker, 'text'].apply(self.from_string_css)
+        return df
 
-        chain = self.get_chain() | self._to_string_css
+    def segment(self, df, speaker=None):
+        condition = df['speaker'] == speaker if speaker else slice(None)
+        df.loc[condition, 'text'] = df.loc[condition, 'text'].apply(self.chain.invoke)  # Just self.chain ?
 
-        df.loc[df['speaker'] == speaker, 'text'] = df.loc[df['speaker'] == speaker, 'text'].apply(
-            lambda message: chain.invoke(message))
-
-        print(df.to_dict(orient='records'))
+    def save_vtt(self, df, speaker, segmented_transcription_path):
+        df.loc[df['speaker'] == speaker, 'text'] = df.loc[df['speaker'] == speaker, 'text'].apply(self._to_string_css)
         VTTWriter.write(
             segments=df.to_dict(orient='records'),
             path=segmented_transcription_path,
@@ -93,16 +51,27 @@ class TascTool(LLMTool):
             verbose=self.verbose,
         )
 
+    @staticmethod
+    def _to_string_css(messages: list[str]):
+        return ' '.join([f"<c.segment>{s}</c>" for s in messages])
+
+    @staticmethod
+    def from_string_css(css_string: str) -> list[str]:
+        # Use a regular expression to find all segments
+        pattern = r"<c\.segment>(.*?)<\/c>"
+        segments = re.findall(pattern, css_string)
+        return segments
+
+    def segment_vtt(self, transcription_path, segmented_transcription_path, speaker):
+        VTTWriter.check(segmented_transcription_path, overwrite=self.overwrite)
+        df = self.read_vtt(transcription_path=transcription_path, speaker=speaker)
+        self.segment(df=df, speaker=speaker)
+        self.save_vtt(df=df, speaker=speaker, segmented_transcription_path=segmented_transcription_path)
+
     def segment_csv(self, transcription_path, segmented_transcription_path, speaker):
         CsvWriter.check(segmented_transcription_path, overwrite=self.overwrite)
         df = CsvReader.read(path=transcription_path)
-        if speaker not in df.columns:
-            raise ValueError(f"The column {speaker} is not found in the .csv file")
-
-        chain = self.get_chain()
-
-        df['segment'] = df[speaker].apply(lambda message: chain.invoke(message))
-        df = df.explode('segment').reset_index(drop=True)
+        self.segment(df=df, speaker=speaker)
         CsvWriter.write(
             df=df,
             path=segmented_transcription_path,
@@ -110,11 +79,33 @@ class TascTool(LLMTool):
         )
 
     def segment(self, transcription_path, segmented_transcription_path, speaker):
+        output = None
         try:
-            return self.segment_vtt(transcription_path, segmented_transcription_path, speaker)
+            VTTWriter.check(segmented_transcription_path, overwrite=self.overwrite)
+            output = '.vtt'
         except NameError:
             try:
-                return self.segment_csv(transcription_path, segmented_transcription_path, speaker)
+                CsvWriter.check(segmented_transcription_path, overwrite=self.overwrite)
+                output = '.csv'
             except NameError:
                 print(
-                    f"Transcription {transcription_path} and segmentation {segmented_transcription_path} should both be .vtt files or both be .csv files")
+                    f"The output segmentation path {segmented_transcription_path} should be a .vtt or a .csv file.")
+                return
+        try:
+            df = self.read_vtt(transcription_path=transcription_path, speaker=speaker)
+        except NameError:
+            try:
+                df = CsvReader.read(path=transcription_path)
+            except NameError:
+                print(
+                    f"The transcription path {transcription_path} should be a .vtt or a .csv file.")
+                return
+        self.segment(df=df, speaker=speaker)
+        if output == '.vtt':
+            self.save_vtt(df=df, speaker=speaker, segmented_transcription_path=segmented_transcription_path)
+        elif output == '.csv':
+            CsvWriter.write(
+                df=df,
+                path=segmented_transcription_path,
+                overwrite=self.overwrite,
+            )

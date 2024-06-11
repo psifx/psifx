@@ -1,111 +1,109 @@
+import abc
 import re
+from pathlib import Path
 from typing import Union
-
-from langchain.chains.base import Chain
-from langchain_core.messages import AIMessage
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-
-from psifx.io.csv import CsvWriter, CsvReader
-from psifx.text.llm.tool import LLMTool
-from langchain_core.prompts import ChatPromptTemplate
-from psifx.io.txt import TxtReader
-from psifx.io.vtt import VTTReader, VTTWriter
 import pandas as pd
 
+from psifx.io.csv import CsvWriter, CsvReader
+from psifx.io.vtt import VTTReader, VTTWriter
+from psifx.text.llm.tool import LLMTool
 
-class TascTool(LLMTool):
-    """
-    Base class for TASc.
-    """
 
-    def __init__(self, model, instruction: str, start_flag: str, separator: str, overwrite: bool = False,
-                 verbose: Union[bool, int] = True):
-        super().__init__(model, overwrite, verbose)
-        self.instruction = self.load_template(instruction)
-        self.parser = lambda generation, message: self.split_parser(generation=generation,
-                                                                    message=message,
-                                                                    start_flag=start_flag,
-                                                                    separator=separator)
-        self.chain = RunnableParallel(
-            {'generation': self.instruction | self.llm, 'message': RunnablePassthrough()}) | self._dict_wrapper(
-            self.parser)
+class TascTool(LLMTool, metaclass=abc.ABCMeta):
 
-    def read_vtt(self, transcription_path, speaker):
-        transcription = VTTReader.read(path=transcription_path)
+    def use(self, transcription_path, segmented_transcription_path, speaker):
+        path = Path(transcription_path)
+        if path.suffix == '.vtt':
+            writer = TascVTTWriter
+            reader = TascVTTReader
+        elif path.suffix == '.csv':
+            writer = CsvWriter
+            reader = CsvReader
+        else:
+            raise NameError(path)
+
+        writer.check(path=segmented_transcription_path,
+                     overwrite=self.overwrite)
+        df = reader.read(path=transcription_path)
+        df = self.transform(df=df,
+                            speaker=speaker)
+        writer.write(df=df,
+                     path=segmented_transcription_path,
+                     overwrite=self.overwrite)
+
+    @abc.abstractmethod
+    def transform(self, df, speaker=None):
+        pass
+
+
+class TascVTTReader:
+
+    @staticmethod
+    def check(path: Union[str, Path]):
+        return VTTReader.check(path=path)
+
+    @staticmethod
+    def read(
+            path: Union[str, Path],
+            verbose: bool = True,
+    ):
+        transcription = VTTReader.read(path=path)
+        pd.set_option('display.max_columns', None)
         df = pd.DataFrame(transcription)
-        if not (df['speaker'] == speaker).any():
-            raise ValueError(f"The speaker {speaker} is not found in the .vtt file")
-        df.loc[df['speaker'] == speaker, 'text'].apply(self.from_string_css)
+        df[['text', 'segment', 'form', 'marker']] = df['text'].apply(TascVTTReader._extract_segments).apply(pd.Series)
+        df = df.explode(['segment', 'form', 'marker'], ignore_index=False)
         return df
 
-    def segment(self, df, speaker=None):
-        condition = df['speaker'] == speaker if speaker else slice(None)
-        df.loc[condition, 'text'] = df.loc[condition, 'text'].apply(self.chain.invoke)  # Just self.chain ?
+    @staticmethod
+    def _extract_segments(text: str) -> tuple:
+        tag_pattern = re.compile(r'<c\.segment\.*(.*?)>(.*?)</c>')
+        matches = tag_pattern.findall(text)
+        if matches:
+            segment = [match[1] for match in matches]
+            text = ' '.join(segment)
+            form = [match[0].split('.')[0] if match[0] else None for match in matches]
+            marker = [match[0].split('.')[1] if '.' in match[0] else None for match in matches]
+        else:
+            segment = None
+            form = None
+            marker = None
+        return text, segment, form, marker
 
-    def save_vtt(self, df, speaker, segmented_transcription_path):
-        df.loc[df['speaker'] == speaker, 'text'] = df.loc[df['speaker'] == speaker, 'text'].apply(self._to_string_css)
+
+class TascVTTWriter:
+
+    @staticmethod
+    def check(path: Union[str, Path], overwrite: bool = False):
+        return VTTWriter.check(path=path, overwrite=overwrite)
+
+    @staticmethod
+    def write(df: pd.DataFrame,
+              path: Union[str, Path],
+              overwrite: bool = False,
+              verbose: bool = True, ):
+
+        df['text'] = df.apply(TascVTTWriter._reconstruct_text, axis=1)
+        print(f'''AFTER APPLY
+{df}''')
+        df.drop(columns=['segment', 'form', 'marker'], inplace=True, errors='ignore')
+
+        existing_columns = [col for col in ['start', 'end', 'speaker'] if col in df.columns]
+        if existing_columns:
+            df.set_index(existing_columns, append=True, inplace=True)
+
+        df = df.groupby(level=list(range(df.index.nlevels)))['text'].apply(' '.join).reset_index()
+        print(f'''AFTER GROUPBY 
+{df}''')
         VTTWriter.write(
             segments=df.to_dict(orient='records'),
-            path=segmented_transcription_path,
-            overwrite=self.overwrite,
-            verbose=self.verbose,
+            path=path,
+            overwrite=overwrite,
+            verbose=verbose,
         )
 
     @staticmethod
-    def _to_string_css(messages: list[str]):
-        return ' '.join([f"<c.segment>{s}</c>" for s in messages])
-
-    @staticmethod
-    def from_string_css(css_string: str) -> list[str]:
-        # Use a regular expression to find all segments
-        pattern = r"<c\.segment>(.*?)<\/c>"
-        segments = re.findall(pattern, css_string)
-        return segments
-
-    def segment_vtt(self, transcription_path, segmented_transcription_path, speaker):
-        VTTWriter.check(segmented_transcription_path, overwrite=self.overwrite)
-        df = self.read_vtt(transcription_path=transcription_path, speaker=speaker)
-        self.segment(df=df, speaker=speaker)
-        self.save_vtt(df=df, speaker=speaker, segmented_transcription_path=segmented_transcription_path)
-
-    def segment_csv(self, transcription_path, segmented_transcription_path, speaker):
-        CsvWriter.check(segmented_transcription_path, overwrite=self.overwrite)
-        df = CsvReader.read(path=transcription_path)
-        self.segment(df=df, speaker=speaker)
-        CsvWriter.write(
-            df=df,
-            path=segmented_transcription_path,
-            overwrite=self.overwrite,
-        )
-
-    def segment(self, transcription_path, segmented_transcription_path, speaker):
-        output = None
-        try:
-            VTTWriter.check(segmented_transcription_path, overwrite=self.overwrite)
-            output = '.vtt'
-        except NameError:
-            try:
-                CsvWriter.check(segmented_transcription_path, overwrite=self.overwrite)
-                output = '.csv'
-            except NameError:
-                print(
-                    f"The output segmentation path {segmented_transcription_path} should be a .vtt or a .csv file.")
-                return
-        try:
-            df = self.read_vtt(transcription_path=transcription_path, speaker=speaker)
-        except NameError:
-            try:
-                df = CsvReader.read(path=transcription_path)
-            except NameError:
-                print(
-                    f"The transcription path {transcription_path} should be a .vtt or a .csv file.")
-                return
-        self.segment(df=df, speaker=speaker)
-        if output == '.vtt':
-            self.save_vtt(df=df, speaker=speaker, segmented_transcription_path=segmented_transcription_path)
-        elif output == '.csv':
-            CsvWriter.write(
-                df=df,
-                path=segmented_transcription_path,
-                overwrite=self.overwrite,
-            )
+    def _reconstruct_text(row) -> str:
+        if row['segment']:
+            return f"<c.segment{'.' + row.get('form') if row.get('form') else ''}{'.' + row.get('marker') if row.get('marker') else ''}> {row['segment']} </c>"
+        else:
+            return row['text']

@@ -1,74 +1,43 @@
-import argparse, json
-import os
+"""TASc command-line interface."""
+
+import argparse
 
 from psifx.utils.command import Command, register_command
-from psifx.text.tasc.tool import TascTool
-from psifx.text.llm.command import AddLLMArgument
+from psifx.text.tasc.segment.command import SegmentCommand
+from psifx.text.tasc.form.command import FormCommand
+from psifx.text.tasc.marker.command import MarkerCommand
+from psifx.text.tasc.evaluate.command import EvaluateCommand
+from psifx.text.tasc.analysis.command import AnalysisCommand
 
 
 class TascCommand(Command):
     """
-    Tool for TASc
+    Command-line interface for TASc.
     """
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
-        parser.add_argument(
-            "--overwrite",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            help="overwrite existing files, otherwise raises an error",
-        )
-        parser.add_argument(
-            "--verbose",
-            default=True,
-            action=argparse.BooleanOptionalAction,
-            help="verbosity of the script",
-        )
-        parser.add_argument(
-            '--transcription',
-            type=str,
-            required=True,
-            help="path to the transcription .vtt or .csv file")
-        parser.add_argument(
-            '--segmentation',
-            type=str,
-            required=True,
-            help="path to the output segmented transcription .vtt or .csv file")
-        parser.add_argument(
-            '--speaker',
-            type=str,
-            required=True,
-            help="name of the speaker for .vtt transcription or name of column for .csv file to apply segmentation on")
-        parser.add_argument(
-            '--instruction',
-            type=str,
-            default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default_instruction.txt'),
-            help="instruction or path to a .txt file containing the instruction")
-        parser.add_argument(
-            '--separator',
-            type=str,
-            default='//',
-            help="separator to use for parsing the llm generation")
-        parser.add_argument(
-            '--flag',
-            type=str,
-            default='Segmentation:',
-            help="start flag to use for parsing the llm generation")
+        """
+        Sets up the command.
 
-        AddLLMArgument(parser)
+        :param parser: The argument parser.
+        :return:
+        """
+        subparsers = parser.add_subparsers(title="available commands")
+
+        register_command(subparsers, "segment", SegmentCommand)
+        register_command(subparsers, "form", FormCommand)
+        register_command(subparsers, "marker", MarkerCommand)
+        register_command(subparsers, "evaluate", EvaluateCommand)
+        register_command(subparsers, "analysis", AnalysisCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        TascTool(
-            model=args.model,
-            instruction=args.instruction,
-            start_flag=args.flag,
-            separator=args.separator,
-            overwrite=args.overwrite,
-            verbose=args.verbose
-        ).segment(
-            transcription_path=args.transcription,
-            segmented_transcription_path=args.segmentation,
-            speaker=args.speaker
-        )
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
+        parser.print_help()

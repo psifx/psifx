@@ -14,12 +14,8 @@ class ChatTool(LLMTool):
         super().__init__(model)
 
     def chat(self, prompt):
-        try:
-            prompt = TxtReader.read(prompt)
-        except NameError:
-            pass
 
-        prompt_template = ChatPromptTemplate.from_template(prompt)
+        prompt_template = self.load_template(prompt)
         prompt_template.append(MessagesPlaceholder(variable_name="messages"))
 
         demo_ephemeral_chat_history = ChatMessageHistory()

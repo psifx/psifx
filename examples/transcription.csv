@@ -1,4 +1,4 @@
-Reply,OptionalColumn
+text, optional_column
 So what's going on?,['a']
 "Yeah, there's no trapped here. ",['b']
 This is hard on you both.,['c']

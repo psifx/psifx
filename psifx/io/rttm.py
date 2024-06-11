@@ -92,7 +92,7 @@ class RTTMWriter:
     @staticmethod
     def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+        Checks that a file has of the correct extension and verifies that we can overwrite it if it exists.
 
         :param path: Path to the file.
         :return:

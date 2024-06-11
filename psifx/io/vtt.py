@@ -11,7 +11,7 @@ TIMEFRAME_LINE_PATTERN = re.compile(
     + " --> "
     + r"\s*((?:\d+:)?\d{2}:\d{2}.\d{3})\s*"
 )
-SPEAKER_PATTERN = re.compile(r"<v .+>")
+SPEAKER_PATTERN = re.compile(r"<v [^>]+>")
 
 
 def seconds2timestamp(seconds: float) -> str:

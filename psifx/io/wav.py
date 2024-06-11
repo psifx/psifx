@@ -13,7 +13,7 @@ class WAVReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file has of the correct extension and exists.
+        Checks that a file has the correct extension and exists.
 
         :param path: Path to the file.
         :return:

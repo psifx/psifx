@@ -56,7 +56,7 @@ class LLMTool(Tool):
 
     @staticmethod
     def split_parser(generation: AIMessage, data: dict, start_flag: str, separator: str,
-                     text_to_segment='text_to_segment') -> list[str]:
+                     text_to_segment='text_to_segment', verbose=False) -> list[str]:
         answer = generation.content.split(start_flag)[-1]
         segments = answer.split(separator)
         segments = [segment.strip() for segment in segments]
@@ -78,13 +78,17 @@ class LLMTool(Tool):
         if reconstruction != segments:
             print(
                 f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
+        elif verbose:
+            print(f"WELL PARSED GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
         return reconstruction
 
     @staticmethod
-    def default_parser(generation: AIMessage, data: dict, start_flag: str, expected_labels: list[str] = None) -> str:
+    def default_parser(generation: AIMessage, data: dict, start_flag: str, expected_labels: list[str] = None, verbose=False) -> str:
         answer = generation.content.split(start_flag)[-1].strip().lower()
         if expected_labels and answer not in expected_labels:
             print(f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {answer}")
+        elif verbose:
+            print(f"WELL PARSED GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
         return answer
 
     @staticmethod

@@ -13,7 +13,7 @@ class SegmentTool(TascTool):
                  verbose: Union[bool, int] = True):
         super().__init__(model, overwrite, verbose)
         self.instruction = self.load_template(template=instruction)
-        self.parser = self.make_parser(**parser)
+        self.parser = self.make_parser(**parser, verbose=verbose)
         self.chain = (RunnableLambda(lambda x: x.to_dict()) | self.get_chain(instruction=self.instruction, parser=self.parser))
 
     def transform(self, df, speaker=None):

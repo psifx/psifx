@@ -1,0 +1,16 @@
+expression:
+    start_flag: "Segmentation:"
+    instructions: |
+        user: {message}
+clarification:
+    start_flag: "Segmentation:"
+    instructions: |
+        user: {message}
+conjecture:
+    start_flag: "Segmentation:"
+    instructions: |
+        user: {message}
+assertion:
+    start_flag: "Segmentation:"
+    instructions: |
+        user: {message}

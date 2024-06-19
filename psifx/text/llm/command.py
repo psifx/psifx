@@ -1,6 +1,6 @@
 def AddLLMArgument(parser):
     parser.add_argument(
-        '--model',
+        '--llm',
         type=str,
         required=True,
-        help='name of the model, or path to a .json file containing the model specification')
+        help='path to a .yaml file containing the large language model specifications')

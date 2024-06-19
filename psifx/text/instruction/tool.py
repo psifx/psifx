@@ -1,28 +1,27 @@
 from typing import Union
 
-import pandas as pd
 from langchain_core.runnables import RunnableLambda
 
 from psifx.io.csv import CsvWriter, CsvReader
-from psifx.text.llm.tool import LLMTool
+from psifx.tool import Tool
+from tqdm.auto import tqdm
 
 
-class InstructionTool(LLMTool):
+class InstructionTool(Tool):
     """
-    Base class for Custom instruction, take a .csv for input and .yaml file for prompt template
+    Base class for Custom instruction
     """
 
-    def __init__(self, model, instruction: str, parser: dict, overwrite: bool = False,
+    def __init__(self, chain, overwrite: bool = False,
                  verbose: Union[bool, int] = True):
-        super().__init__(model, overwrite, verbose)
-        self.instruction = self.load_template(template=instruction)
-        self.parser = self.make_parser(**parser)
-        self.chain = (RunnableLambda(lambda x: x.to_dict()) | self.get_chain(instruction=self.instruction, parser=self.parser))
+        super().__init__(device="?", overwrite=overwrite, verbose=verbose)
+        self.chain = RunnableLambda(lambda x: x.to_dict()) | chain
 
-    def segment_csv(self, input_path, output_path, output_column='result'):
+    def apply_to_csv(self, input_path, output_path, output_column='result'):
+        tqdm.pandas(desc="Processing")
         CsvWriter.check(output_path, overwrite=self.overwrite)
         df = CsvReader.read(path=input_path)
-        df[output_column] = df[self.instruction.input_variables].apply(self.chain.invoke, axis=1)
+        df[output_column] = df.progress_apply(self.chain.invoke, axis=1)
         CsvWriter.write(
             df=df,
             path=output_path,

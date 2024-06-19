@@ -1,14 +1,13 @@
-import argparse, json
-import os
-
-from psifx.io.yaml import YAMLReader
+import argparse
 from psifx.text.instruction.tool import InstructionTool
-from psifx.utils.command import Command, register_command
-from psifx.text.chat.tool import ChatTool
+from psifx.text.llm.tool import LLMUtility
+from psifx.utils.command import Command
 from psifx.text.llm.command import AddLLMArgument
+
+
 class InstructionCommand(Command):
     """
-    Tool for TASc
+    Command-line interface for custom instructions
     """
 
     @staticmethod
@@ -38,20 +37,20 @@ class InstructionCommand(Command):
         parser.add_argument(
             '--instruction',
             type=str,
-            default=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default_instruction.yaml'),
-            help="instruction or path to a .yaml file containing the prompt template and parameters for segmentation")
+            required=True,
+            help="path to a .yaml file containing the prompt and parser")
 
         AddLLMArgument(parser)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        llm = LLMUtility.llm_from_yaml(args.llm)
+        chains = LLMUtility.chains_from_yaml(llm, args.instruction)
         InstructionTool(
-            model=args.model,
             overwrite=args.overwrite,
             verbose=args.verbose,
-            **YAMLReader.read(args.instruction)
-        ).segment_csv(
-            input_path= args.input,
+            chain=next(iter(chains.values()))
+        ).apply_to_csv(
+            input_path=args.input,
             output_path=args.output
         )
-

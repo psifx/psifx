@@ -77,3 +77,59 @@ psifx video pose mediapipe visualization --video Videos/Left.mp4 --poses Poses/L
 psifx video face openface visualization --video Videos/Right.mp4 --features Faces/Right.tar.xz --visualization Visualizations/Right.openface.mp4
 psifx video face openface visualization --video Videos/Left.mp4 --features Faces/Left.tar.xz --visualization Visualizations/Left.openface.mp4
 ```
+
+### Text
+
+#### LLM Configs
+You can set up the llm to use as well as its running configuration in a .yaml file.
+All models from hugging face and ollama are supported.
+##### Hugging Face
+Specify hf as provider.
+Make sure to include your HF_TOKEN to automatically download the model.
+```yaml
+provider: "hf"
+model: "mistralai/Mistral-7B-Instruct-v0.2"
+quantization: "4bit"
+max_new_tokens: 1000
+token: HF_TOKEN
+```
+##### Ollama
+You need to install ollama and download the model before using it.
+To do so follow the instructions on https://github.com/ollama/ollama.
+
+For Linux it is a simple as:
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull MODEL_NAME
+```
+Specify ollama as provider.
+```yaml
+provider: "ollama"
+model: "llama3:instruct"
+```
+
+#### Chatbot
+
+```bash
+psifx text chat --llm model_config.yaml --prompt chat_history.txt
+```
+
+#### Instruction
+
+```bash
+psifx text instruction --llm model_config.yaml --instruction instruction.yaml --input input.csv --output output.csv
+```
+
+##### Instruction files
+Both the prompt and the parser are specified in a .yaml file.
+```yaml
+wrestling:
+    parser:
+        kind: "default"
+        start_flag: "Winner:"
+    prompt: |
+        user: Here is a challenger {challenger} and an opponent {opponent} which one would win in a professional wrestling match?
+        Argue about it.
+        Once you have deliberated, write as your last sentence the result of your deliberation in the following format Winner: 'name of the winner'.
+        Nothing should follow this last answer.
+```

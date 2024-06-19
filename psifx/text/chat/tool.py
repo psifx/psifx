@@ -1,21 +1,21 @@
-from psifx.text.llm.tool import LLMTool
+from psifx.text.llm.tool import LLMUtility
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import AIMessage
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from psifx.io.txt import TxtReader
+from langchain_core.prompts import MessagesPlaceholder
+from psifx.tool import Tool
 
 
-class ChatTool(LLMTool):
+class ChatTool(Tool):
     """
     Base class for chat tools.
     """
 
-    def __init__(self, model):
-        super().__init__(model)
+    def __init__(self, llm, **kwargs):
+        super().__init__(device="?", **kwargs)
+        self.llm = llm
 
     def chat(self, prompt):
-
-        prompt_template = self.load_template(prompt)
+        prompt_template = LLMUtility.load_template(prompt)
         prompt_template.append(MessagesPlaceholder(variable_name="messages"))
 
         demo_ephemeral_chat_history = ChatMessageHistory()

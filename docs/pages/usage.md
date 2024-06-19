@@ -77,3 +77,17 @@ psifx video pose mediapipe visualization --video Videos/Left.mp4 --poses Poses/L
 psifx video face openface visualization --video Videos/Right.mp4 --features Faces/Right.tar.xz --visualization Visualizations/Right.openface.mp4
 psifx video face openface visualization --video Videos/Left.mp4 --features Faces/Left.tar.xz --visualization Visualizations/Left.openface.mp4
 ```
+
+### Text
+
+#### Chatbot
+
+```bash
+psifx text chat --llm model_config.yaml --prompt chat_history.txt
+```
+
+#### Instruction
+
+```bash
+psifx text instruction --llm model_config.yaml --instruction instruction.yaml --input input.csv --output output.csv
+```

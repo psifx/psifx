@@ -1,12 +1,12 @@
-import argparse, json
+import argparse
 
 from psifx.text.llm.tool import LLMUtility
-from psifx.utils.command import Command, register_command
+from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import AddLLMArgument
 class ChatCommand(Command):
     """
-    Tool for getting a transformers pipeline
+    Command-line interface for a chatbot
     """
 
     @staticmethod

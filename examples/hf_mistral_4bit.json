@@ -1,6 +1,0 @@
-{
-  "provider": "hf",
-  "model": "mistralai/Mistral-7B-Instruct-v0.2",
-  "quantization": "4bit",
-  "max_new_tokens": 1000
-}

@@ -17,36 +17,31 @@ args = ["main", "text", "llm", "hf"]
 """
 CHAT
 """
+# Specify llm with .yaml config file
+# Directly give the prompt or load it from a .txt file
+args = ["main", "text", "chat", "--llm", "llama3:instruct.yaml", "--prompt",
+        "You are a martian chatbot and you are blue"]
+args = ["main", "text", "chat", "--llm", "llama3:instruct.yaml", "--prompt", "chat_history.txt"]
 
-# Use Ollama llama3 with a prompt given by a string, alternatively with a .txt
-args = ["main", "text", "chat", "--model", "llama3", "--prompt", "You are a martian chatbot and you are blue"]
-args = ["main", "text", "chat", "--model", "llama3", "--prompt", "chat_history.txt"]
+"""
+INSTRUCTION
+"""
 
-# Chose any specification for the llm with a .json config file
-args = ["main", "text", "chat", "--model", "ollama_llama3_cpu.json", "--prompt", "template.txt"]
-
+args = ["main", "text", "instruction", "--llm", "llama3:instruct.yaml", "--input", "input.csv",
+        "--output", "output.csv", "--overwrite", "--instruction", "wrestling_instruction.yaml"]
 
 """
 TASC SEGMENTING
 """
 
 # Segmenting for .vtt files
-args = ["main", "text", "tasc", "segment", "--model", "llama3", "--speaker", "student_normalized.wav",
+args = ["main", "text", "tasc", "segment", "--llm", "llama3:instruct.yaml", "--speaker", "student_normalized.wav",
         "--transcription", "transcription.vtt",
         "--segmentation", "segmentation.vtt", "--overwrite"]
 
 # Segmenting for .csv files
-args = ["main", "text", "tasc", "segment", "--model", "llama3", "--transcription", "transcription.csv",
-        "--segmentation", "segmentation.csv", "--overwrite"]
-
-
-"""
-INSTRUCTION
-"""
-
-args = ["main", "text", "instruction", "--model", "llama3", "--input", "input.csv",
-        "--output", "output.csv", "--overwrite"]
-
+args = ["main", "text", "tasc", "segment", "--llm", "llama3:instruct.yaml", "--transcription", "parsed_reply.csv",
+        "--segmentation", "segmentation.csv", "--overwrite", "--verbose"]
 
 with patch("sys.argv", args):
     command.main()

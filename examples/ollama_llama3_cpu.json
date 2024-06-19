@@ -1,5 +1,0 @@
-{
-  "provider": "ollama",
-  "model": "llama3",
-  "num_gpu":0
-}

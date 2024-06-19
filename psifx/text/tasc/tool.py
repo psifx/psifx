@@ -2,14 +2,17 @@ import abc
 import re
 from pathlib import Path
 from typing import Union
+
+import pandas
 import pandas as pd
 
 from psifx.io.csv import CsvWriter, CsvReader
 from psifx.io.vtt import VTTReader, VTTWriter
-from psifx.text.llm.tool import LLMTool
+from psifx.text.llm.tool import LLMUtility
+from psifx.tool import Tool
 
 
-class TascTool(LLMTool, metaclass=abc.ABCMeta):
+class TascTool(Tool, metaclass=abc.ABCMeta):
 
     def use(self, transcription_path, segmented_transcription_path, speaker):
         path = Path(transcription_path)
@@ -32,7 +35,7 @@ class TascTool(LLMTool, metaclass=abc.ABCMeta):
                      overwrite=self.overwrite)
 
     @abc.abstractmethod
-    def transform(self, df, speaker=None):
+    def transform(self, df: pandas.DataFrame, speaker: str = None) -> pandas.DataFrame:
         pass
 
 
@@ -83,8 +86,6 @@ class TascVTTWriter:
               verbose: bool = True, ):
 
         df['text'] = df.apply(TascVTTWriter._reconstruct_text, axis=1)
-        print(f'''AFTER APPLY
-{df}''')
         df.drop(columns=['segment', 'form', 'marker'], inplace=True, errors='ignore')
 
         existing_columns = [col for col in ['start', 'end', 'speaker'] if col in df.columns]
@@ -92,8 +93,7 @@ class TascVTTWriter:
             df.set_index(existing_columns, append=True, inplace=True)
 
         df = df.groupby(level=list(range(df.index.nlevels)))['text'].apply(' '.join).reset_index()
-        print(f'''AFTER GROUPBY 
-{df}''')
+
         VTTWriter.write(
             segments=df.to_dict(orient='records'),
             path=path,

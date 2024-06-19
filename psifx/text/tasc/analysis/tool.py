@@ -9,9 +9,9 @@ from psifx.io.vtt import VTTReader
 import pandas as pd
 
 
-class EvaluateTool(Tool):
+class AnalysisTool(Tool):
     """
-    Base class for TASc Evaluation.
+    Base class for TASc Analysis.
     """
 
     @staticmethod

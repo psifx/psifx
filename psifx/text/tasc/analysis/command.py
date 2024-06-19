@@ -1,7 +1,7 @@
 import argparse
 
 from psifx.utils.command import Command
-from psifx.text.tasc.analysis.tool import EvaluateTool
+from psifx.text.tasc.analysis.tool import AnalysisTool
 
 
 class AnalysisCommand(Command):
@@ -46,7 +46,7 @@ class AnalysisCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        EvaluateTool(
+        AnalysisTool(
             overwrite=args.overwrite,
             verbose=args.verbose
         ).evaluation(

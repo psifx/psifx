@@ -3,9 +3,12 @@ import os
 
 from psifx.io.yaml import YAMLReader
 from psifx.text.instruction.tool import InstructionTool
+from psifx.text.llm.tool import LLMUtility
 from psifx.utils.command import Command, register_command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import AddLLMArgument
+
+
 class InstructionCommand(Command):
     """
     Tool for TASc
@@ -45,13 +48,13 @@ class InstructionCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        llm = LLMUtility.llm_from_yaml(args.llm)
+        chains = LLMUtility.chains_from_yaml(llm, args.instruction)
         InstructionTool(
-            model=args.model,
             overwrite=args.overwrite,
             verbose=args.verbose,
-            **YAMLReader.read(args.instruction)
-        ).segment_csv(
-            input_path= args.input,
+            chain=next(iter(chains.values()))
+        ).apply_to_csv(
+            input_path=args.input,
             output_path=args.output
         )
-

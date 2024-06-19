@@ -1,10 +1,12 @@
 import argparse
 import os
 
+from psifx.text.llm.tool import LLMUtility
 from psifx.utils.command import Command
 from psifx.text.tasc.segment.tool import SegmentTool
 from psifx.text.llm.command import AddLLMArgument
 from psifx.io.yaml import YAMLReader
+
 
 class SegmentCommand(Command):
     """
@@ -50,11 +52,13 @@ class SegmentCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        llm = LLMUtility.llm_from_yaml(args.llm)
+        chains = LLMUtility.chains_from_yaml(llm, args.instruction)
+
         SegmentTool(
-            model=args.model,
             overwrite=args.overwrite,
             verbose=args.verbose,
-            **YAMLReader.read(args.instruction)
+            **chains
         ).use(
             transcription_path=args.transcription,
             segmented_transcription_path=args.segmentation,

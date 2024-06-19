@@ -1,7 +1,7 @@
 import re
 from typing import Union
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-from psifx.text.llm.tool import LLMTool
+from psifx.text.llm.tool import LLMUtility
 from psifx.text.tasc.tool import TascTool
 
 
@@ -10,16 +10,11 @@ class MarkerTool(TascTool):
     Base class for Marker.
     """
 
-    def __init__(self, model, instructions: dict, start_flag: str, overwrite: bool = False,
+    def __init__(self, chains, overwrite: bool = False,
                  verbose: Union[bool, int] = True):
-        super().__init__(model, overwrite, verbose)
-        self.instructions = {k: self.load_template(v) for k, v in instructions.items()}
-        self.parser = lambda generation: MarkerTool.default_parser(generation=generation,
-                                                                   start_flag=start_flag,
-                                                                   expected_labels=None)
-        self.chain = self.instructions | self.llm | self.parser
+        super().__init__(overwrite, verbose)
+        self.chains = chains
         # behavior differ according to form,
-        # 
 
     def transform(self, df, speaker=None):
         if speaker and not (df['speaker'] == speaker).any():

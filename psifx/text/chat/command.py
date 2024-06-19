@@ -1,5 +1,6 @@
 import argparse, json
 
+from psifx.text.llm.tool import LLMUtility
 from psifx.utils.command import Command, register_command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import AddLLMArgument
@@ -31,4 +32,5 @@ class ChatCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        ChatTool(args.model).chat(args.prompt)
+        llm = LLMUtility.llm_from_yaml(args.llm)
+        ChatTool(llm).chat(args.prompt)

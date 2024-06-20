@@ -14,7 +14,7 @@ class InstructionTool(Tool):
 
     def __init__(self, chain, overwrite: bool = False,
                  verbose: Union[bool, int] = True):
-        super().__init__(overwrite, verbose)
+        super().__init__(device="?", overwrite=overwrite, verbose=verbose)
         self.chain = RunnableLambda(lambda x: x.to_dict()) | chain
 
     def apply_to_csv(self, input_path, output_path, output_column='result'):

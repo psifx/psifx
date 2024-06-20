@@ -16,7 +16,7 @@ class SegmentTool(TascTool):
 
     def __init__(self, find_separators, make_sense, overwrite: bool = False,
                  verbose: Union[bool, int] = True):
-        super().__init__(overwrite, verbose)
+        super().__init__(device="?", overwrite=overwrite, verbose=verbose)
         try:
             find('tokenizers/punkt')
         except LookupError:

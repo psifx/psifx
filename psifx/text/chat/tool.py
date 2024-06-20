@@ -11,11 +11,10 @@ class ChatTool(Tool):
     """
 
     def __init__(self, llm, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(device="?", **kwargs)
         self.llm = llm
 
     def chat(self, prompt):
-
         prompt_template = LLMUtility.load_template(prompt)
         prompt_template.append(MessagesPlaceholder(variable_name="messages"))
 

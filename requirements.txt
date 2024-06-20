@@ -16,3 +16,4 @@ accelerate
 bitsandbytes
 langchain
 langchain_community
+nltk

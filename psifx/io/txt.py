@@ -74,7 +74,7 @@ class TxtWriter:
         :return:
         """
         path = Path(path)
-        TxtWriter.check(path)
+        TxtWriter.check(path, overwrite)
 
         if path.exists():
             if overwrite:

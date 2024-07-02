@@ -1,5 +1,6 @@
 from langchain_community.chat_models import ChatOllama
 import ollama
+from tqdm import tqdm
 
 
 def get_ollama(model='llama3', **kwargs):

@@ -21,7 +21,7 @@ We recommend using Docker for reducing compatibility issues.
       --mount type=bind,source=$DATA_PATH,target=$DATA_PATH \
       --interactive \
       --tty \
-      guillaumerochette/psifx:$PSIFX_VERSION
+      psifx/psifx:$PSIFX_VERSION
    ```
 4. Check out `psifx` available commands!
    ```bash
@@ -62,5 +62,5 @@ We recommend using Docker for reducing compatibility issues.
        ```
 4. Install `psifx`:
    ```bash
-   pip install 'psifx @ git+https://github.com/GuillaumeRochette/psifx.git'
+   pip install 'psifx @ git+https://github.com/psifx/psifx.git'
    ```

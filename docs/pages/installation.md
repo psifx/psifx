@@ -62,5 +62,5 @@ We recommend using Docker for reducing compatibility issues.
        ```
 4. Install `psifx`:
    ```bash
-   pip install 'psifx @ git+https://github.com/psifx/psifx.git'
+   pip install psifx
    ```

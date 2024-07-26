@@ -4,8 +4,10 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 from psifx.io.txt import TxtReader
 from psifx.io.yaml import YAMLReader
+from psifx.text.llm.openai.tool import get_openai
 from psifx.text.llm.ollama.tool import get_ollama
 from psifx.text.llm.hf.tool import get_lc_hf
+from psifx.text.llm.anthropic.tool import get_anthropic
 
 
 class LLMUtility:
@@ -15,6 +17,7 @@ class LLMUtility:
             prompt = LLMUtility.load_template(prompt=prompt)
             parser = LLMUtility.instantiate_parser(**parser)
             return LLMUtility.make_chain(llm=llm, prompt=prompt, parser=parser)
+
         return {key: make_chain_wrapper(**value) for key, value in YAMLReader.read(yaml).items()}
 
     @staticmethod
@@ -40,16 +43,22 @@ class LLMUtility:
     def llm_from_yaml(yaml_config):
         data = YAMLReader.read(yaml_config)
         assert 'provider' in data, 'Please give a provider'
-        assert data['provider'] in ['hf', 'ollama'], 'provider should be hf, or ollama'
         return LLMUtility.instantiate_llm(**data)
 
     @staticmethod
     def instantiate_llm(provider, **kwargs):
-        if provider == 'hf':
-            return get_lc_hf(**kwargs)
-        if provider == 'ollama':
-            return get_ollama(**kwargs)
-        raise NameError('provider should be hf, or ollama')
+        provider_map = {
+            'hf': get_lc_hf,
+            'ollama': get_ollama,
+            'openai': get_openai,
+            'anthropic': get_anthropic
+        }
+
+        if provider in provider_map:
+            return provider_map[provider](**kwargs)
+        else:
+            valid_providers = ', '.join(provider_map.keys())
+            raise NameError(f'provider should be one of: {valid_providers}')
 
     @staticmethod
     def instantiate_parser(kind, **kwargs):

@@ -6,7 +6,7 @@ from psifx.text.llm.hf.tool import get_transformers_pipeline
 
 class HFCommand(Command):
     """
-    Tool for getting a transformers pipeline
+    Command-line interface for HuggingFace Transformers LLM.
     """
 
     @staticmethod
@@ -53,26 +53,7 @@ class HFCommand(Command):
             default=None,
             help="API token for downloading the models from HuggingFace",
         )
-        parser.add_argument(
-            "--overwrite",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            help="overwrite existing files, otherwise raises an error",
-        )
-        parser.add_argument(
-            "--verbose",
-            default=True,
-            action=argparse.BooleanOptionalAction,
-            help="verbosity of the script",
-        )
-        parser.set_defaults(llm=lambda args: get_transformers_pipeline(
-            args.model,
-            quantization=args.quantization,
-            device_map=args.device_map,
-            model_kwargs=args.model_kwargs,
-            max_new_tokens=args.max_new_tokens,
-            pipeline_kwargs=args.pipeline_kwargs)
-                            )
+        parser.set_defaults(llm=lambda args: get_lc_hf(**args))
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):

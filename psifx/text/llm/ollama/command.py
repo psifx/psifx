@@ -7,7 +7,7 @@ from psifx.text.llm.ollama.tool import get_ollama
 
 class OllamaCommand(Command):
     """
-    Tool for getting a transformers pipeline
+    Command-line interface for Ollama LLM.
     """
 
     @staticmethod
@@ -17,18 +17,6 @@ class OllamaCommand(Command):
             type=str,
             default="llama3",
             help='Model name to use (default: "llama3")')
-        parser.add_argument(
-            "--overwrite",
-            default=False,
-            action=argparse.BooleanOptionalAction,
-            help="overwrite existing files, otherwise raises an error",
-        )
-        parser.add_argument(
-            "--verbose",
-            default=True,
-            action=argparse.BooleanOptionalAction,
-            help="verbosity of the script",
-        )
 
         parser.add_argument(
             '--base_url',
@@ -171,7 +159,7 @@ class OllamaCommand(Command):
             help='How long the model will stay loaded into memory.'
         )
 
-        parser.set_defaults(llm=lambda args: get_ollama(model_name=args.model_name))
+        parser.set_defaults(llm=lambda args: get_ollama(**args))
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):

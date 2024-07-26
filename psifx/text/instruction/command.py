@@ -3,6 +3,7 @@ from psifx.text.instruction.tool import InstructionTool
 from psifx.text.llm.tool import LLMUtility
 from psifx.utils.command import Command
 from psifx.text.llm.command import AddLLMArgument
+from pathlib import Path
 
 
 class InstructionCommand(Command):
@@ -28,12 +29,12 @@ class InstructionCommand(Command):
             '--input',
             type=str,
             required=True,
-            help="path to the input .csv file")
+            help="path to the input .txt or .csv file")
         parser.add_argument(
             '--output',
             type=str,
             required=True,
-            help="path to the output .csv file")
+            help="path to the output .txt or .csv file")
         parser.add_argument(
             '--instruction',
             type=str,
@@ -46,11 +47,19 @@ class InstructionCommand(Command):
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
         llm = LLMUtility.llm_from_yaml(args.llm)
         chains = LLMUtility.chains_from_yaml(llm, args.instruction)
-        InstructionTool(
+
+        tool = InstructionTool(
             overwrite=args.overwrite,
             verbose=args.verbose,
             chain=next(iter(chains.values()))
-        ).apply_to_csv(
-            input_path=args.input,
-            output_path=args.output
         )
+
+        path = Path(args.input)
+        if path.suffix == '.txt':
+            tool.apply_to_txt(input_path=args.input,
+                              output_path=args.output)
+        elif path.suffix == '.csv':
+            tool.apply_to_csv(input_path=args.input,
+                              output_path=args.output)
+        else:
+            raise NameError(f"Input path should be .txt or .csv, got {args.input} instead.")

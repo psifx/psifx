@@ -134,9 +134,11 @@ class LLMUtility:
         return reconstruction
 
     @staticmethod
-    def default_parser(generation: AIMessage, data: dict, start_flag: str, expected_labels: list[str] = None,
+    def default_parser(generation: AIMessage, data: dict, start_flag: str=None, expected_labels: list[str] = None,
                        verbose=False) -> str:
-        answer = generation.content.split(start_flag)[-1].strip().lower()
+        answer = generation.content
+        if start_flag:
+            answer = answer.split(start_flag)[-1]
         if expected_labels and answer not in expected_labels:
             print(f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {answer}")
         elif verbose:

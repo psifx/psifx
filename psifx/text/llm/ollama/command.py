@@ -16,7 +16,7 @@ class OllamaCommand(Command):
             '--model',
             type=str,
             default="llama3",
-            help='Model name to use (default: "llama3")')
+            help='Model name to use (default: "llama3.1")')
 
         parser.add_argument(
             '--base_url',

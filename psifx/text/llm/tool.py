@@ -34,9 +34,11 @@ class LLMUtility:
             prompt = TxtReader.read(path=prompt)
         except NameError:
             pass
-        pattern = r"(user|assistant):\s(.*?)(?=user:|assistant:|$)"
+        pattern = r"(user|assistant|system):\s(.*?)(?=user:|assistant:|system:|$)"
         matches = re.findall(pattern, prompt, re.DOTALL)
         matches = [(role, msg.strip()) for role, msg in matches]
+        if prompt and not matches:
+            print("Template was not parsed correctly, please specify roles")
         return ChatPromptTemplate.from_messages(matches)
 
     @staticmethod

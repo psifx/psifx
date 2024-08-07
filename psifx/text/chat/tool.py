@@ -3,6 +3,7 @@ from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import AIMessage
 from langchain_core.prompts import MessagesPlaceholder
 from psifx.tool import Tool
+from psifx.io.txt import TxtWriter
 
 
 class ChatTool(Tool):
@@ -14,14 +15,21 @@ class ChatTool(Tool):
         super().__init__(device="?", **kwargs)
         self.llm = llm
 
-    def chat(self, prompt):
+    def chat(self, prompt: str, save_file: str):
+        if save_file:
+            TxtWriter.check(save_file, self.overwrite)
         prompt_template = LLMUtility.load_template(prompt)
         prompt_template.append(MessagesPlaceholder(variable_name="messages"))
 
-        demo_ephemeral_chat_history = ChatMessageHistory()
+        chat_history = ChatMessageHistory()
         chain = prompt_template | self.llm
         while (reply := input('User: ')) != 'exit':
-            demo_ephemeral_chat_history.add_user_message(reply)
-            ai_message: AIMessage = chain.invoke({"messages": demo_ephemeral_chat_history.messages})
-            demo_ephemeral_chat_history.add_ai_message(ai_message)
+            chat_history.add_user_message(reply)
+            ai_message: AIMessage = chain.invoke({"messages": chat_history.messages})
+            chat_history.add_ai_message(ai_message)
             print(f'Chatbot: {ai_message.content}')
+            if save_file:
+                TxtWriter.write(
+                    content='\n'.join((f"{message.type}: {message.content}" for message in chat_history.messages)),
+                    path=save_file,
+                    overwrite=True)

@@ -34,7 +34,7 @@ class LLMUtility:
             prompt = TxtReader.read(path=prompt)
         except NameError:
             pass
-        pattern = r"(user|assistant|system):\s(.*?)(?=user:|assistant:|system:|$)"
+        pattern = r"(user|human|assistant|ai|system):\s(.*?)(?=user:|human:|assistant:|ai:|system:|$)"
         matches = re.findall(pattern, prompt, re.DOTALL)
         matches = [(role, msg.strip()) for role, msg in matches]
         if prompt and not matches:

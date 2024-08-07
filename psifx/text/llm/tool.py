@@ -10,15 +10,33 @@ from psifx.text.llm.hf.tool import get_lc_hf
 from psifx.text.llm.anthropic.tool import get_anthropic
 
 
-class LLMUtility:
-    @staticmethod
-    def chains_from_yaml(llm, yaml):
-        def make_chain_wrapper(prompt, parser):
-            prompt = LLMUtility.load_template(prompt=prompt)
-            parser = LLMUtility.instantiate_parser(**parser)
-            return LLMUtility.make_chain(llm=llm, prompt=prompt, parser=parser)
+class LLMTool:
+    parsers: dict
+    providers: dict
 
-        return {key: make_chain_wrapper(**value) for key, value in YAMLReader.read(yaml).items()}
+    def __init__(self):
+        self.parsers = {
+            'default': self.default_parser
+        }
+        self.providers = {
+            'hf': get_lc_hf,
+            'ollama': get_ollama,
+            'openai': get_openai,
+            'anthropic': get_anthropic
+        }
+
+    def llm_from_yaml(self, yaml_path):
+        data = YAMLReader.read(yaml_path)
+        assert 'provider' in data, 'Please give a provider'
+        return self.instantiate_llm(**data)
+
+    def chains_from_yaml(self, llm, yaml_path):
+        def make_chain_wrapper(prompt, parser):
+            prompt = LLMTool.load_template(prompt=prompt)
+            parser = self.instantiate_parser(**parser)
+            return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
+
+        return {key: make_chain_wrapper(**value) for key, value in YAMLReader.read(yaml_path).items()}
 
     @staticmethod
     def make_chain(llm, prompt: ChatPromptTemplate, parser):
@@ -41,102 +59,25 @@ class LLMUtility:
             print("Template was not parsed correctly, please specify roles")
         return ChatPromptTemplate.from_messages(matches)
 
-    @staticmethod
-    def llm_from_yaml(yaml_config):
-        data = YAMLReader.read(yaml_config)
-        assert 'provider' in data, 'Please give a provider'
-        return LLMUtility.instantiate_llm(**data)
-
-    @staticmethod
-    def instantiate_llm(provider, **kwargs):
-        provider_map = {
-            'hf': get_lc_hf,
-            'ollama': get_ollama,
-            'openai': get_openai,
-            'anthropic': get_anthropic
-        }
-
-        if provider in provider_map:
-            return provider_map[provider](**kwargs)
+    def instantiate_llm(self, provider, **kwargs):
+        if provider in self.providers:
+            return self.providers[provider](**kwargs)
         else:
-            valid_providers = ', '.join(provider_map.keys())
-            raise NameError(f'provider should be one of: {valid_providers}')
+            valid_providers = ', '.join(self.providers.keys())
+            raise NameError(f'model provider should be one of: {valid_providers}')
 
-    @staticmethod
-    def instantiate_parser(kind, **kwargs):
-        if kind == 'split':
-            parser = LLMUtility.split_parser
-        elif kind == 'segment':
-            parser = LLMUtility.segment_parser
-        elif kind == 'default':
-            parser = LLMUtility.default_parser
+    def instantiate_parser(self, kind, **kwargs):
+        if kind in self.parsers:
+            parser = self.parsers[kind]
+            return lambda generation, data: parser(generation=generation,
+                                                   data=data,
+                                                   **kwargs)
         else:
-            raise NameError
-        return lambda generation, data: parser(generation=generation,
-                                               data=data,
-                                               **kwargs)
+            valid_parsers = ', '.join(self.providers.keys())
+            raise NameError(f'parser kind should be one of: {valid_parsers}')
 
     @staticmethod
-    def segment_parser(generation: AIMessage, data: dict, start_flag: str, left_separator: str, right_separator: str,
-                       text_to_segment='text_to_segment', verbose=False) -> list[str]:
-        answer = generation.content
-        if start_flag:
-            answer = answer.split(start_flag)[-1]
-        segments = answer.replace(right_separator, "").split(left_separator)
-        segments = [segment.strip() for segment in segments]
-
-        reconstruction = []
-
-        remaining_message = data[text_to_segment]
-
-        for segment in segments[:-1]:
-            match = re.search(re.escape(segment), remaining_message)
-            if match:
-                reconstruction.append(remaining_message[:match.end()].strip())
-                remaining_message = remaining_message[match.end():]
-
-        if remaining_message.strip():
-            reconstruction.append(remaining_message.strip())
-
-        if reconstruction != segments:
-            print(
-                f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
-        elif verbose:
-            print(f"WELL PARSED GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
-        return reconstruction
-
-    @staticmethod
-    def split_parser(generation: AIMessage, data: dict, start_flag: str, separator: str,
-                     text_to_segment='text_to_segment', verbose=False) -> list[str]:
-        answer = generation.content
-        if start_flag:
-            answer = answer.split(start_flag)[-1]
-        segments = answer.split(separator)
-        segments = [segment.strip() for segment in segments]
-
-        reconstruction = []
-
-        remaining_message = data[text_to_segment]
-
-        for segment in segments[:-1]:
-            if segment:
-                match = re.search(re.escape(segment), remaining_message)
-                if match:
-                    reconstruction.append(remaining_message[:match.end()].strip())
-                    remaining_message = remaining_message[match.end():]
-
-        if remaining_message.strip():
-            reconstruction.append(remaining_message.strip())
-
-        if reconstruction != segments:
-            print(
-                f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
-        elif verbose:
-            print(f"WELL PARSED GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {reconstruction}")
-        return reconstruction
-
-    @staticmethod
-    def default_parser(generation: AIMessage, data: dict, start_flag: str=None, expected_labels: list[str] = None,
+    def default_parser(generation: AIMessage, data: dict, start_flag: str = None, expected_labels: list[str] = None,
                        verbose=False) -> str:
         answer = generation.content
         if start_flag:

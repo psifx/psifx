@@ -4,6 +4,8 @@ from psifx.text.llm.tool import LLMUtility
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import AddLLMArgument
+
+
 class ChatCommand(Command):
     """
     Command-line interface for a chatbot
@@ -26,11 +28,22 @@ class ChatCommand(Command):
         parser.add_argument(
             '--prompt',
             type=str,
-            required=True,
+            default="",
             help='prompt or path to a .txt file containing the prompt')
+        parser.add_argument(
+            '--output',
+            type=str,
+            default="",
+            help='path to a .txt save file')
         AddLLMArgument(parser)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
         llm = LLMUtility.llm_from_yaml(args.llm)
-        ChatTool(llm).chat(args.prompt)
+        ChatTool(
+            llm=llm,
+            overwrite=args.overwrite,
+            verbose=args.verbose
+        ).chat(
+            prompt=args.prompt,
+            save_file=args.output)

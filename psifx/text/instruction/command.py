@@ -1,6 +1,6 @@
 import argparse
 from psifx.text.instruction.tool import InstructionTool
-from psifx.text.llm.tool import LLMUtility
+from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
 from psifx.text.llm.command import AddLLMArgument
 from pathlib import Path
@@ -45,8 +45,8 @@ class InstructionCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        llm = LLMUtility.llm_from_yaml(args.llm)
-        chains = LLMUtility.chains_from_yaml(llm, args.instruction)
+        llm = LLMTool().llm_from_yaml(args.llm)
+        chains = LLMTool().chains_from_yaml(llm, args.instruction)
 
         tool = InstructionTool(
             overwrite=args.overwrite,

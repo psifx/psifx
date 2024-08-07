@@ -1,4 +1,4 @@
-from psifx.text.llm.tool import LLMUtility
+from psifx.text.llm.tool import LLMTool
 from langchain_community.chat_message_histories import ChatMessageHistory
 from langchain_core.messages import AIMessage
 from langchain_core.prompts import MessagesPlaceholder
@@ -18,7 +18,7 @@ class ChatTool(Tool):
     def chat(self, prompt: str, save_file: str):
         if save_file:
             TxtWriter.check(save_file, self.overwrite)
-        prompt_template = LLMUtility.load_template(prompt)
+        prompt_template = LLMTool.load_template(prompt)
         prompt_template.append(MessagesPlaceholder(variable_name="messages"))
 
         chat_history = ChatMessageHistory()

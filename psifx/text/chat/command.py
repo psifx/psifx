@@ -1,6 +1,6 @@
 import argparse
 
-from psifx.text.llm.tool import LLMUtility
+from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import AddLLMArgument
@@ -39,7 +39,7 @@ class ChatCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        llm = LLMUtility.llm_from_yaml(args.llm)
+        llm = LLMTool().llm_from_yaml(args.llm)
         ChatTool(
             llm=llm,
             overwrite=args.overwrite,

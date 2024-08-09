@@ -7,7 +7,7 @@ def get_anthropic(model='claude-3-5-sonnet-20240620', api_key=None, temperature=
     from langchain_anthropic import ChatAnthropic
     api_key = api_key or getpass.getpass("Enter your Anthropic API key: ")
     os.environ["ANTHROPIC_API_KEY"] = api_key
-    return ChatOpenAI(
+    return ChatAnthropic(
         model=model,
         api_key=api_key,
         temperature=temperature,

@@ -46,4 +46,4 @@ class ChatCommand(Command):
             verbose=args.verbose
         ).chat(
             prompt=args.prompt,
-            save_file=args.output)
+            save_path=args.output)

@@ -1,24 +1,37 @@
-from typing import Union
+"""text instruction tool."""
 
-from langchain_core.runnables import RunnableLambda
+from pathlib import Path
+from typing import Union, Optional
+
+from langchain_core.runnables import RunnableLambda, RunnableSerializable
 
 from psifx.io.txt import TxtWriter, TxtReader
 from psifx.io.csv import CsvWriter, CsvReader
-from psifx.tool import Tool
+from psifx.text.tool import TextTool
 from tqdm.auto import tqdm
 
 
-class InstructionTool(Tool):
+class InstructionTool(TextTool):
     """
-    Base class for Custom instruction
-    """
+    text instruction tool.
 
-    def __init__(self, chain, overwrite: bool = False,
-                 verbose: Union[bool, int] = True):
+     :param chain: The instruction chain that is applied by the tool.
+     :param overwrite: Whether to overwrite existing files, otherwise raise an error.
+     :param verbose: Whether to execute the computation verbosely.
+     """
+
+    def __init__(self, chain: RunnableSerializable, overwrite: Optional[bool] = False,
+                 verbose: Optional[Union[bool, int]] = True):
         super().__init__(device="?", overwrite=overwrite, verbose=verbose)
         self.chain = chain
 
-    def apply_to_txt(self, input_path, output_path, output_column='result'):
+    def apply_to_txt(self, input_path: Union[str, Path], output_path: Union[str, Path]):
+        """
+        Apply the instruction tool to a .txt file.
+
+        :param input_path: Path to the input .txt file.
+        :param output_path: Path to the output .txt file.
+        """
         TxtWriter.check(output_path, overwrite=self.overwrite)
         text = TxtReader.read(input_path)
         result = self.chain.invoke({'text': text})
@@ -29,7 +42,15 @@ class InstructionTool(Tool):
             overwrite=self.overwrite
         )
 
-    def apply_to_csv(self, input_path, output_path, output_column='result'):
+    def apply_to_csv(self, input_path: Union[str, Path], output_path: Union[str, Path],
+                     output_column: Optional[str] = 'result'):
+        """
+        Apply the instruction tool to a .csv file.
+
+        :param input_path: Path to the input .csv file.
+        :param output_path: Path to the output .csv file.
+        :param output_column: Name of the column to write the result of the instruction in.
+        """
         CsvWriter.check(output_path, overwrite=self.overwrite)
         df = CsvReader.read(path=input_path)
         df_chain = RunnableLambda(lambda x: x.to_dict()) | self.chain

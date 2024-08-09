@@ -15,4 +15,6 @@ We strongly hope that this package will provide psychologists a simple and pract
 
 ## Documentation, Reference & Quickstart
 
-Visit https://psifx.github.io/psifx/.
+Visit https://psifx.github.io/psifx/
+
+arXiv preprint:  https://www.arxiv.org/abs/2407.10266

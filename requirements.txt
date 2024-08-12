@@ -16,5 +16,7 @@ accelerate
 bitsandbytes
 langchain
 langchain_community
+langchain-anthropic
+langchain-openai
 nltk
 ollama

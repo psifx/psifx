@@ -48,6 +48,19 @@ class LLMTool(TextTool):
         assert 'provider' in data, 'Please give a provider'
         return self.instantiate_llm(**data)
 
+    def chain_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> RunnableSerializable:
+        """
+        Return a chain from a yaml file.
+
+        :param llm: A large language model.
+        :param yaml_path: Path to the .yaml config file.
+        :return: A chain.
+        """
+        dictionary = YAMLReader.read(yaml_path)
+        prompt = LLMTool.load_template(prompt=dictionary['prompt'])
+        parser = self.instantiate_parser(**dictionary['parser'])
+        return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
+
     def chains_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> dict[str:RunnableSerializable]:
         """
         Return a dictionary of chains from a yaml file.

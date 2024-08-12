@@ -1,8 +1,7 @@
-wrestling:
-    parser:
-        kind: "default"
-        start_flag: "Winner:"
+parser:
+    kind: "default"
+    start_flag: "Winner:"
 
-    prompt: |
-        user: Here is a challenger {challenger} and an opponent {opponent} which one would win in a professional wrestling match?
-        Argue about it. Once you have deliberated, write as your last sentence the result of your deliberation in the following format Winner: 'name of the winner'. Nothing should follow this last answer.
+prompt: |
+    user: Here is a challenger {challenger} and an opponent {opponent} which one would win in a professional wrestling match?
+    Argue about it. Once you have deliberated, write as your last sentence the result of your deliberation in the following format Winner: 'name of the winner'. Nothing should follow this last answer.

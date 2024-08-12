@@ -29,7 +29,7 @@ class InstructionCommand(Command):
             '--input',
             type=str,
             required=True,
-            help="path to the input .txt or .csv file")
+            help="path to the input .txt, .csv or .vtt file")
         parser.add_argument(
             '--output',
             type=str,
@@ -46,12 +46,12 @@ class InstructionCommand(Command):
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
         llm = LLMTool().llm_from_yaml(args.llm)
-        chains = LLMTool().chains_from_yaml(llm, args.instruction)
+        chain = LLMTool().chain_from_yaml(llm, args.instruction)
 
         tool = InstructionTool(
             overwrite=args.overwrite,
             verbose=args.verbose,
-            chain=next(iter(chains.values()))
+            chain=chain
         )
 
         path = Path(args.input)
@@ -61,5 +61,8 @@ class InstructionCommand(Command):
         elif path.suffix == '.csv':
             tool.apply_to_csv(input_path=args.input,
                               output_path=args.output)
+        elif path.suffix == '.vtt':
+            tool.apply_to_vtt(input_path=args.input,
+                              output_path=args.output)
         else:
-            raise NameError(f"Input path should be .txt or .csv, got {args.input} instead.")
+            raise NameError(f"Input path should be .txt, .csv or .vtt. Got {args.input} instead.")

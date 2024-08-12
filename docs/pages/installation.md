@@ -64,3 +64,4 @@ We recommend using Docker for reducing compatibility issues.
    ```bash
    pip install 'psifx @ git+https://github.com/GuillaumeRochette/psifx.git'
    ```
+5. [Optional] Language models are required to use text tools. You can find installation instructions for these models in the text.md file.

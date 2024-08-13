@@ -1,7 +1,11 @@
 name: build-and-push-docker
 
 on:
- workflow_dispatch
+ workflow_dispatch:
+   inputs:
+     version:
+       description: "published version number on docker hub"
+       required: true
 
 jobs:
   build-and-push:
@@ -11,13 +15,6 @@ jobs:
         name: checkout
         id: checkout
         uses: actions/checkout@v4
-      -
-        name: get-current-version
-        id: get-current-version
-        run: |
-          git fetch --tags
-          CURRENT_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
-          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
       -
         name: log-in-docker
         uses: docker/login-action@v3
@@ -38,7 +35,7 @@ jobs:
         uses: docker/build-push-action@v5
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          CURRENT_VERSION: ${{ steps.get-current-version.outputs.CURRENT_VERSION }}
+          CURRENT_VERSION: ${{ inputs.version }}
         with:
           context: .
           build-args: |

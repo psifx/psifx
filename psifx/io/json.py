@@ -22,9 +22,9 @@ class JSONReader:
         """
         path = Path(path)
         if path.suffix != ".json":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .json path.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
     @staticmethod
     def read(
@@ -67,9 +67,9 @@ class JSONWriter:
         """
         path = Path(path)
         if path.suffix != ".json":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .json path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
+            raise FileExistsError(f"File {path} already exists.")
 
     @staticmethod
     def write(

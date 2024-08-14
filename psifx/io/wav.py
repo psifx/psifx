@@ -20,9 +20,9 @@ class WAVReader:
         """
         path = Path(path)
         if path.suffix != ".wav":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .wav path.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
 
 class WAVWriter:
@@ -40,6 +40,6 @@ class WAVWriter:
         """
         path = Path(path)
         if path.suffix != ".wav":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .wav path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
+            raise FileExistsError(f"File {path} already exists.")

@@ -23,9 +23,9 @@ class TarReader:
         """
         path = Path(path)
         if ".tar" not in path.suffixes:
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .tar path.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
     @staticmethod
     def read(
@@ -71,9 +71,9 @@ class TarWriter:
         """
         path = Path(path)
         if ".tar" not in path.suffixes:
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .tar path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
+            raise FileExistsError(f"File {path} already exists.")
 
     @staticmethod
     def write(

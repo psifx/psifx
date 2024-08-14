@@ -26,7 +26,8 @@ class VideoReader(FFmpegReader):
     ):
         path = Path(path)
 
-        assert path.exists()
+        if not path.exists():
+            raise FileNotFoundError(f"File missing at path {path}")
 
         super().__init__(
             filename=str(path),

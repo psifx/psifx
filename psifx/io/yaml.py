@@ -22,9 +22,9 @@ class YAMLReader:
         """
         path = Path(path)
         if path.suffix not in [".yaml", ".yml"]:
-            raise NameError(f"Incorrect file extension: {path}")
+            raise NameError(f"Path {path} is not a .csv path.")
         if not path.exists():
-            raise FileNotFoundError(f"File not found: {path}")
+            raise FileNotFoundError(f"File missing at path {path}")
 
     @staticmethod
     def read(
@@ -68,9 +68,9 @@ class YAMLWriter:
         """
         path = Path(path)
         if path.suffix not in [".yaml", ".yml"]:
-            raise NameError(f"Incorrect file extension: {path}")
+            raise NameError(f"Path {path} is not a .yaml path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(f"File already exists: {path}")
+            raise FileExistsError(f"File {path} already exists.")
 
     @staticmethod
     def write(

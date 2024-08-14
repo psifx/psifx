@@ -18,9 +18,9 @@ class CsvReader:
         """
         path = Path(path)
         if path.suffix != ".csv":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .csv path.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
     @staticmethod
     def read(
@@ -56,10 +56,9 @@ class CsvWriter:
         """
         path = Path(path)
         if path.suffix != ".csv":
-            raise NameError(f"File {path} is not a CSV file.")
+            raise NameError(f"Path {path} is not a .csv path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
-
+            raise FileExistsError(f"File {path} already exists.")
     @staticmethod
     def write(
         df: pd.DataFrame,
@@ -77,11 +76,9 @@ class CsvWriter:
         path = Path(path)
         CsvWriter.check(path, overwrite)
 
-        if path.exists():
-            if overwrite:
-                path.unlink()
-            else:
-                raise FileExistsError(f"File {path} already exists.")
+        if overwrite and path.exists():
+            path.unlink()
+
         path.parent.mkdir(parents=True, exist_ok=True)
 
         df.to_csv(path, index=False)

@@ -1,0 +1,83 @@
+name: build-and-push-docker-v2
+
+on:
+ workflow_dispatch:
+   inputs:
+     version:
+       description: "published version number on docker hub"
+       required: true
+
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      # Step to delete the hostedtoolcache to free up space
+      - name: Delete unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
+
+      # Checkout code
+      - uses: actions/checkout@v4
+
+      # Run the rest of the steps inside Docker containers
+      - name: Log in to Docker
+        uses: docker://docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Setup QEMU
+        uses: docker://docker/setup-qemu-action@v3
+
+      - name: Setup Docker Buildx
+        uses: docker://docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        uses: docker://docker/build-push-action@v5
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          CURRENT_VERSION: ${{ inputs.version }}
+        with:
+          context: .
+          build-args: |
+            HF_TOKEN=${{ env.HF_TOKEN }}
+          push: true
+          no-cache: true
+          tags: |
+            psifx/psifx:${{ env.CURRENT_VERSION }}
+            psifx/psifx:latest
+
+  publish-docs:
+    needs:
+      - build-and-push
+    runs-on: ubuntu-latest
+    container:
+      image: psifx/psifx:latest
+    permissions:
+      id-token: write
+      pages: write
+    steps:
+      -
+        name: checkout
+        id: checkout
+        uses: actions/checkout@v4
+      -
+        name: install-packages
+        id: test
+        run: |
+          pip install .[docs]
+      -
+        name: build-docs
+        id: build-docs
+        run: |
+          sphinx-build --fresh-env --write-all docs public
+      -
+        name: upload-docs
+        id: upload-docs
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      -
+        name: deploy-docs
+        id: deploy-docs
+        uses: actions/deploy-pages@v4

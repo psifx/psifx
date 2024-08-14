@@ -41,7 +41,9 @@ jobs:
           build-args: |
             HF_TOKEN=${{ env.HF_TOKEN }}
           push: true
-          no-cache: true
+          no-cache: false
+          cache-from: type=registry,ref=psifx/psifx:cache
+          cache-to: type=inline
           tags: |
             psifx/psifx:${{ env.CURRENT_VERSION }}
             psifx/psifx:latest

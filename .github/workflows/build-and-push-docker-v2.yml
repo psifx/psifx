@@ -12,28 +12,32 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      # Step to delete the hostedtoolcache to free up space
-      - name: Delete unnecessary tools folder
+      -
+        name: delete-unnecessary-tools
+        id: delete-unnecessary-tools
         run: rm -rf /opt/hostedtoolcache
-
-      # Checkout code
-      - uses: actions/checkout@v4
-
-      # Run the rest of the steps inside Docker containers
-      - name: Log in to Docker
-        uses: docker://docker/login-action@v3
+      -
+        name: checkout
+        id: checkout
+        uses: actions/checkout@v4
+      -
+        name: log-in-docker
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Setup QEMU
-        uses: docker://docker/setup-qemu-action@v3
-
-      - name: Setup Docker Buildx
-        uses: docker://docker/setup-buildx-action@v3
-
-      - name: Build and Push Docker Image
-        uses: docker://docker/build-push-action@v5
+      -
+        name: setup-qemu
+        id: setup-qemu
+        uses: docker/setup-qemu-action@v3
+      -
+        name: setup-docker-buildx
+        id: setup-docker-buildx
+        uses: docker/setup-buildx-action@v3
+      -
+        name: build-and-push
+        id: build-and-push
+        uses: docker/build-push-action@v5
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
           CURRENT_VERSION: ${{ inputs.version }}
@@ -42,7 +46,9 @@ jobs:
           build-args: |
             HF_TOKEN=${{ env.HF_TOKEN }}
           push: true
-          no-cache: true
+          no-cache: false
+          cache-from: type=registry,ref=psifx/psifx:cache
+          cache-to: type=inline
           tags: |
             psifx/psifx:${{ env.CURRENT_VERSION }}
             psifx/psifx:latest

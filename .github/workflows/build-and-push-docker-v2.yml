@@ -50,8 +50,8 @@ jobs:
           cache-from: type=registry,ref=psifx/psifx:cache
           cache-to: type=inline
           tags: |
-            psifx/psifx:${{ env.CURRENT_VERSION }}
-            psifx/psifx:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/psifx:${{ env.CURRENT_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/psifx:latest
 
   publish-docs:
     needs:

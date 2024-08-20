@@ -21,7 +21,7 @@ class LLMTool(TextTool):
     providers: dict
 
     def __init__(self, device: Optional[str] = '?', overwrite: Optional[bool] = False,
-                 verbose: Optional[Union[bool, int]] = True):
+                 verbose: Optional[Union[bool, int]] = False):
         super().__init__(
             device,
             overwrite,
@@ -58,7 +58,7 @@ class LLMTool(TextTool):
         """
         dictionary = YAMLReader.read(yaml_path)
         prompt = LLMTool.load_template(prompt=dictionary['prompt'])
-        parser = self.instantiate_parser(**dictionary['parser'])
+        parser = self.instantiate_parser(**dictionary.get('parser', {'kind':'default'}))
         return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
 
     def chains_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> dict[str:RunnableSerializable]:
@@ -70,7 +70,9 @@ class LLMTool(TextTool):
         :return: A dictionary of strings mapped to chains.
         """
 
-        def make_chain_wrapper(prompt, parser):
+        def make_chain_wrapper(prompt, parser=None):
+            if parser is None:
+                parser = {'kind': 'default'}
             prompt = LLMTool.load_template(prompt=prompt)
             parser = self.instantiate_parser(**parser)
             return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
@@ -145,7 +147,9 @@ class LLMTool(TextTool):
             valid_parsers = ', '.join(self.providers.keys())
             raise NameError(f'parser kind should be one of: {valid_parsers}')
 
-    def default_parser(self, generation: AIMessage, data: dict, start_flag: Optional[str] = None,
+    def default_parser(self, generation: AIMessage, data: dict,
+                       start_flag: Optional[str] = None,
+                       lowercase: Optional[bool] = False,
                        expected_labels: Optional[list[str]] = None) -> str:
         """
         Parse a message starting from start_flag and check whether it is one of the expected_labels.
@@ -153,12 +157,16 @@ class LLMTool(TextTool):
         :param generation: Message from a llm.
         :param data: Additional data from the chain.
         :param start_flag: If not None, parse the message from the last instance of start_flag.
+        :param lowercase: If True, change the output to lowercase (it applies after start_flag).
         :param expected_labels: If not None, when the output is not one of the expected labels prints an error message.
         :return: The parsed message.
         """
         output = generation.content
         if start_flag:
             output = output.split(start_flag)[-1]
+        if lowercase:
+            output = output.lower()
+        output = output.strip()
         if expected_labels and output not in expected_labels:
             print(f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {output}")
         elif self.verbose:

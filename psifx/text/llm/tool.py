@@ -58,7 +58,7 @@ class LLMTool(TextTool):
         """
         dictionary = YAMLReader.read(yaml_path)
         prompt = LLMTool.load_template(prompt=dictionary['prompt'])
-        parser = self.instantiate_parser(**dictionary.get('parser', {'kind':'default'}))
+        parser = self.instantiate_parser(**dictionary.get('parser', {'kind': 'default'}))
         return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
 
     def chains_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> dict[str:RunnableSerializable]:
@@ -144,7 +144,7 @@ class LLMTool(TextTool):
                                                    data=data,
                                                    **parser_kwargs)
         else:
-            valid_parsers = ', '.join(self.providers.keys())
+            valid_parsers = ', '.join(self.parsers.keys())
             raise NameError(f'parser kind should be one of: {valid_parsers}')
 
     def default_parser(self, generation: AIMessage, data: dict,
@@ -163,12 +163,23 @@ class LLMTool(TextTool):
         """
         output = generation.content
         if start_flag:
-            output = output.split(start_flag)[-1]
+            parts = output.split(start_flag)
+            if len(parts) == 1:
+                print(f"START FLAG NOT PRESENT IN GENERATION\nDATA:\n{data}\nGENERATION:\n{generation.content}")
+            output = parts[-1]
         if lowercase:
             output = output.lower()
         output = output.strip()
+
+        str_data = f"\nDATA:\n{data}"
+        str_generation = f"\nGENERATION:\n{generation.content}"
+        str_output = f"\nOUTPUT:\n{output}"
+
         if expected_labels and output not in expected_labels:
-            print(f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {output}")
+            print(f"UNEXPECTED OUTPUT{str_data}{str_generation}{str_output}")
         elif self.verbose:
-            print(f"WELL PARSED GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {output}")
+            if generation.content != output:
+                print(f"{str_data}{str_generation}{str_output}")
+            else:
+                print(f"{str_data}{str_output}")
         return output

@@ -21,7 +21,7 @@ class LLMTool(TextTool):
     providers: dict
 
     def __init__(self, device: Optional[str] = '?', overwrite: Optional[bool] = False,
-                 verbose: Optional[Union[bool, int]] = False):
+                 verbose: Optional[Union[bool, int]] = True):
         super().__init__(
             device,
             overwrite,
@@ -45,6 +45,11 @@ class LLMTool(TextTool):
         :return: A large language model.
         """
         data = YAMLReader.read(yaml_path)
+        if self.verbose:
+            print('\n' + '-' * 20 + '\nModel configuration')
+            for key, value in data.items():
+                print(f"{key}: {value}")
+            print('-' * 20)
         assert 'provider' in data, 'Please give a provider'
         return self.instantiate_llm(**data)
 

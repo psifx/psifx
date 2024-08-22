@@ -32,10 +32,12 @@ def add_llm_argument(parser):
         type=yaml,
         default='small-local',
         required=False,
-        help="the large language model to use, can be 'small-local','medium-local', 'large-local', 'openai', 'anthropic' or path to a .yaml configuration file")
+        help="the large language model to use, can be 'small-local','medium-local', 'large-local', 'openai', 'anthropic' or path to a .yaml configuration file (default small-local)")
 
 
 def yaml(path: str, directory='configs') -> str:
+    if path == 'small-local':
+        print('You are using the small-local model. Better results can be obtained with larger alternatives. See documentation for details.')
     directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), directory)
     if os.path.isfile(path):
         return path

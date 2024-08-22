@@ -3,7 +3,7 @@ import argparse
 from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
-from psifx.text.llm.command import AddLLMArgument
+from psifx.text.llm.command import add_llm_argument
 
 
 class ChatCommand(Command):
@@ -35,7 +35,7 @@ class ChatCommand(Command):
             type=str,
             default="",
             help='path to a .txt save file')
-        AddLLMArgument(parser)
+        add_llm_argument(parser)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):

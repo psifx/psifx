@@ -1,14 +1,16 @@
-from typing import List, Optional, Any
+"""hugging face model."""
 
+from typing import List, Optional, Any
 import torch
 from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.messages import BaseMessage, SystemMessage, AIMessage, HumanMessage
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
-from langchain_core.language_models.chat_models import SimpleChatModel
+from langchain_core.language_models.chat_models import SimpleChatModel, BaseChatModel
+
 
 class HFChat(SimpleChatModel):
-
     pipeline: Any = None
+
     def __init__(self, pipeline, **kwargs: Any):
         super().__init__(pipeline=pipeline, **kwargs)
 
@@ -36,14 +38,20 @@ class HFChat(SimpleChatModel):
         return {"role": role, "content": message.content}
 
 
-def get_lc_hf(**kwargs):
+def get_lc_hf(**kwargs) -> BaseChatModel:
+    """
+    Get a hugging face langchain base chat model.
+
+    :param kwargs: Key value argument to pass on.
+    :return: A hugging face langchain base chat model.
+    """
     pipeline = get_transformers_pipeline(**kwargs)
     return HFChat(pipeline=pipeline)
 
 
-
-def get_transformers_pipeline(model, token=None, quantization=None, model_kwargs=None, max_new_tokens=None,
-                              pipeline_kwargs=None):
+def get_transformers_pipeline(model: str, token: Optional[str] = None, quantization: Optional[str] = None,
+                              model_kwargs: Optional[dict] = None, max_new_tokens: Optional[int] = None,
+                              pipeline_kwargs: Optional[dict] = None):
     """
         Create a text generation pipeline using a specified pre-trained language model.
 
@@ -79,8 +87,8 @@ def get_transformers_pipeline(model, token=None, quantization=None, model_kwargs
         )
     try:
         # Load tokenizer and model
-        tokenizer = AutoTokenizer.from_pretrained(model, token = token)
-        llm = AutoModelForCausalLM.from_pretrained(model, token = token, **model_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(model, token=token)
+        llm = AutoModelForCausalLM.from_pretrained(model, token=token, **model_kwargs)
     except Exception as e:
         raise ValueError(f"Error initializing model '{model}': {str(e)}")
 

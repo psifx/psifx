@@ -1,3 +1,5 @@
+"""text instruction command-line interface."""
+
 import argparse
 from psifx.text.instruction.tool import InstructionTool
 from psifx.text.llm.tool import LLMTool
@@ -13,6 +15,12 @@ class InstructionCommand(Command):
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--overwrite",
             default=False,
@@ -45,6 +53,13 @@ class InstructionCommand(Command):
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
         llm = LLMTool().llm_from_yaml(args.llm)
         chain = LLMTool().chain_from_yaml(llm, args.instruction)
 

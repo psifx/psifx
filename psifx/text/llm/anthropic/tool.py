@@ -1,9 +1,27 @@
+"""anthropic model."""
+
 import os
 import getpass
+from typing import Optional
 from langchain_anthropic import ChatAnthropic
+from langchain_core.language_models import BaseChatModel
 
-def get_anthropic(model='claude-3-5-sonnet-20240620', api_key=None, temperature=0, max_tokens=None, timeout=None,
-                  max_retries=2, **kwargs):
+
+def get_anthropic(model: str = 'claude-3-5-sonnet-20240620', api_key: Optional[str] = None, temperature: int = 0,
+                  max_tokens: Optional[int] = None, timeout: Optional[int] = None,
+                  max_retries: int = 2, **kwargs) -> BaseChatModel:
+    """
+    Get an anthropic langchain base chat model.
+
+    :param model: Name of the model to use.
+    :param api_key: Api key (if not provided the user is prompted for it).
+    :param temperature: Temperature.
+    :param max_tokens: Max number of tokens.
+    :param timeout: Timeout.
+    :param max_retries: Max retries.
+    :param kwargs: Optional key value arguments.
+    :return: An anthropic langchain base chat model.
+    """
     api_key = api_key or getpass.getpass("Enter your Anthropic API key: ")
     os.environ["ANTHROPIC_API_KEY"] = api_key
     return ChatAnthropic(

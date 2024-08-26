@@ -1,7 +1,7 @@
 import argparse, json
 
 from psifx.utils.command import Command, register_command
-from psifx.text.llm.hf.tool import get_transformers_pipeline
+from psifx.text.llm.hf.tool import get_lc_hf
 
 
 class HFCommand(Command):
@@ -11,6 +11,12 @@ class HFCommand(Command):
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             '--model',
             type=str,

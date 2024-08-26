@@ -12,6 +12,12 @@ class OpenAICommand(Command):
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             '--model',
             type=str,

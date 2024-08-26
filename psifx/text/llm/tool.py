@@ -1,3 +1,5 @@
+"""large language model tool."""
+
 import re
 from pathlib import Path
 from typing import Union, Callable, Optional

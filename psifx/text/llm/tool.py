@@ -34,6 +34,7 @@ class LLMTool(TextTool):
         }
         self.providers = {
             'hf': get_lc_hf,
+            'hugging face': get_lc_hf,
             'ollama': get_ollama,
             'openai': get_openai,
             'anthropic': get_anthropic

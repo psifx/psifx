@@ -23,8 +23,17 @@ To access OpenAI models you'll need to create an OpenAI account and get an API k
 To access Anthropic models you'll need to create an Anthropic account and get an API key.
 Head to https://console.anthropic.com/ to sign up for Anthropic and generate an API key.
 
-### Configuration file
-You can configure the model and its runtime settings through a .yaml file. The configuration file must at least specify the provider (hf, ollama, openai, or anthropic) and the model to be used. Additionally, you can include other parameters such as temperature. Below are example configurations for each provider.
+### Model Configuration
+When using Text tools you will need to provide a model configuration.
+Within the field `--llm` you should indicate the name of a _default_ configuration or the path to a _custom_ configuration file.
+The default configurations are **anthropic**, **openai**, **small-local**, **medium-local**, and **large-local**.
+Local options are based on Ollama, so make sure you meet the necessary requirements.
+
+You can configure the model and its runtime settings through a .yaml file.
+The configuration file must at least specify the provider (hf, ollama, openai, or anthropic) and the model to be used. 
+Additionally, you can include other parameters such as temperature. 
+Below are example configurations for each provider.
+
 #### Hugging Face
 [Optional] You may add your hugging face token to the yaml file, otherwise you will be prompted for it when you download gated models.
 ```yaml

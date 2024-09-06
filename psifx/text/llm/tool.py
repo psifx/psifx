@@ -138,7 +138,7 @@ class LLMTool(TextTool):
             valid_providers = ', '.join(self.providers.keys())
             raise NameError(f'model provider should be one of: {valid_providers}')
 
-    def instantiate_parser(self, kind: str, **parser_kwargs) -> Callable:
+    def instantiate_parser(self, kind: str='default', **parser_kwargs) -> Callable:
         """
         Return a kind of parser with key value arguments.
 

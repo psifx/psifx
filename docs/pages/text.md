@@ -23,7 +23,7 @@ To access OpenAI models you'll need to create an OpenAI account and get an API k
 To access Anthropic models you'll need to create an Anthropic account and get an API key.
 Head to https://console.anthropic.com/ to sign up for Anthropic and generate an API key.
 
-### Model Configuration
+************_**### Model Configuration
 When using Text tools you will need to provide a model configuration.
 Within the field `--llm` you should indicate the name of a _default_ configuration or the path to a _custom_ configuration file.
 The default configurations are **anthropic**, **openai**, **small-local**, **medium-local**, and **large-local**.
@@ -67,7 +67,7 @@ api_key: API_KEY
 ### Chat
 This feature is intended to allow general _interactive_ usage of LLMs (either local or 3rd party) for language processing tasks. The user can interact with an LLM in the command terminal, whilst specifying a prompt, previous chat history (optional), and an output file directory to store the chat (optional).
 ```bash
-psifx text chat --llm model_config.yaml \
+psifx text chat [--llm model_config.yaml] \
                 [--prompt chat_history.txt] \
                 [--output file.txt]
 ```
@@ -77,21 +77,21 @@ This feature is intended to allow general usage of LLMs (either local or 3rd par
 There is multiple options for --input and --output.
 - Both .txt
     ```bash
-    psifx text instruction --llm model_config.yaml \
+    psifx text instruction [--llm model_config.yaml] \
                            --instruction instruction.yaml \
                            --input input.txt \
                            --output output.txt
     ```
 - From .vtt to .txt
     ```bash
-    psifx text instruction --llm model_config.yaml \
+    psifx text instruction [--llm model_config.yaml] \
                            --instruction instruction.yaml \
                            --input input.vtt \
                            --output output.txt
     ```
 - Both .csv
     ```bash
-    psifx text instruction --llm model_config.yaml \
+    psifx text instruction [--llm model_config.yaml] \
                            --instruction instruction.yaml \
                            --input input.csv \
                            --output output.csv
@@ -116,7 +116,7 @@ prompt: |
     1) Does the patient find the app useful? (Two integers: Rating out
     of 10 with certainty out of 10 where 10 is maximally certain)
 parser:
-    kind: "default"
+    to_lower: True 
 ```
 ##### Prompt
 The prompt enable you to tell the model what you want, and guide its generation.
@@ -148,13 +148,13 @@ If you need to parse the generation from the model, you can specify a parser in 
 prompt: |
     user: ...
 parser:
-    start_flag: "ANSWER:" 
-    lowercase: True 
-    expected_labels:
+    start_after: "ANSWER:" 
+    to_lower: True 
+    expect:
         - "yes"
         - "no" 
 ```
 You have the following options:
-- start_flag: If specified only keep the message after the last instance of start_flag.
-- lowercase: If True, change the output to lowercase (it is applied after start_flag).
-- expected_labels: When the output is not one of the expected labels prints an error message.
+- start_after: Only keep the message after the last instance of the specified text.
+- to_lower: If True, change the output to lowercase (takes effect subsequently to  start_after).
+- expect: When the final output is not one of the expected labels prints an error message.

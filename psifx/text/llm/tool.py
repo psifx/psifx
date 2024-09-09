@@ -156,26 +156,26 @@ class LLMTool(TextTool):
             raise NameError(f'parser kind should be one of: {valid_parsers}')
 
     def default_parser(self, generation: AIMessage, data: dict,
-                       start_flag: Optional[str] = None,
-                       lowercase: Optional[bool] = False,
-                       expected_labels: Optional[list[str]] = None) -> str:
+                       start_after: Optional[str] = None,
+                       to_lower: Optional[bool] = False,
+                       expect: Optional[list[str]] = None) -> str:
         """
         Parse a message starting from start_flag and check whether it is one of the expected_labels.
 
         :param generation: Message from a llm.
         :param data: Additional data from the chain.
-        :param start_flag: If not None, parse the message from the last instance of start_flag.
-        :param lowercase: If True, change the output to lowercase (it applies after start_flag).
-        :param expected_labels: If not None, when the output is not one of the expected labels prints an error message.
+        :param start_after: If not None, parse the message from the last instance of start_after.
+        :param to_lower: If True, change the output to lowercase (it applies subsequently to start_after).
+        :param expect: If not None, when the final output is not one of the expected labels prints an error message.
         :return: The parsed message.
         """
         output = generation.content
-        if start_flag:
-            parts = output.split(start_flag)
+        if start_after:
+            parts = output.split(start_after)
             if len(parts) == 1:
                 print(f"START FLAG NOT PRESENT IN GENERATION\nDATA:\n{data}\nGENERATION:\n{generation.content}")
             output = parts[-1]
-        if lowercase:
+        if to_lower:
             output = output.lower()
         output = output.strip()
 
@@ -183,7 +183,7 @@ class LLMTool(TextTool):
         str_generation = f"\nGENERATION:\n{generation.content}"
         str_output = f"\nOUTPUT:\n{output}"
 
-        if expected_labels and output not in expected_labels:
+        if expect and output not in expect:
             print(f"UNEXPECTED OUTPUT{str_data}{str_generation}{str_output}")
         elif self.verbose:
             if generation.content != output:

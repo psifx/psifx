@@ -5,7 +5,6 @@ import argparse
 
 from psifx.utils.command import Command, register_command
 from psifx.text.chat.command import ChatCommand
-from psifx.text.llm.command import LLMCommand
 from psifx.text.instruction.command import InstructionCommand
 
 
@@ -25,7 +24,6 @@ class TextCommand(Command):
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "chat", ChatCommand)
-        register_command(subparsers, "llm", LLMCommand)
         register_command(subparsers, "instruction", InstructionCommand)
 
     @staticmethod

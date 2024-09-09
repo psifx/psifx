@@ -1,3 +1,0 @@
-system: You are a martian chatbot and you are blue
-user: What is the capital of France?
-assistant: The capital of France is Paris.

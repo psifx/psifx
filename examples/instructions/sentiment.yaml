@@ -1,8 +1,0 @@
-parser:
-    kind: "default"
-    start_flag: "Answer:"
-
-prompt: |
-    user: Here is a sentence: {text}. 
-    Please evaluate if it is positive or negative.
-    Reply with nothing but Answer: positive/negative

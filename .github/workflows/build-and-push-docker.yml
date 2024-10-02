@@ -1,20 +1,29 @@
 name: build-and-push-docker
 
 on:
- workflow_dispatch:
-   inputs:
-     version:
-       description: "published version number on docker hub"
-       required: true
+  release:
+    types: [published]
+
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
       -
+        name: delete-unnecessary-tools
+        id: delete-unnecessary-tools
+        run: rm -rf /opt/hostedtoolcache
+      -
         name: checkout
         id: checkout
         uses: actions/checkout@v4
+      -
+        name: get-current-version
+        id: get-current-version
+        run: |
+          git fetch --tags
+          CURRENT_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
       -
         name: log-in-docker
         uses: docker/login-action@v3
@@ -30,27 +39,22 @@ jobs:
         id: setup-docker-buildx
         uses: docker/setup-buildx-action@v3
       -
-        name: Clean up Docker to free space
-        run: |
-          docker system prune -a --volumes -f
-      -
         name: build-and-push
         id: build-and-push
         uses: docker/build-push-action@v5
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          CURRENT_VERSION: ${{ inputs.version }}
+          CURRENT_VERSION: ${{ steps.get-current-version.outputs.CURRENT_VERSION }}
         with:
           context: .
           build-args: |
             HF_TOKEN=${{ env.HF_TOKEN }}
           push: true
-          no-cache: false
-          cache-from: type=registry,ref=psifx/psifx:cache
-          cache-to: type=inline
+          no-cache: true
           tags: |
-            psifx/psifx:${{ env.CURRENT_VERSION }}
-            psifx/psifx:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/psifx:${{ env.CURRENT_VERSION }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/psifx:latest
+
   publish-docs:
     needs:
       - build-and-push

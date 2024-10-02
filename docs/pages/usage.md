@@ -23,8 +23,8 @@ psifx video manipulation process --in_video Videos/Left.mp4 --out_video Videos/L
 psifx video manipulation process --in_video Videos/Right.mp4 --out_video Videos/Right.processed.mp4  --start 18 --end 210 --x_min 1358 --y_min 435 --x_max 2690 --y_max 2049 --overwrite
 ```
 
-### [Audio](audio.md)
+## [Audio](audio.md)
 
-### [Video](video.md)
+## [Video](video.md)
 
-### [Text](text.md)
+## [Text](text.md)

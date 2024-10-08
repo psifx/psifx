@@ -7,7 +7,7 @@ from langchain_core.callbacks import CallbackManagerForLLMRun
 from langchain_core.messages import BaseMessage, SystemMessage, AIMessage, HumanMessage
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, pipeline
 from langchain_core.language_models.chat_models import SimpleChatModel, BaseChatModel
-from huggingface_hub.utils._errors import GatedRepoError
+from huggingface_hub.errors import GatedRepoError
 
 
 class HFChat(SimpleChatModel):

@@ -12,6 +12,7 @@ torchvision
 torchaudio
 tqdm
 transformers
+huggingface_hub
 accelerate
 bitsandbytes
 langchain

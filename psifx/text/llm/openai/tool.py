@@ -1,6 +1,6 @@
 """openai model."""
 
-import getpass
+import os
 from typing import Optional
 from langchain_core.language_models import BaseChatModel
 from langchain_openai import ChatOpenAI
@@ -21,8 +21,7 @@ def get_openai(model: str = 'gpt-4o', api_key: Optional[str] = None, temperature
     :param kwargs: Optional key value arguments.
     :return: An openai langchain base chat model.
     """
-
-    api_key = api_key or getpass.getpass("Enter your OpenAI API key: ")
+    api_key = api_key or os.environ.get('OPENAI_API_KEY')
     return ChatOpenAI(
         model=model,
         api_key=api_key,

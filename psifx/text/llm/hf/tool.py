@@ -1,6 +1,7 @@
 """hugging face model."""
 
 import getpass
+import os
 from typing import List, Optional, Any
 import torch
 from langchain_core.callbacks import CallbackManagerForLLMRun
@@ -51,7 +52,7 @@ def get_lc_hf(**kwargs) -> BaseChatModel:
     return HFChat(pipeline=pipeline)
 
 
-def get_transformers_pipeline(model: str, token: Optional[str] = None, quantization: Optional[str] = None,
+def get_transformers_pipeline(model: str, api_key: Optional[str] = None, quantization: Optional[str] = None,
                               model_kwargs: Optional[dict] = None, max_new_tokens: Optional[int] = None,
                               pipeline_kwargs: Optional[dict] = None):
     """
@@ -59,7 +60,7 @@ def get_transformers_pipeline(model: str, token: Optional[str] = None, quantizat
 
         Parameters:
             model (str): The name or path of the pre-trained language model.
-            token (str, optional): HuggingFace token for authentification. Default is None.
+            api_key (str, optional): HuggingFace token for authentification. Default is None.
             quantization (str, optional): The quantization type to apply to the model. Options are '4bit', '8bit', or None. Default is None.
             model_kwargs (dict, optional): Additional keyword arguments to pass to the model during initialization. Default is None.
             max_new_tokens (int, optional): The maximum number of new tokens to generate. Default is None.
@@ -72,6 +73,9 @@ def get_transformers_pipeline(model: str, token: Optional[str] = None, quantizat
     # Ensure model_kwargs and pipeline_kwargs are initialized if not provided
     model_kwargs = model_kwargs or {}
     pipeline_kwargs = pipeline_kwargs or {}
+
+    # Check for Env variable
+    api_key = api_key or os.environ.get('HF_TOKEN')
 
     # Validate quantization parameter
     assert quantization in ('4bit', '8bit', None), "The parameter quantization should be '4bit', '8bit', or None."
@@ -89,15 +93,15 @@ def get_transformers_pipeline(model: str, token: Optional[str] = None, quantizat
         )
 
     try:
-        tokenizer = AutoTokenizer.from_pretrained(model, token=token)
-        llm = AutoModelForCausalLM.from_pretrained(model, token=token, **model_kwargs)
+        tokenizer = AutoTokenizer.from_pretrained(model, token=api_key)
+        llm = AutoModelForCausalLM.from_pretrained(model, token=api_key, **model_kwargs)
     except EnvironmentError as env_err:
         if isinstance(env_err.__cause__, GatedRepoError):
-            if token is None:
-                token = getpass.getpass(
+            if api_key is None:
+                api_key = getpass.getpass(
                     f"The model {model} requires special authorization.\nPlease provide an authorized HuggingFace token:")
-                tokenizer = AutoTokenizer.from_pretrained(model, token=token)
-                llm = AutoModelForCausalLM.from_pretrained(model, token=token, **model_kwargs)
+                tokenizer = AutoTokenizer.from_pretrained(model, token=api_key)
+                llm = AutoModelForCausalLM.from_pretrained(model, token=api_key, **model_kwargs)
             else:
                 print(f"The model {model} requires special authorization.\nMake sure you have access to it.")
                 raise env_err

@@ -22,11 +22,10 @@ def get_anthropic(model: str = 'claude-3-5-sonnet-20240620', api_key: Optional[s
     :param kwargs: Optional key value arguments.
     :return: An anthropic langchain base chat model.
     """
-    api_key = api_key or getpass.getpass("Enter your Anthropic API key: ")
-    os.environ["ANTHROPIC_API_KEY"] = api_key
+    if api_key:
+        os.environ["ANTHROPIC_API_KEY"] = api_key
     return ChatAnthropic(
         model=model,
-        api_key=api_key,
         temperature=temperature,
         max_tokens=max_tokens,
         timeout=timeout,

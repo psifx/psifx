@@ -40,22 +40,6 @@ class LLMTool(TextTool):
             'anthropic': get_anthropic
         }
 
-    def llm_from_yaml(self, yaml_path: Union[str, Path]) -> BaseChatModel:
-        """
-        Return a llm from a yaml file.
-
-        :param yaml_path: Path to the .yaml config file.
-        :return: A large language model.
-        """
-        data = YAMLReader.read(yaml_path)
-        if self.verbose:
-            print('\n' + '-' * 20 + '\nModel configuration')
-            for key, value in data.items():
-                print(f"{key}: {value}")
-            print('-' * 20)
-        assert 'provider' in data, 'Please give a provider'
-        return self.instantiate_llm(**data)
-
     def chain_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> RunnableSerializable:
         """
         Return a chain from a yaml file.
@@ -132,13 +116,20 @@ class LLMTool(TextTool):
         :param provider_kwargs: Key value arguments for instantiating the llm.
         :return: A large language model.
         """
+        if self.verbose:
+            print('\n' + '-' * 20 + '\nModel configuration')
+            print(f"provider: {provider}")
+            for key, value in provider_kwargs.items():
+                print(f"{key}: {value}")
+            print('-' * 20)
+
         if provider in self.providers:
             return self.providers[provider](**provider_kwargs)
         else:
             valid_providers = ', '.join(self.providers.keys())
             raise NameError(f'model provider should be one of: {valid_providers}')
 
-    def instantiate_parser(self, kind: str='default', **parser_kwargs) -> Callable:
+    def instantiate_parser(self, kind: str = 'default', **parser_kwargs) -> Callable:
         """
         Return a kind of parser with key value arguments.
 

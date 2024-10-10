@@ -53,7 +53,8 @@ class ChatCommand(Command):
         :param args: The arguments.
         :return:
         """
-        llm = LLMTool().llm_from_yaml(args.llm)
+        llm_tool = args.instantiate_llm_tool(args)
+        llm = args.instantiate_llm(args, llm_tool)
         ChatTool(
             llm=llm,
             overwrite=args.overwrite,

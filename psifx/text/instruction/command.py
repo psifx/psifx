@@ -4,8 +4,10 @@ import argparse
 from psifx.text.instruction.tool import InstructionTool
 from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
-from psifx.text.llm.command import add_llm_argument
+from psifx.text.llm.command import add_llm_argument, add_llm_instruction_argument
 from pathlib import Path
+
+from test.critic.test import llm_tool
 
 
 class InstructionCommand(Command):
@@ -43,13 +45,8 @@ class InstructionCommand(Command):
             type=str,
             required=True,
             help="path to the output .txt or .csv file")
-        parser.add_argument(
-            '--instruction',
-            type=str,
-            required=True,
-            help="path to a .yaml file containing the prompt and parser")
 
-        add_llm_argument(parser)
+        add_llm_instruction_argument(parser)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -60,8 +57,9 @@ class InstructionCommand(Command):
         :param args: The arguments.
         :return:
         """
-        llm = LLMTool().llm_from_yaml(args.llm)
-        chain = LLMTool().chain_from_yaml(llm, args.instruction)
+        llm_tool = args.instantiate_llm_tool(args)
+        llm = args.instantiate_llm(args,llm_tool)
+        chain = args.instantiate_chain(args, llm_tool, llm)
 
         tool = InstructionTool(
             overwrite=args.overwrite,

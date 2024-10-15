@@ -9,7 +9,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-      -
+      - # remove the tool cache of a few versions of Python + PyPy https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#hosted-tool-cache
         name: delete-unnecessary-tools
         id: delete-unnecessary-tools
         run: rm -rf /opt/hostedtoolcache

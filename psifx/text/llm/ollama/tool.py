@@ -4,6 +4,10 @@ from langchain_community.chat_models import ChatOllama
 import ollama
 from langchain_core.language_models import BaseChatModel
 from tqdm import tqdm
+import os
+import time
+import subprocess
+import httpx
 
 
 def get_ollama(model: str = 'llama3.1', **kwargs) -> BaseChatModel:
@@ -14,6 +18,23 @@ def get_ollama(model: str = 'llama3.1', **kwargs) -> BaseChatModel:
     :param kwargs: Key value arguments to pass to the model.
     :return: An ollama langchain base chat model.
     """
+    try:
+        ollama.list()
+    except httpx.ConnectError:
+        print("Starting ollama serve")
+        process = subprocess.Popen(
+            ['ollama', 'serve'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            preexec_fn=os.setsid
+        )
+        time_limit = 10
+        start_time = time.time()
+        while time.time() - start_time < time_limit:
+            stderr_line = process.stderr.readline().decode().strip()
+            if "Listening on" in stderr_line:
+                print(f"Service started successfully")
+                break
     if model not in ([available_model['name'] for available_model in ollama.list()['models']]):
         pull_model(model)
 

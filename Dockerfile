@@ -66,7 +66,4 @@ RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
     pip cache purge && \
     conda clean -y --all && \
     chmod --recursive a+rwx $CONDA_PREFIX/lib/python3.9/site-packages/mediapipe && \
-    curl -fsSL https://ollama.com/install.sh | sh && \
-    echo '#!/bin/bash\nollama serve &\nexec "$@"' > /root/start_daemon.sh && \
-    chmod +x /root/start_daemon.sh
-CMD ["bash", "-c", "/root/start_daemon.sh", "bash"]
+    curl -fsSL https://ollama.com/install.sh | sh

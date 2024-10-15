@@ -1,7 +1,6 @@
 """chatbot command-line interface."""
 
 import argparse
-from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import add_llm_argument

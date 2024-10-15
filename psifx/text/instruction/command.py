@@ -2,12 +2,9 @@
 
 import argparse
 from psifx.text.instruction.tool import InstructionTool
-from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
-from psifx.text.llm.command import add_llm_argument, add_llm_instruction_argument
+from psifx.text.llm.command import add_llm_instruction_argument
 from pathlib import Path
-
-from test.critic.test import llm_tool
 
 
 class InstructionCommand(Command):

@@ -29,14 +29,13 @@ def instantiate_llm(args: argparse.Namespace, llm_tool: LLMTool) -> BaseChatMode
     :param llm_tool: A LLMTool.
     :return: A large language model.
     """
-    llm_kw_args = getattr(args, 'model_config', {})
+    llm_kw_args = args.model_config or {}
     for key in ('api_key', 'provider', 'model'):
         assert key not in llm_kw_args, f"{key} should not be specified in the model config file, please provide it with --{key} instead"
     llm_kw_args['provider'] = args.provider
     llm_kw_args['model'] = args.model
-    api_key = getattr(args, 'api_key', None)
-    if api_key is not None:
-        llm_kw_args['api_key'] = api_key
+    if args.api_key is not None:
+        llm_kw_args['api_key'] = args.api_key
     return llm_tool.instantiate_llm(**llm_kw_args)
 
 

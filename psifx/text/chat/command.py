@@ -3,7 +3,7 @@
 import argparse
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
-from psifx.text.llm.command import add_llm_argument
+from psifx.text.llm.command import add_llm_argument, instantiate_llm_tool, instantiate_llm
 
 
 class ChatCommand(Command):
@@ -52,8 +52,8 @@ class ChatCommand(Command):
         :param args: The arguments.
         :return:
         """
-        llm_tool = args.instantiate_llm_tool(args)
-        llm = args.instantiate_llm(args, llm_tool)
+        llm_tool = instantiate_llm_tool(args)
+        llm = instantiate_llm(args, llm_tool)
         ChatTool(
             llm=llm,
             overwrite=args.overwrite,

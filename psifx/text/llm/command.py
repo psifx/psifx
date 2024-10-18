@@ -71,8 +71,6 @@ def add_llm_argument(parser: argparse.ArgumentParser):
         required=False,
         help="Corresponding API key for 'hf', 'openai', or 'anthropic'."
     )
-    parser.set_defaults(instantiate_llm_tool=instantiate_llm_tool)
-    parser.set_defaults(instantiate_llm=instantiate_llm)
 
 
 def instantiate_chain(args: argparse.Namespace, llm_tool: LLMTool, llm: BaseChatModel) -> RunnableSerializable:
@@ -83,7 +81,7 @@ def instantiate_chain(args: argparse.Namespace, llm_tool: LLMTool, llm: BaseChat
     :param llm: A large language model.
     :return: A langchain chain.
     """
-    dictionary = YAMLReader.read(args.yaml_path)
+    dictionary = YAMLReader.read(args.instruction)
     prompt = llm_tool.load_template(prompt=dictionary['prompt'])
     parser = llm_tool.instantiate_parser(**dictionary.get('parser', {'kind': 'default'}))
     return llm_tool.make_chain(llm=llm, prompt=prompt, parser=parser)
@@ -100,5 +98,3 @@ def add_llm_instruction_argument(parser: argparse.ArgumentParser):
         type=str,
         required=True,
         help="path to a .yaml file containing the prompt and parser")
-
-    parser.set_defaults(instantiate_chain=instantiate_chain)

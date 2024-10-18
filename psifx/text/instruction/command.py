@@ -3,7 +3,8 @@
 import argparse
 from psifx.text.instruction.tool import InstructionTool
 from psifx.utils.command import Command
-from psifx.text.llm.command import add_llm_instruction_argument
+from psifx.text.llm.command import add_llm_instruction_argument, instantiate_llm_tool, instantiate_llm, \
+    instantiate_chain
 from pathlib import Path
 
 
@@ -54,9 +55,9 @@ class InstructionCommand(Command):
         :param args: The arguments.
         :return:
         """
-        llm_tool = args.instantiate_llm_tool(args)
-        llm = args.instantiate_llm(args,llm_tool)
-        chain = args.instantiate_chain(args, llm_tool, llm)
+        llm_tool = instantiate_llm_tool(args)
+        llm = instantiate_llm(args, llm_tool)
+        chain = instantiate_chain(args, llm_tool, llm)
 
         tool = InstructionTool(
             overwrite=args.overwrite,

@@ -1,4 +1,4 @@
-# Text
+# Text Processing Guide
 
 ## Model
 Models from Hugging Face, Ollama, OpenAI, and Anthropic are all supported.
@@ -6,98 +6,81 @@ Hugging Face and Ollama models are free of charge and can be run locally, while 
 Keep in mind that using non-local models may raise privacy concerns.
 
 ### Requirements
-#### Hugging Face
-To download models you will need a Hugging Face token. Go to [Hugging Face](https://huggingface.co/join) to make one.
-#### Ollama
-If you are using the docker there is nothing to do.
-Otherwise you will need to install ollama, please follow the instructions on [Ollama](https://github.com/ollama/ollama).
+- **Hugging Face**:
+To download models from Hugging Face, you might need a Hugging Face token. Go to [Hugging Face](https://huggingface.co/join) to generate one.
+- **Ollama**:
+If you're using Ollama with Docker, no additional setup is required.
+Otherwise, install Ollama locally by following the instructions on [Ollama](https://github.com/ollama/ollama).
+For Linux, it should be as simple as:
+  ```bash
+  curl -fsSL https://ollama.com/install.sh | sh
+  ```
+- **OpenAI**: 
+To access OpenAI models, create an OpenAI account and get an API key.
+- **Anthropic**:
+To use Anthropic models, sign up at [Anthropic’s Console](https://console.anthropic.com/) and obtain an API key.
 
-For Linux it is a simple as:
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
-#### Openai
-To access OpenAI models you'll need to create an OpenAI account and get an API key.
+### Command Line Arguments
 
-#### Anthropic
-To access Anthropic models you'll need to create an Anthropic account and get an API key.
-Head to https://console.anthropic.com/ to sign up for Anthropic and generate an API key.
 
-************_**### Model Configuration
-When using Text tools you will need to provide a model configuration.
-Within the field `--llm` you should indicate the name of a _default_ configuration or the path to a _custom_ configuration file.
-The default configurations are **anthropic**, **openai**, **small-local**, **medium-local**, and **large-local**.
-Local options are based on Ollama, so make sure you meet the necessary requirements.
+When using a Text tool, you can configure the model with the following command line arguments:
 
-You can configure the model and its runtime settings through a .yaml file.
-The configuration file must at least specify the provider (hf, ollama, openai, or anthropic) and the model to be used. 
-Additionally, you can include other parameters such as temperature. 
-Below are example configurations for each provider.
+- **`--provider`**: This specifies the model provider you want to use. Options include:
+  - `hf` (short for Hugging Face)
+  - `ollama`
+  - `openai`
+  - `anthropic`
+  
+- **`--model`**: This is the name of the specific language model you'd like to use. Make sure the model is compatible with the provider you’ve selected.
 
-#### Hugging Face
-[Optional] You may add your hugging face token to the yaml file, otherwise you will be prompted for it when you download gated models.
-```yaml
-provider: "hf"
-model: "mistralai/Mistral-7B-Instruct-v0.2"
-token: HF_TOKEN
-```
-#### Ollama
+- **`--model_config`**: You may use this optional argument to point to a `.yaml` configuration file. In this file you can set specific runtime settings (e.g., temperature), as well as the model and provider (so you don't have to specify them each time you run a command).
+- **`--api_key`**: If the provider you’re using requires a subscription or token for access, supply the API key here. You can also set this as an environment variable instead of including it in the command line.
 
-```yaml
-provider: "ollama"
-model: "llama3.1"
-```
+> **Note**: Do not store the API key within the `.yaml` configuration file to better protect it. 
 
-#### Openai
-[Optional] You may add the api_key to the yaml file, otherwise you will be prompted for it.
-```yaml
-provider: "openai"
-model: "???"
-api_key: API_KEY
-```
-#### Anthropic
-[Optional] You may add the api_key to the yaml file, otherwise you will be prompted for it.
-```yaml
-provider: "anthropic"
-model: "???"
-api_key: API_KEY
-```
+---
 
 ## Usage
 ### Chat
-This feature is intended to allow general _interactive_ usage of LLMs (either local or 3rd party) for language processing tasks. The user can interact with an LLM in the command terminal, whilst specifying a prompt, previous chat history (optional), and an output file directory to store the chat (optional).
+This feature is intended for benchmarking and testing LLMs (either local or 3rd party) 
+for language processing tasks. The user can interact with an LLM in the command terminal, 
+whilst specifying a prompt and an output file directory to store the conversation.
 ```bash
-psifx text chat [--llm model_config.yaml] \
-                [--prompt chat_history.txt] \
-                [--output file.txt]
+psifx text chat \
+    [--prompt chat_history.txt] \
+    [--output file.txt] \
+    [--provider ollama] \
+    [--model llama3.1] \
+    [--model_config model_config.yaml] \
+    [--api_key api_key]       
 ```
-
+- `--prompt`: Prompt or path to a .txt file containing the prompt / chat history.
+- `--output`: Path to a .txt save file.
 ### Instruction
 This feature is intended to allow general usage of LLMs (either local or 3rd party) for language processing tasks.
-There is multiple options for --input and --output.
-- Both .txt
-    ```bash
-    psifx text instruction [--llm model_config.yaml] \
-                           --instruction instruction.yaml \
-                           --input input.txt \
-                           --output output.txt
-    ```
-- From .vtt to .txt
-    ```bash
-    psifx text instruction [--llm model_config.yaml] \
-                           --instruction instruction.yaml \
-                           --input input.vtt \
-                           --output output.txt
-    ```
-- Both .csv
-    ```bash
-    psifx text instruction [--llm model_config.yaml] \
-                           --instruction instruction.yaml \
-                           --input input.csv \
-                           --output output.csv
-    ```
-The .txt and .vtt options are for simple usages.
-With .csv files one can process multiple datas at once and use complex prompts mixing multiples informations together.
+
+```bash
+psifx text instruction \
+    --instruction instruction.yaml \
+    --input input.txt \
+    --output output.txt \
+    [--provider ollama] \
+    [--model llama3.1] \
+    [--model_config model_config.yaml] \
+    [--api_key api_key] \
+  ```
+- `--instruction`: Path to a .yaml file containing the prompt and parser, details below.
+- `--input`: Path to the input file.
+- `--output`: Path to the output file.
+
+  Supported format combinations:
+  - `.txt` input → `.txt` output
+  - `.vtt` input → `.txt` output
+  - `.csv` input → `.csv` output
+
+
+> **Note**: The .txt and .vtt formats are suited for simpler use cases. 
+> The .csv format, however, allows you to process multiple datas and use complex prompts that combine multiples information.
 
 #### Instruction files
 Both the prompt and the parser are specified in a .yaml file.
@@ -128,12 +111,12 @@ prompt: |
     assistant: What are the patient symptoms?
     user: The patient has the following symptoms {text}.
 ```
-Prompts can be customized with the headers **system:**, **user:**, and **assistant:**.
+Prompts can be customized with the headers **system**, **user**, and **assistant**.
 
 In prompts **{text}** is a placeholder for the content of a .txt or .vtt files. 
 
 When using .csv files, you will instead use placeholder for the content of columns, specified as **{column_name}**. 
-Hence with .csv file you can have placeholder refering to different elements, i.e., **{city}** **{county}**.
+Hence, with .csv file you can have placeholder referring to different elements, i.e., **{city}** **{county}**.
 ```yaml
 prompt: |
     user: A patient stayed in hospital {hospital_name}.
@@ -143,7 +126,7 @@ prompt: |
     What did he think could be improved?
 ```
 ##### Parser
-If you need to parse the generation from the model, you can specify a parser in the .yaml file
+If you need to parse the generation from the model, you can specify a parser in the .yaml file.
 ```yaml
 prompt: |
     user: ...
@@ -154,7 +137,6 @@ parser:
         - "yes"
         - "no" 
 ```
-You have the following options:
-- start_after: Only keep the message after the last instance of the specified text.
-- to_lower: If True, change the output to lowercase (takes effect subsequently to  start_after).
-- expect: When the final output is not one of the expected labels prints an error message.
+- `start_after`: Only keep the message after the last instance of the specified text.
+- `to_lower`: If True, change the output to lowercase (takes effect subsequently to  start_after).
+- `expect`: When the final output is not one of the expected labels prints an error message.

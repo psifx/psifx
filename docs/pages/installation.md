@@ -39,29 +39,10 @@ We recommend using Docker for reducing compatibility issues.
    conda create -y -n psifx-env python=3.9 pip
    conda activate psifx-env
    ```
-3. [Optional] We provide an API endpoint to use [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace), useable **only** if you
-   comply with
-   their [license agreement](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/OpenFace-license.txt), e.g.
-   academic, research or non-commercial purposes.
-    1. Install the following system-wide:
-       ```bash
-       sudo apt install \
-       build-essential \
-       cmake \
-       wget \
-       libopenblas-dev \
-       libopencv-dev \
-       libdlib-dev \
-       libboost-all-dev \
-       libsqlite3-dev
-       ```
-    2. Install OpenFace using our fork.
-       ```bash
-       wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
-       python install.py
-       ```
-4. Install `psifx`:
+3. Install `psifx`:
    ```bash
    pip install 'psifx @ git+https://github.com/GuillaumeRochette/psifx.git'
    ```
-5. [Optional] Language models are required to use text tools. You can find installation instructions for these models in the text.md file.
+4. [Optional] We use [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace) for face inference in videos. The instructions to install OpenFace are in the [Video Processing Guide](video.md#requirements).
+
+5. [Optional] Language models are required for the text tools. The installation instructions for each models provider are in the [Text Processing Guide](text.md#requirements).

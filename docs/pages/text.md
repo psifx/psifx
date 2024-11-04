@@ -1,4 +1,4 @@
-# Text
+# Text Processing Guide
 
 ## Model
 Models from Hugging Face, Ollama, OpenAI, and Anthropic are all supported.
@@ -42,52 +42,46 @@ When using a Text tool, you can configure the model with the following command l
 
 ## Usage
 ### Chat
-This feature is intended to allow general _interactive_ usage of LLMs (either local or 3rd party) for language processing tasks. The user can interact with an LLM in the command terminal, whilst specifying a prompt, previous chat history (optional), and an output file directory to store the chat (optional).
+This feature is intended for benchmarking and testing LLMs (either local or 3rd party) 
+for language processing tasks. The user can interact with an LLM in the command terminal, 
+whilst specifying a prompt and an output file directory to store the conversation.
 ```bash
-psifx text chat [--provider ollama] \
-                [--model llama3.1] \
-                [--model_config model_config.yaml] \
-                [--api_key api_key] \
-                [--prompt chat_history.txt] \
-                [--output file.txt]
+psifx text chat \
+    [--prompt chat_history.txt] \
+    [--output file.txt] \
+    [--provider ollama] \
+    [--model llama3.1] \
+    [--model_config model_config.yaml] \
+    [--api_key api_key]       
 ```
-
+- `--prompt`: Prompt or path to a .txt file containing the prompt / chat history.
+- `--output`: Path to a .txt save file.
 ### Instruction
 This feature is intended to allow general usage of LLMs (either local or 3rd party) for language processing tasks.
-There is multiple options for --input and --output.
-- Both .txt
-    ```bash
-    psifx text instruction [--provider ollama] \
-                           [--model llama3.1] \
-                           [--model_config model_config.yaml] \
-                           [--api_key api_key] \
-                           --instruction instruction.yaml \
-                           --input input.txt \
-                           --output output.txt
-    ```
-- From .vtt to .txt
-    ```bash
-    psifx text instruction [--provider ollama] \
-                           [--model llama3.1] \
-                           [--model_config model_config.yaml] \
-                           [--api_key api_key] \
-                           --instruction instruction.yaml \
-                           --input input.vtt \
-                           --output output.txt
-    ```
-- Both .csv
-    ```bash
-    psifx text instruction [--provider ollama] \
-                           [--model llama3.1] \
-                           [--model_config model_config.yaml] \
-                           [--api_key api_key] \
-                           --instruction instruction.yaml \
-                           --input input.csv \
-                           --output output.csv
-    ```
+
+```bash
+psifx text instruction \
+    --instruction instruction.yaml \
+    --input input.txt \
+    --output output.txt \
+    [--provider ollama] \
+    [--model llama3.1] \
+    [--model_config model_config.yaml] \
+    [--api_key api_key] \
+  ```
+- `--instruction`: Path to a .yaml file containing the prompt and parser, details below.
+- `--input`: Path to the input file.
+- `--output`: Path to the output file.
+
+  Supported format combinations:
+  - `.txt` input → `.txt` output
+  - `.vtt` input → `.txt` output
+  - `.csv` input → `.csv` output
+
+
 > **Note**: The .txt and .vtt formats are suited for simpler use cases. 
 > The .csv format, however, allows you to process multiple datas and use complex prompts that combine multiples information.
-> 
+
 #### Instruction files
 Both the prompt and the parser are specified in a .yaml file.
 The model will generate an answer to the prompt, this answer will be parsed by the parser, which you will get as output.
@@ -117,7 +111,7 @@ prompt: |
     assistant: What are the patient symptoms?
     user: The patient has the following symptoms {text}.
 ```
-Prompts can be customized with the headers **system:**, **user:**, and **assistant:**.
+Prompts can be customized with the headers **system**, **user**, and **assistant**.
 
 In prompts **{text}** is a placeholder for the content of a .txt or .vtt files. 
 
@@ -132,7 +126,7 @@ prompt: |
     What did he think could be improved?
 ```
 ##### Parser
-If you need to parse the generation from the model, you can specify a parser in the .yaml file
+If you need to parse the generation from the model, you can specify a parser in the .yaml file.
 ```yaml
 prompt: |
     user: ...
@@ -143,7 +137,6 @@ parser:
         - "yes"
         - "no" 
 ```
-You have the following options:
-- start_after: Only keep the message after the last instance of the specified text.
-- to_lower: If True, change the output to lowercase (takes effect subsequently to  start_after).
-- expect: When the final output is not one of the expected labels prints an error message.
+- `start_after`: Only keep the message after the last instance of the specified text.
+- `to_lower`: If True, change the output to lowercase (takes effect subsequently to  start_after).
+- `expect`: When the final output is not one of the expected labels prints an error message.

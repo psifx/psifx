@@ -19,7 +19,6 @@ from pyannote.core import Segment
 from psifx.audio.identification.tool import IdentificationTool
 from psifx.io import rttm, json, wav
 
-
 def cropped_waveform(
     path: Union[str, Path],
     start: float,
@@ -42,6 +41,7 @@ def cropped_waveform(
         segment=Segment(start, end),
         mode="pad",
     )
+    assert waveform.shape[0] == 1, f"Audio at path {path} is not mono, got {waveform.shape[0]} channels."
     return waveform
 
 

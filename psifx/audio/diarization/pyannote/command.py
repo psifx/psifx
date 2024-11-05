@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 from psifx.utils.command import Command, register_command
+from psifx.audio.diarization.pyannote.tool import PyannoteDiarizationTool
 
 
 class PyannoteCommand(Command):
@@ -24,6 +25,7 @@ class PyannoteCommand(Command):
         subparsers = parser.add_subparsers(title="available commands")
 
         register_command(subparsers, "inference", PyannoteInferenceCommand)
+        register_command(subparsers, "visualization", VisualizationCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -80,7 +82,7 @@ class PyannoteInferenceCommand(Command):
             "--api_token",
             type=str,
             default=None,
-            help="API token for downloading the model from HuggingFace",
+            help="API token for the downloading the models from HuggingFace",
         )
         parser.add_argument(
             "--device",

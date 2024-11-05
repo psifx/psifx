@@ -1,6 +1,7 @@
 """large language model command-line interface."""
 
 import argparse
+from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
 from langchain_core.runnables import RunnableSerializable
@@ -29,7 +30,7 @@ def instantiate_llm(args: argparse.Namespace, llm_tool: LLMTool) -> BaseChatMode
     :param llm_tool: A LLMTool.
     :return: A large language model.
     """
-    llm_kw_args = args.model_config or {}
+    llm_kw_args = YAMLReader.read(args.model_config) if args.model_config else {}
     assert 'api_key' not in llm_kw_args, f"api_key should not be specified in the model config file, please provide it with --api_key or as an environment variable"
     for key in ('provider', 'model'):
         assert not (key in llm_kw_args and key in args), f"{key} is specified both as an argument and in the model config file, please provide only one"
@@ -64,9 +65,9 @@ def add_llm_argument(parser: argparse.ArgumentParser):
     )
     parser.add_argument(
         '--model_config',
-        type=YAMLReader.read,
+        type=Path,
         required=False,
-        help="A model .yaml configuration file."
+        help="Path to the model .yaml configuration file."
     )
     parser.add_argument(
         '--api_key',
@@ -98,6 +99,6 @@ def add_llm_instruction_argument(parser: argparse.ArgumentParser):
     add_llm_argument(parser)
     parser.add_argument(
         '--instruction',
-        type=str,
+        type=Path,
         required=True,
-        help="path to a .yaml file containing the prompt and parser")
+        help="Path to a .yaml file containing the prompt and parser.")

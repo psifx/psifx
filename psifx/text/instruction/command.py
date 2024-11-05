@@ -35,12 +35,12 @@ class InstructionCommand(Command):
         )
         parser.add_argument(
             '--input',
-            type=str,
+            type=Path,
             required=True,
             help="path to the input .txt, .csv or .vtt file")
         parser.add_argument(
             '--output',
-            type=str,
+            type=Path,
             required=True,
             help="path to the output .txt or .csv file")
 

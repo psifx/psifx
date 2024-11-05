@@ -14,11 +14,23 @@ psifx audio manipulation extraction \
 - `--video`: Path to the input video file.
 - `--audio`: Path for the output audio file.
 
+
+### Audio Conversion:
+Converts any audio track to a mono audio track at 16kHz sample rate.
+```bash
+psifx audio manipulation conversion \
+    --audio Audios/Left.mp4 \
+    --mono_audio Audios/MonoLeft.wav
+```
+- `--audio`: Path to the input audio file.
+- `--mono_audio`: Path to the output audio file.
+
+
 ### Audio Mixing
 Combines multiple mono audio files into one.
 ```bash
 psifx audio manipulation mixdown \
-    --mono_audios Audios/Right.wav Audios/Left.wav \
+    --mono_audios Audios/MonoRight.wav Audios/MonoLeft.wav \
     --mixed_audio Audios/Mixed.wav
 ```
 - `--mono_audios`: Paths of input mono audio files to combine.
@@ -29,7 +41,7 @@ Normalizes the volume level of an audio file.
 ```bash
 psifx audio manipulation normalization \
     --audio Audios/Mixed.wav \
-    --normalized_audio Audios/Mixed.normalized.wav
+    --normalized_audio Audios/MixedNormalized.wav
 ```
 - `--audio`: Path to the input audio file.
 - `--normalized_audio`: Path for the output normalized audio file.
@@ -40,47 +52,58 @@ psifx audio manipulation normalization \
 Identifies segments for each speaker in an audio file.
 ```bash
 psifx audio diarization pyannote inference \
-    --audio Audios/Mixed.normalized.wav \
+    --audio Audios/MixedNormalized.wav \
     --diarization Diarizations/Mixed.rttm \
-    --num_speakers 2 \
-    --device cuda
+    [--num_speakers 2] \
+    [--device cuda] \
+    [--api_token hf_SomeLetters] \
+    [--model_name pyannote/speaker-diarization@2.1.1]
 ```
 - `--audio`: Input audio file for diarization.
 - `--diarization`: Path to save diarization results in `.rttm` format.
 - `--num_speakers`: Number of speakers to identify.
-- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU).
+- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
+- `--api_token`: Hugging Face API token, may be required to download the model.
+- `--model_name`: Name of the diarization model used, default `pyannote/speaker-diarization@2.1.1`.
 
 ### Speaker Identification
 Associates speakers in a mixed audio file with known audio samples.
 ```bash
 psifx audio identification pyannote inference \
-    --mixed_audio Audios/Mixed.normalized.wav \
+    --mixed_audio Audios/MixedNormalized.wav \
     --diarization Diarizations/Mixed.rttm \
-    --mono_audios Audios/Left.normalized.wav Audios/Right.normalized.wav \
+    --mono_audios Audios/LeftNormalized.wav Audios/RightNormalized.wav \
     --identification Identifications/Mixed.json \
-    --device cuda
-```
-- `--mixed_audio`: Mixed audio file with multiple speakers.
+    [--device cuda] \
+    [--api_token hf_SomeLetters] \
+    [--model_names pyannote/embedding speechbrain/spkrec-ecapa-voxceleb]
+``` 
+- `--mixed_audio`: Mixed mono audio file with multiple speakers.
 - `--diarization`: Diarization results for speaker segmentation.
-- `--mono_audios`: Paths of known audio samples for each speaker.
+- `--mono_audios`: Paths of known mono audio samples for each speaker.
 - `--identification`: Path for saving identification results in `.json` format.
-- `--device`: Processing device.
+- `--device`: Processing device, default `cpu`.
+- `--api_token`: API token for the downloading the models from HuggingFace.
+- `--model_names`: Names of the embedding models
+
 
 ### Speech Transcription
 Transcribes speech in an audio file to text.
 ```bash
 psifx audio transcription whisper inference \
-    --audio Audios/Mixed.normalized.wav \
+    --audio Audios/MixedNormalized.wav \
     --transcription Transcriptions/Mixed.vtt \
-    --model_name large \
-    --language fr \
-    --device cuda
+    [--model_name small] \
+    [--language fr] \
+    [--device cuda] \
+    [--translate_to_english] 
 ```
 - `--audio`: Input audio file for transcription.
 - `--transcription`: Path to save the transcription in `.vtt` format.
-- `--model_name`: Model name (e.g., `large` for higher accuracy).
+- `--model_name`: Model name (e.g., `large` for higher accuracy) check [Whisper](https://github.com/openai/whisper#available-models-and-languages), default `small`.
 - `--language`: Language of the audio content.
-- `--device`: Processing device.
+- `--device`: Processing device, default `cpu`.
+- `--translate_to_english`: Whether to transcribe the audio in its original language or to translate it to english, default `False`.
 
 ### Enhanced Transcription
 Enhances transcription with diarization and speaker labels.
@@ -89,7 +112,7 @@ psifx audio transcription whisper enhance \
     --transcription Transcriptions/Mixed.vtt \
     --diarization Diarizations/Mixed.rttm \
     --identification Identifications/Mixed.json \
-    --enhanced_transcription Transcriptions/Mixed.enhanced.vtt
+    --enhanced_transcription Transcriptions/MixedEnhanced.vtt
 ```
 - `--transcription`: Path to the initial transcription file.
 - `--diarization`: Diarization data file.

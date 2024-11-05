@@ -1,5 +1,5 @@
 """pyannote speaker identification tool."""
-
+import os
 from typing import Union, Optional, Sequence
 
 from itertools import permutations
@@ -70,7 +70,7 @@ class PyannoteIdentificationTool(IdentificationTool):
             verbose=verbose,
         )
 
-        self.api_token = api_token
+        self.api_token = api_token or os.environ.get('HF_TOKEN')
         self.models = {
             name: PretrainedSpeakerEmbedding(
                 embedding=name,

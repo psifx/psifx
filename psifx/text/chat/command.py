@@ -4,7 +4,7 @@ import argparse
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
 from psifx.text.llm.command import add_llm_argument, instantiate_llm_tool, instantiate_llm
-
+from pathlib import Path
 
 class ChatCommand(Command):
     """
@@ -38,7 +38,7 @@ class ChatCommand(Command):
             help='prompt or path to a .txt file containing the prompt')
         parser.add_argument(
             '--output',
-            type=str,
+            type=Path,
             default="",
             help='path to a .txt save file')
         add_llm_argument(parser)

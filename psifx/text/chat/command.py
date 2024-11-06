@@ -39,7 +39,7 @@ class ChatCommand(Command):
         parser.add_argument(
             '--output',
             type=Path,
-            default="",
+            default=None,
             help='path to a .txt save file')
         add_llm_argument(parser)
 

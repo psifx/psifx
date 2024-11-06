@@ -16,8 +16,9 @@ huggingface_hub
 accelerate
 bitsandbytes
 langchain
-langchain_community
+langchain-community
 langchain-anthropic
 langchain-openai
+langchain-ollama
 nltk
 ollama

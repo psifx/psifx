@@ -19,10 +19,10 @@ class VideoReader(FFmpegReader):
     """
 
     def __init__(
-        self,
-        path: Union[str, Path],
-        input_dict: Optional[Dict[str, str]] = None,
-        output_dict: Optional[Dict[str, str]] = None,
+            self,
+            path: Union[str, Path],
+            input_dict: Optional[Dict[str, str]] = None,
+            output_dict: Optional[Dict[str, str]] = None,
     ):
         path = Path(path)
 
@@ -53,17 +53,20 @@ class VideoWriter(FFmpegWriter):
     """
 
     def __init__(
-        self,
-        path: Union[str, Path],
-        input_dict: Optional[Dict[str, str]] = None,
-        output_dict: Optional[Dict[str, str]] = None,
-        overwrite: bool = False,
+            self,
+            path: Union[str, Path],
+            input_dict: Optional[Dict[str, str]] = None,
+            output_dict: Optional[Dict[str, str]] = None,
+            overwrite: bool = False,
     ):
         path = Path(path)
 
         path.parent.mkdir(parents=True, exist_ok=True)
-        if path.exists() and overwrite:
-            path.unlink()
+        if path.exists():
+            if overwrite:
+                path.unlink()
+            else:
+                raise FileExistsError(f"File {path} already exists.")
 
         super().__init__(
             filename=str(path),

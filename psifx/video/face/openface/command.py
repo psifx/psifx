@@ -60,7 +60,7 @@ class OpenFaceInferenceCommand(Command):
             "--features",
             type=Path,
             required=True,
-            help="path to the output feature archive, such as ``/path/to/openface.tar.gz``",
+            help="path to the output feature archive, such as ``/path/to/openface.tar.xz``",
         )
         parser.add_argument(
             "--overwrite",

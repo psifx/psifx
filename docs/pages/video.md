@@ -85,8 +85,8 @@ psifx video face openface visualization \
     --features Faces.tar.xz \
     --visualization Visualization.openface.mp4 \
     [--depth 3.0] \
-    [--f_x 30.0] [--f_y 30.0] \
-    [--c_x 0.0] [--c_y 0.0] 
+    [--f_x 1600.0] [--f_y 1600.0] \
+    [--c_x 960.0] [--c_y 540.0] 
 ```
 - `--video`: Original video file for face feature visualization overlay.
 - `--features`: Extracted facial feature data file in `.tar.xz` format.

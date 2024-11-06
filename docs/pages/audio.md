@@ -63,7 +63,7 @@ psifx audio diarization pyannote inference \
 - `--diarization`: Path to save diarization results in `.rttm` format.
 - `--num_speakers`: Number of speakers to identify.
 - `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
-- `--api_token`: Hugging Face API token, may be required to download the model.
+- `--api_token`: Hugging Face token, may be required to download the model.
 - `--model_name`: Name of the diarization model used, default `pyannote/speaker-diarization@2.1.1`.
 
 ### Speaker Identification
@@ -82,8 +82,8 @@ psifx audio identification pyannote inference \
 - `--diarization`: Diarization results for speaker segmentation.
 - `--mono_audios`: Paths of known mono audio samples for each speaker.
 - `--identification`: Path for saving identification results in `.json` format.
-- `--device`: Processing device, default `cpu`.
-- `--api_token`: API token for the downloading the models from HuggingFace.
+- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
+- `--api_token`: Hugging Face token, may be required to download the model.
 - `--model_names`: Names of the embedding models
 
 
@@ -102,7 +102,7 @@ psifx audio transcription whisper inference \
 - `--transcription`: Path to save the transcription in `.vtt` format.
 - `--model_name`: Model name (e.g., `large` for higher accuracy) check [Whisper](https://github.com/openai/whisper#available-models-and-languages), default `small`.
 - `--language`: Language of the audio content.
-- `--device`: Processing device, default `cpu`.
+- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
 - `--translate_to_english`: Whether to transcribe the audio in its original language or to translate it to english, default `False`.
 
 ### Enhanced Transcription

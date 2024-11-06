@@ -1,7 +1,6 @@
 """anthropic model."""
 
 import os
-import getpass
 from typing import Optional
 from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel

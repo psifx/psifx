@@ -2,7 +2,6 @@
 
 import argparse
 
-from experiment.segmenting_critic_script import llm_tool
 from psifx.text.instruction.tool import InstructionTool
 from psifx.utils.command import Command
 from psifx.text.llm.command import instantiate_llm_tool, instantiate_llm, add_llm_argument

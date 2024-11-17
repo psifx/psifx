@@ -119,6 +119,8 @@ class ManipulationTool(Tool):
             print(f"mixed_audio     =   {mixed_audio_path}")
 
         mono_audios = [AudioSegment.from_wav(path) for path in mono_audio_paths]
+        for audio in mono_audios:
+            assert audio.channels == 1, f"Audio file {audio} is not mono"
         mono_audios = [audio.apply_gain(-audio.max_dBFS - 6.0) for audio in mono_audios]
         mixed_audio = mono_audios[0]
         for audio in mono_audios[1:]:

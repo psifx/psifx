@@ -16,16 +16,16 @@ class TarReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file has of the correct extension and exists.
+        Checks that a file is of the correct extension and exists.
 
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
         if ".tar" not in path.suffixes:
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .tar path.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
     @staticmethod
     def read(
@@ -71,9 +71,9 @@ class TarWriter:
         """
         path = Path(path)
         if ".tar" not in path.suffixes:
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .tar path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
+            raise FileExistsError(f"File {path} already exists.")
 
     @staticmethod
     def write(

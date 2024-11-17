@@ -13,16 +13,16 @@ class WAVReader:
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file has of the correct extension and exists.
+        Checks that a file has the correct extension and exists.
 
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
         if path.suffix != ".wav":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .wav path.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
 
 class WAVWriter:
@@ -40,6 +40,6 @@ class WAVWriter:
         """
         path = Path(path)
         if path.suffix != ".wav":
-            raise NameError(path)
+            raise NameError(f"Path {path} is not a .wav path.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
+            raise FileExistsError(f"File {path} already exists.")

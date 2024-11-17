@@ -11,3 +11,14 @@ torch
 torchvision
 torchaudio
 tqdm
+transformers
+huggingface_hub
+accelerate
+bitsandbytes
+langchain
+langchain-community
+langchain-anthropic
+langchain-openai
+langchain-ollama
+nltk
+ollama

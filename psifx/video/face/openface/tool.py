@@ -90,6 +90,7 @@ class OpenFaceTool(FaceAnalysisTool):
             print(f"features    =   {features_path}")
 
         assert video_path.is_file()
+        assert EXECUTABLE_PATH is not None, "OpenFace FeatureExtraction was not found, make sure that OpenFace is installed and added to PATH"
         tar.TarWriter.check(path=features_path, overwrite=self.overwrite)
 
         tmp_dir = Path(f"/tmp/TEMP_{time.time()}")
@@ -206,7 +207,7 @@ class OpenFaceTool(FaceAnalysisTool):
 
         calibration = all(p is not None for p in [f_x, f_y, c_x, c_y])
         no_calibration = all(p is None for p in [f_x, f_y, c_x, c_y])
-        assert calibration or no_calibration
+        assert calibration or no_calibration, "Either specify all calibrations or none."
 
         features = tar.TarReader.read(
             features_path,

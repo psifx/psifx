@@ -65,4 +65,5 @@ RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
     rm -r $PSIFX_PREFIX && \
     pip cache purge && \
     conda clean -y --all && \
-    chmod --recursive a+rwx $CONDA_PREFIX/lib/python3.9/site-packages/mediapipe
+    chmod --recursive a+rwx $CONDA_PREFIX/lib/python3.9/site-packages/mediapipe && \
+    curl -fsSL https://ollama.com/install.sh | sh

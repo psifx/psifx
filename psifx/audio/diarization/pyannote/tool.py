@@ -1,5 +1,5 @@
 """pyannote speaker diarization tool."""
-
+import os
 from typing import Optional, Union
 
 from pathlib import Path
@@ -39,7 +39,7 @@ class PyannoteDiarizationTool(DiarizationTool):
         )
 
         self.model_name = model_name
-        self.api_token = api_token
+        self.api_token = api_token or os.environ.get('HF_TOKEN')
 
         self.model: Pipeline = Pipeline.from_pretrained(
             checkpoint_path=model_name,

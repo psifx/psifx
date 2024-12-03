@@ -4,7 +4,6 @@ import argparse
 from pathlib import Path
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.runnables import RunnableSerializable
 
 from psifx.io.yaml import YAMLReader
 from psifx.text.llm.tool import LLMTool
@@ -75,30 +74,3 @@ def add_llm_argument(parser: argparse.ArgumentParser):
         required=False,
         help="Corresponding API key for 'hf', 'openai', or 'anthropic'."
     )
-
-
-def instantiate_chain(args: argparse.Namespace, llm_tool: LLMTool, llm: BaseChatModel) -> RunnableSerializable:
-    """
-    Instantiate a langchain chain.
-    :param args: Argument Namespace.
-    :param llm_tool: A LLMTool.
-    :param llm: A large language model.
-    :return: A langchain chain.
-    """
-    dictionary = YAMLReader.read(args.instruction)
-    prompt = llm_tool.load_template(prompt=dictionary['prompt'])
-    parser = llm_tool.instantiate_parser(**dictionary.get('parser', {'kind': 'default'}))
-    return llm_tool.make_chain(llm=llm, prompt=prompt, parser=parser)
-
-
-def add_llm_instruction_argument(parser: argparse.ArgumentParser):
-    """
-    Add arguments to the parser for llm with instruction.
-    :param parser: An argument parser.
-    """
-    add_llm_argument(parser)
-    parser.add_argument(
-        '--instruction',
-        type=Path,
-        required=True,
-        help="Path to a .yaml file containing the prompt and parser.")

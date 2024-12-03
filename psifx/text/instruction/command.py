@@ -3,8 +3,7 @@
 import argparse
 from psifx.text.instruction.tool import InstructionTool
 from psifx.utils.command import Command
-from psifx.text.llm.command import add_llm_instruction_argument, instantiate_llm_tool, instantiate_llm, \
-    instantiate_chain
+from psifx.text.llm.command import instantiate_llm_tool, instantiate_llm, add_llm_argument
 from pathlib import Path
 
 
@@ -44,7 +43,13 @@ class InstructionCommand(Command):
             required=True,
             help="path to the output .txt or .csv file")
 
-        add_llm_instruction_argument(parser)
+        add_llm_argument(parser)
+
+        parser.add_argument(
+            '--instruction',
+            type=Path,
+            required=True,
+            help="Path to a .yaml file containing the prompt and parser.")
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -57,7 +62,7 @@ class InstructionCommand(Command):
         """
         llm_tool = instantiate_llm_tool(args)
         llm = instantiate_llm(args, llm_tool)
-        chain = instantiate_chain(args, llm_tool, llm)
+        chain = llm_tool.chain_from_yaml(llm, args.instruction)
 
         tool = InstructionTool(
             overwrite=args.overwrite,

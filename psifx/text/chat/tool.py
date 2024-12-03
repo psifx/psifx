@@ -1,4 +1,4 @@
-"""text chat tool."""
+"""chatbot tool."""
 
 from pathlib import Path
 from typing import Union, Optional

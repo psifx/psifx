@@ -11,3 +11,8 @@ torch
 torchvision
 torchaudio
 tqdm
+transformers
+accelerate
+bitsandbytes
+langchain
+langchain_community

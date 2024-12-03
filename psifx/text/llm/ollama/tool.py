@@ -3,7 +3,7 @@ import ollama
 from tqdm import tqdm
 
 
-def get_ollama(model='llama3', **kwargs):
+def get_ollama(model='llama3.1', **kwargs):
     if model not in ([available_model['name'] for available_model in ollama.list()['models']]):
         pull_model(model)
 

@@ -1,9 +1,9 @@
-import argparse
+"""chatbot command-line interface."""
 
-from psifx.text.llm.tool import LLMTool
+import argparse
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
-from psifx.text.llm.command import AddLLMArgument
+from psifx.text.llm.command import add_llm_argument, instantiate_llm_tool, instantiate_llm
 
 
 class ChatCommand(Command):
@@ -13,6 +13,12 @@ class ChatCommand(Command):
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--overwrite",
             default=False,
@@ -35,11 +41,19 @@ class ChatCommand(Command):
             type=str,
             default="",
             help='path to a .txt save file')
-        AddLLMArgument(parser)
+        add_llm_argument(parser)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        llm = LLMTool().llm_from_yaml(args.llm)
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
+        llm_tool = instantiate_llm_tool(args)
+        llm = instantiate_llm(args, llm_tool)
         ChatTool(
             llm=llm,
             overwrite=args.overwrite,

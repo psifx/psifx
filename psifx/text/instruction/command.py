@@ -1,8 +1,10 @@
+"""text instruction command-line interface."""
+
 import argparse
 from psifx.text.instruction.tool import InstructionTool
-from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
-from psifx.text.llm.command import AddLLMArgument
+from psifx.text.llm.command import add_llm_instruction_argument, instantiate_llm_tool, instantiate_llm, \
+    instantiate_chain
 from pathlib import Path
 
 
@@ -13,6 +15,12 @@ class InstructionCommand(Command):
 
     @staticmethod
     def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
         parser.add_argument(
             "--overwrite",
             default=False,
@@ -35,18 +43,21 @@ class InstructionCommand(Command):
             type=str,
             required=True,
             help="path to the output .txt or .csv file")
-        parser.add_argument(
-            '--instruction',
-            type=str,
-            required=True,
-            help="path to a .yaml file containing the prompt and parser")
 
-        AddLLMArgument(parser)
+        add_llm_instruction_argument(parser)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
-        llm = LLMTool().llm_from_yaml(args.llm)
-        chain = LLMTool().chain_from_yaml(llm, args.instruction)
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
+        llm_tool = instantiate_llm_tool(args)
+        llm = instantiate_llm(args, llm_tool)
+        chain = instantiate_chain(args, llm_tool, llm)
 
         tool = InstructionTool(
             overwrite=args.overwrite,

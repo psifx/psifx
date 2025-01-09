@@ -1,3 +1,5 @@
+"""large language model tool."""
+
 import re
 from pathlib import Path
 from typing import Union, Callable, Optional
@@ -37,17 +39,6 @@ class LLMTool(TextTool):
             'anthropic': get_anthropic
         }
 
-    def llm_from_yaml(self, yaml_path: Union[str, Path]) -> BaseChatModel:
-        """
-        Return a llm from a yaml file.
-
-        :param yaml_path: Path to the .yaml config file.
-        :return: A large language model.
-        """
-        data = YAMLReader.read(yaml_path)
-        assert 'provider' in data, 'Please give a provider'
-        return self.instantiate_llm(**data)
-
     def chain_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> RunnableSerializable:
         """
         Return a chain from a yaml file.
@@ -58,7 +49,7 @@ class LLMTool(TextTool):
         """
         dictionary = YAMLReader.read(yaml_path)
         prompt = LLMTool.load_template(prompt=dictionary['prompt'])
-        parser = self.instantiate_parser(**dictionary['parser'])
+        parser = self.instantiate_parser(**dictionary.get('parser', {'kind': 'default'}))
         return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
 
     def chains_from_yaml(self, llm: BaseChatModel, yaml_path: Union[str, Path]) -> dict[str:RunnableSerializable]:
@@ -70,7 +61,9 @@ class LLMTool(TextTool):
         :return: A dictionary of strings mapped to chains.
         """
 
-        def make_chain_wrapper(prompt, parser):
+        def make_chain_wrapper(prompt, parser=None):
+            if parser is None:
+                parser = {'kind': 'default'}
             prompt = LLMTool.load_template(prompt=prompt)
             parser = self.instantiate_parser(**parser)
             return LLMTool.make_chain(llm=llm, prompt=prompt, parser=parser)
@@ -122,13 +115,20 @@ class LLMTool(TextTool):
         :param provider_kwargs: Key value arguments for instantiating the llm.
         :return: A large language model.
         """
+        if self.verbose:
+            print('\n' + '-' * 20 + '\nModel configuration')
+            print(f"provider: {provider}")
+            for key, value in provider_kwargs.items():
+                print(f"{key}: {value}")
+            print('-' * 20)
+
         if provider in self.providers:
             return self.providers[provider](**provider_kwargs)
         else:
             valid_providers = ', '.join(self.providers.keys())
             raise NameError(f'model provider should be one of: {valid_providers}')
 
-    def instantiate_parser(self, kind: str, **parser_kwargs) -> Callable:
+    def instantiate_parser(self, kind: str = 'default', **parser_kwargs) -> Callable:
         """
         Return a kind of parser with key value arguments.
 
@@ -142,25 +142,42 @@ class LLMTool(TextTool):
                                                    data=data,
                                                    **parser_kwargs)
         else:
-            valid_parsers = ', '.join(self.providers.keys())
+            valid_parsers = ', '.join(self.parsers.keys())
             raise NameError(f'parser kind should be one of: {valid_parsers}')
 
-    def default_parser(self, generation: AIMessage, data: dict, start_flag: Optional[str] = None,
-                       expected_labels: Optional[list[str]] = None) -> str:
+    def default_parser(self, generation: AIMessage, data: dict,
+                       start_after: Optional[str] = None,
+                       to_lower: Optional[bool] = False,
+                       expect: Optional[list[str]] = None) -> str:
         """
         Parse a message starting from start_flag and check whether it is one of the expected_labels.
 
         :param generation: Message from a llm.
         :param data: Additional data from the chain.
-        :param start_flag: If not None, parse the message from the last instance of start_flag.
-        :param expected_labels: If not None, when the output is not one of the expected labels prints an error message.
+        :param start_after: If not None, parse the message from the last instance of start_after.
+        :param to_lower: If True, change the output to lowercase (it applies subsequently to start_after).
+        :param expect: If not None, when the final output is not one of the expected labels prints an error message.
         :return: The parsed message.
         """
         output = generation.content
-        if start_flag:
-            output = output.split(start_flag)[-1]
-        if expected_labels and output not in expected_labels:
-            print(f"PROBLEMATIC GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {output}")
+        if start_after:
+            parts = output.split(start_after)
+            if len(parts) == 1:
+                print(f"START FLAG NOT PRESENT IN GENERATION\nDATA:\n{data}\nGENERATION:\n{generation.content}")
+            output = parts[-1]
+        if to_lower:
+            output = output.lower()
+        output = output.strip()
+
+        str_data = f"\nDATA:\n{data}"
+        str_generation = f"\nGENERATION:\n{generation.content}"
+        str_output = f"\nOUTPUT:\n{output}"
+
+        if expect and output not in expect:
+            print(f"UNEXPECTED OUTPUT{str_data}{str_generation}{str_output}")
         elif self.verbose:
-            print(f"WELL PARSED GENERATION: {generation.content}\nDATA: {data}\nPARSED AS: {output}")
+            if generation.content != output:
+                print(f"{str_data}{str_generation}{str_output}")
+            else:
+                print(f"{str_data}{str_output}")
         return output

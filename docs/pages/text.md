@@ -34,7 +34,7 @@ When using a Text tool, you can configure the model with the following command l
 - **`--model`**: This is the name of the specific language model you'd like to use. Make sure the model is compatible with the provider you’ve selected.
 
 - **`--model_config`**: You may use this optional argument to point to a `.yaml` configuration file. In this file you can set specific runtime settings (e.g., temperature), as well as the model and provider (so you don't have to specify them each time you run a command).
-- **`--api_key`**: If the provider you’re using requires a subscription or token for access, supply the API key here. You can also set this as an environment variable instead of including it in the command line.
+- **`--api_key`**: If the provider you’re using requires a subscription or token for access, supply the API key here. You can also supply the API key as the environment variable **HF_TOKEN**, **OPENAI_API_KEY**, or **ANTHROPIC_API_KEY** instead of including it in the command line.
 
 > **Note**: Do not store the API key within the `.yaml` configuration file to better protect it. 
 

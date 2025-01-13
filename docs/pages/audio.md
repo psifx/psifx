@@ -63,7 +63,7 @@ psifx audio diarization pyannote inference \
 - `--diarization`: Path to save diarization results in `.rttm` format.
 - `--num_speakers`: Number of speakers to identify.
 - `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
-- `--api_token`: Hugging Face token, may be required to download the model.
+- `--api_token`: Hugging Face token, may be required to download the model. Can also be provided as the environment variable **HF_TOKEN**.
 - `--model_name`: Name of the diarization model used, default `pyannote/speaker-diarization@2.1.1`.
 
 ### Speaker Identification
@@ -83,8 +83,8 @@ psifx audio identification pyannote inference \
 - `--mono_audios`: Paths of known mono audio samples for each speaker.
 - `--identification`: Path for saving identification results in `.json` format.
 - `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
-- `--api_token`: Hugging Face token, may be required to download the model.
-- `--model_names`: Names of the embedding models
+- `--api_token`: Hugging Face token, may be required to download the model. Can also be provided as the environment variable **HF_TOKEN**.
+- `--model_names`: Names of the embedding models.
 
 
 ### Speech Transcription

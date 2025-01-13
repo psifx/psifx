@@ -31,25 +31,6 @@ psifx audio diarization pyannote inference \
     --num_speakers 2
 ```
 
-## Example
-
-The following command demonstrates some of the package’s video processing capabilities, such as cropping a section of the video and trimming its length:
-
-```bash
-psifx video manipulation process \
-    --in_video Videos/Left.mp4 \
-    --out_video Videos/Left.processed.mp4 \
-    --start 18 \
-    --end 210 \
-    --x_min 1347 \
-    --y_min 459 \
-    --x_max 2553 \
-    --y_max 1898 \
-    --overwrite
-```
-
-This command processes `Videos/Left.mp4` by extracting a specific time segment and bounding box, saving the result to `Videos/Left.processed.mp4`.
-
 ## Additional Resources
 
 For detailed command usage in specific areas, see:

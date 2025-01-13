@@ -1,7 +1,35 @@
 # Video Processing Guide
 
-This document provides instructions for using the `psifx` package for video inference and visualization, including pose and face.
+This document provides instructions for using the `psifx` package for video inference and visualization, including manipulation, pose, and face.
 
+
+## Manipulation
+
+### Process Video
+Extract a specific time window from a video, crop it based on a bounding box, and optionally rescale the video.
+```bash
+psifx video manipulation process \
+    --in_video Video.mp4 \
+    --out_video VideoProcessed.mp4 \
+    --start 18 \
+    --end 210 \
+    --x_min 1347 \
+    --y_min 459 \
+    --x_max 2553 \
+    --y_max 1898 \
+    [--width 1920] \
+    [--height 1080]
+```
+- `--in_video`: Path to the input video file, such as `/path/to/video.mp4` (or `.avi`, `.mkv`, etc.).
+- `--out_video`: Path to the output video file, such as `/path/to/video.mp4` (or `.avi`, `.mkv`, etc.).
+- `--start`: Timestamp in seconds for the start of the selection.
+- `--end`: Timestamp in seconds for the end of the selection.
+- `--x_min`: X-axis coordinate of the top-left corner for cropping in pixels.
+- `--y_min`: Y-axis coordinate of the top-left corner for cropping in pixels.
+- `--x_max`: X-axis coordinate of the bottom-right corner for cropping in pixels.
+- `--y_max`: Y-axis coordinate of the bottom-right corner for cropping in pixels.
+- `--width`: Width of the resized output video, default `None`.
+- `--height`: Height of the resized output video, default `None`.
 
 ## Pose
 
@@ -42,7 +70,7 @@ psifx video pose mediapipe visualization \
 ## Face
 
 ### Requirements
-The face feature extraction requires [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace). 
+The face feature extraction requires [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace).
 We provide an API endpoint to use OpenFace, useable **only** if you
    comply with their [license agreement](https://github.com/TadasBaltrusaitis/OpenFace/blob/master/OpenFace-license.txt), e.g.
    academic, research or non-commercial purposes.
@@ -86,7 +114,7 @@ psifx video face openface visualization \
     --visualization Visualization.openface.mp4 \
     [--depth 3.0] \
     [--f_x 1600.0] [--f_y 1600.0] \
-    [--c_x 960.0] [--c_y 540.0] 
+    [--c_x 960.0] [--c_y 540.0]
 ```
 - `--video`: Original video file for face feature visualization overlay.
 - `--features`: Extracted facial feature data file in `.tar.xz` format.

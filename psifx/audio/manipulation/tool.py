@@ -56,7 +56,7 @@ class ManipulationTool(Tool):
         audio_path.parent.mkdir(parents=True, exist_ok=True)
         (
             ffmpeg.input(str(video_path))
-            .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 16000})
+            .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 32000})
             .overwrite_output()
             .run(quiet=self.verbose <= 1)
         )

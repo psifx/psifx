@@ -19,7 +19,7 @@ psifx audio manipulation extraction \
 Converts any audio track to a mono audio track at 16kHz sample rate.
 ```bash
 psifx audio manipulation conversion \
-    --audio Audios/Left.mp4 \
+    --audio Audios/Left.wav \
     --mono_audio Audios/MonoLeft.wav
 ```
 - `--audio`: Path to the input audio file.
@@ -72,7 +72,7 @@ Associates speakers in a mixed audio file with known audio samples.
 psifx audio identification pyannote inference \
     --mixed_audio Audios/MixedNormalized.wav \
     --diarization Diarizations/Mixed.rttm \
-    --mono_audios Audios/LeftNormalized.wav Audios/RightNormalized.wav \
+    --mono_audios Audios/MonoRight.wav Audios/MonoLeft.wav \
     --identification Identifications/Mixed.json \
     [--device cuda] \
     [--api_token hf_SomeLetters] \

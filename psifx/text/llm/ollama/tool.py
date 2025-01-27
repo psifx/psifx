@@ -35,7 +35,7 @@ def get_ollama(model: str = 'llama3.1', **kwargs) -> BaseChatModel:
             if "Listening on" in stderr_line:
                 print(f"Service started successfully")
                 break
-    if model not in ([available_model['name'] for available_model in ollama.list()['models']]):
+    if model not in ([available_model['model'] for available_model in ollama.list()['models']]):
         pull_model(model)
 
     return ChatOllama(model=model, **kwargs)

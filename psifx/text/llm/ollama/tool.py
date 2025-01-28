@@ -7,8 +7,6 @@ from tqdm import tqdm
 import os
 import time
 import subprocess
-import httpx
-
 
 def get_ollama(model: str = 'llama3.1', **kwargs) -> BaseChatModel:
     """
@@ -20,8 +18,9 @@ def get_ollama(model: str = 'llama3.1', **kwargs) -> BaseChatModel:
     """
     try:
         ollama.list()
-    except httpx.ConnectError:
-        print("Starting ollama serve")
+    except Exception as e:
+        print(e)
+        print("Try starting ollama serve")
         process = subprocess.Popen(
             ['ollama', 'serve'],
             stdout=subprocess.PIPE,

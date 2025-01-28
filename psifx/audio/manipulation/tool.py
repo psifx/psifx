@@ -56,7 +56,7 @@ class ManipulationTool(Tool):
         audio_path.parent.mkdir(parents=True, exist_ok=True)
         (
             ffmpeg.input(str(video_path))
-            .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 16000})
+            .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 32000})
             .overwrite_output()
             .run(quiet=self.verbose <= 1)
         )
@@ -67,7 +67,7 @@ class ManipulationTool(Tool):
         mono_audio_path: Union[str, Path],
     ):
         """
-        Converts an audio track to a .wav audio track with 16kHz sample rate.
+        Converts an audio track to a .wav audio track with 32kHz sample rate.
 
         :param audio_path: Path to the audio track.
         :param mono_audio_path: Path to the converted audio track.

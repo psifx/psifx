@@ -23,7 +23,7 @@ def cropped_waveform(
     path: Union[str, Path],
     start: float,
     end: float,
-    sample_rate: int = 16000,
+    sample_rate: int = 32000,
 ) -> Tensor:
     """
     Crops an audio track and returns its corresponding waveform.

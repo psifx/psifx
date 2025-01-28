@@ -1,5 +1,5 @@
 """pyannote speaker identification tool."""
-
+import os
 from typing import Union, Optional, Sequence
 
 from itertools import permutations
@@ -18,7 +18,6 @@ from pyannote.core import Segment
 
 from psifx.audio.identification.tool import IdentificationTool
 from psifx.io import rttm, json, wav
-
 
 def cropped_waveform(
     path: Union[str, Path],
@@ -42,6 +41,7 @@ def cropped_waveform(
         segment=Segment(start, end),
         mode="pad",
     )
+    assert waveform.shape[0] == 1, f"Audio at path {path} is not mono, got {waveform.shape[0]} channels."
     return waveform
 
 
@@ -70,7 +70,7 @@ class PyannoteIdentificationTool(IdentificationTool):
             verbose=verbose,
         )
 
-        self.api_token = api_token
+        self.api_token = api_token or os.environ.get('HF_TOKEN')
         self.models = {
             name: PretrainedSpeakerEmbedding(
                 embedding=name,

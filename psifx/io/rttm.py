@@ -37,9 +37,9 @@ class RTTMReader:
         """
         path = Path(path)
         if path.suffix != ".rttm":
-            raise NameError(path)
+            raise NameError(f"Path {path} does not have a .rttm extension.")
         if not path.exists():
-            raise FileNotFoundError(path)
+            raise FileNotFoundError(f"File missing at path {path}")
 
     @staticmethod
     def read(
@@ -92,16 +92,16 @@ class RTTMWriter:
     @staticmethod
     def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file has of the correct extension and and verifies that we can overwrite it if it exists.
+        Checks that a file has of the correct extension and verifies that we can overwrite it if it exists.
 
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
         if path.suffix != ".rttm":
-            raise NameError(path)
+            raise NameError(f"Path {path} does not have a .rttm extension.")
         if path.exists() and not overwrite:
-            raise FileExistsError(path)
+            raise FileExistsError(f"File {path} already exists.")
 
     @staticmethod
     def write(

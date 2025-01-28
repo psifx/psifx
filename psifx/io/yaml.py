@@ -1,28 +1,28 @@
-"""JSON I/O module."""
+"""YAML I/O module."""
 
 from typing import Dict, List, Union
 
-import json
+import yaml
 from pathlib import Path
 from tqdm import tqdm
 
 
-class JSONReader:
+class YAMLReader:
     """
-    Safe JSON reader.
+    Safe YAML reader.
     """
 
     @staticmethod
     def check(path: Union[str, Path]):
         """
-        Checks that a file has of the correct extension and exists.
+        Checks that a file has the correct extension and exists.
 
         :param path: Path to the file.
         :return:
         """
         path = Path(path)
-        if path.suffix != ".json":
-            raise NameError(f"Path {path} does not have a .json extension.")
+        if path.suffix not in [".yaml", ".yml"]:
+            raise NameError(f"Path {path} does not have a .csv extension.")
         if not path.exists():
             raise FileNotFoundError(f"File missing at path {path}")
 
@@ -32,14 +32,14 @@ class JSONReader:
         verbose: Union[bool, int] = True,
     ) -> Union[List, Dict]:
         """
-        Reads and parses a JSON file.
+        Reads and parses a YAML file.
 
         :param path: Path to the file.
         :param verbose: Verbosity of the method.
         :return: Deserialized data.
         """
         path = Path(path)
-        JSONReader.check(path=path)
+        YAMLReader.check(path=path)
 
         with path.open(mode="r") as file:
             for _ in tqdm(
@@ -47,27 +47,28 @@ class JSONReader:
                 desc="Reading",
                 disable=not verbose,
             ):
-                data = json.load(file)
+                data = yaml.safe_load(file)
 
         return data
 
 
-class JSONWriter:
+class YAMLWriter:
     """
-    Safe JSON writer.
+    Safe YAML writer.
     """
 
     @staticmethod
     def check(path: Union[str, Path], overwrite: bool = False):
         """
-        Checks that a file has of the correct extension and verifies that we can overwrite it if it exists.
+        Checks that a file has the correct extension and verifies that we can overwrite it if it exists.
 
         :param path: Path to the file.
+        :param overwrite: Whether to overwrite, in case of an existing file.
         :return:
         """
         path = Path(path)
-        if path.suffix != ".json":
-            raise NameError(f"Path {path} does not have a .json extension.")
+        if path.suffix not in [".yaml", ".yml"]:
+            raise NameError(f"Path {path} does not have a .yaml extension.")
         if path.exists() and not overwrite:
             raise FileExistsError(f"File {path} already exists.")
 
@@ -79,7 +80,7 @@ class JSONWriter:
         verbose: Union[bool, int] = True,
     ):
         """
-        Writes serializable data into a JSON file.
+        Writes serializable data into a YAML file.
 
         :param data: Serializable data.
         :param path: Path to the file.
@@ -88,7 +89,7 @@ class JSONWriter:
         :return:
         """
         path = Path(path)
-        JSONWriter.check(path=path, overwrite=overwrite)
+        YAMLWriter.check(path=path, overwrite=overwrite)
 
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists() and overwrite:
@@ -96,4 +97,4 @@ class JSONWriter:
 
         with path.open(mode="w") as file:
             for _ in tqdm(range(1), desc="Writing", disable=not verbose):
-                json.dump(data, file)
+                yaml.safe_dump(data, file)

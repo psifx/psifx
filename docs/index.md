@@ -6,6 +6,9 @@
 
 pages/installation
 pages/usage
+pages/audio
+pages/video
+pages/text
 pages/development
 pages/bibliography
 ```

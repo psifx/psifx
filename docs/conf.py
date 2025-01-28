@@ -24,7 +24,7 @@ def setup(app):
 project = "psifx"
 release = version = psifx.__version__
 copyright = f"{datetime.now().year}, UNIL"
-author = "Guillaume Rochette, Matthew Vowels"
+author = "Guillaume Rochette, Matthew Vowels, Mathieu Rochat"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

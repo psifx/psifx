@@ -117,7 +117,7 @@ parser:
     to_lower: True 
 ```
 ##### Prompt
-The prompt enable you to tell the model what you want, and guide its generation.
+The prompt enables you to tell the model what you want, and guide its generation.
 
 ```yaml
 prompt: |
@@ -141,17 +141,36 @@ prompt: |
     What did he think could be improved?
 ```
 ##### Parser
-If you need to parse the generation from the model, you can specify a parser in the .yaml file.
+The parser enables you to post-process the generated text.
+It is optional; to use it you should specify a parser in the .yaml file.
 ```yaml
 prompt: |
     user: ...
 parser:
-    start_after: "ANSWER:" 
+    start_after: 'ANSWER:' 
+    regex: '<(.*)>'
     to_lower: True 
     expect:
-        - "yes"
-        - "no" 
+        - 'yes'
+        - 'no' 
 ```
-- `start_after`: Only keep the message after the last instance of the specified text.
-- `to_lower`: If True, change the output to lowercase (takes effect subsequently to  start_after).
-- `expect`: When the final output is not one of the expected labels prints an error message.
+The steps are all optional and are applied in the following order:
+- `start_after` (*str*, optional):  
+  Retains only the portion of the generated text that follows the last occurrence of the specified string. 
+  
+   _If the string is not found, the full text is retained, and an error message is displayed._
+
+- `regex` (*str*, optional):  
+  Applies a regular expression search to the retained text. 
+  
+  If capturing groups are present, only the matched groups are returned; otherwise, the full match is used.
+  
+  _If no match is found, the full text is retained, and an error message is displayed._
+
+- `to_lower` (*bool*, default=`False`):  
+  Converts the final output to lowercase if set to `True`.
+
+- `expect` (*list[str]*, optional):  
+  A list of expected output values. 
+  
+  _If the final result is not found in this list, an error message is displayed._

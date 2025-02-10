@@ -6,24 +6,28 @@ build-backend = "setuptools.build_meta"
 name = "psifx"
 description = "Psychological and Social Interactions Feature Extraction"
 readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.7"
 authors = [
     { name = "Guillaume Rochette", email = "guillaume.rochette@unil.ch" },
     { name = "Matthew Vowels", email = "matthew.vowels@unil.ch" },
+    { name = "Mathieu Rochat", email = "mathieu.louis.rochat@gmail.com" }
 ]
-keywords = ["TODO"]
+keywords = ["video", "audio", "language", "machine-learning", "pipeline", "multimodal"]
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 3 - Alpha",
     "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
 ]
 dynamic = ["dependencies", "optional-dependencies", "version"]
 
+
 [project.urls]
-homepage = "https://github.com/GuillaumeRochette/psifx"
-documentation = "https://github.com/GuillaumeRochette/psifx"
-repository = "https://github.com/GuillaumeRochette/psifx"
+homepage = "https://github.com/psfix/psifx"
+documentation = "https://psifx.github.io/psifx/"
+repository = "https://github.com/psfix/psifx"
 
 [project.scripts]
 psifx = "psifx.command:main"

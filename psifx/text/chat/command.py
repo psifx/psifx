@@ -1,9 +1,10 @@
 """chatbot command-line interface."""
 
 import argparse
+from psifx.text.llm.tool import LLMTool
 from psifx.utils.command import Command
 from psifx.text.chat.tool import ChatTool
-from psifx.text.llm.command import add_llm_argument, instantiate_llm_tool, instantiate_llm
+from psifx.text.llm.command import add_llm_argument, format_llm_namespace
 from pathlib import Path
 
 class ChatCommand(Command):
@@ -52,8 +53,10 @@ class ChatCommand(Command):
         :param args: The arguments.
         :return:
         """
-        llm_tool = instantiate_llm_tool(args)
-        llm = instantiate_llm(args, llm_tool)
+        llm_tool = LLMTool(overwrite=args.overwrite,
+                           verbose=args.verbose)
+        llm_args = format_llm_namespace(args)
+        llm = llm_tool.instantiate_llm(**vars(llm_args))
         ChatTool(
             llm=llm,
             overwrite=args.overwrite,

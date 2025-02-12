@@ -6,8 +6,6 @@ build-backend = "setuptools.build_meta"
 name = "psifx"
 description = "Psychological and Social Interactions Feature Extraction"
 readme = "README.md"
-license = "Apache-2.0"
-license-files = ["LICENSE"]
 requires-python = ">=3.7"
 authors = [
     { name = "Guillaume Rochette", email = "guillaume.rochette@unil.ch" },
@@ -31,6 +29,9 @@ repository = "https://github.com/psfix/psifx"
 
 [project.scripts]
 psifx = "psifx.command:main"
+
+[tool.setuptools]
+license-files = ["LICENSE"]
 
 [tool.setuptools.dynamic]
 version = {attr = "psifx.__version__"}

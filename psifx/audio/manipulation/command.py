@@ -24,6 +24,7 @@ class ManipulationCommand(Command):
 
         register_command(subparsers, "extraction", ExtractionCommand)
         register_command(subparsers, "conversion", ConversionCommand)
+        register_command(subparsers, "split", SplitCommand)
         register_command(subparsers, "mixdown", MixDownCommand)
         register_command(subparsers, "normalization", NormalizationCommand)
 
@@ -151,6 +152,72 @@ class ConversionCommand(Command):
         tool.convert(
             audio_path=args.audio,
             mono_audio_path=args.mono_audio,
+        )
+        del tool
+
+
+
+class SplitCommand(Command):
+    """
+    Command-line interface for splitting a stereo audio track into two mono tracks.
+    """
+
+    @staticmethod
+    def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
+        parser.add_argument(
+            "--stereo_audio",
+            type=Path,
+            required=True,
+            help="path to the input stereo audio file, such as ``/path/to/stereo-audio.wav``",
+        )
+        parser.add_argument(
+            "--left_audio",
+            type=Path,
+            required=True,
+            help="path to the output left channel mono audio file, such as ``/path/to/left-audio.wav``",
+        )
+        parser.add_argument(
+            "--right_audio",
+            type=Path,
+            required=True,
+            help="path to the output right channel mono audio file, such as ``/path/to/right-audio.wav``",
+        )
+        parser.add_argument(
+            "--overwrite",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="overwrite existing files, otherwise raises an error",
+        )
+        parser.add_argument(
+            "--verbose",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="verbosity of the script",
+        )
+
+    @staticmethod
+    def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
+        tool = ManipulationTool(
+            overwrite=args.overwrite,
+            verbose=args.verbose,
+        )
+        tool.split(
+            stereo_audio_path=args.stereo_audio,
+            left_audio_path=args.left_audio,
+            right_audio_path=args.right_audio,
         )
         del tool
 

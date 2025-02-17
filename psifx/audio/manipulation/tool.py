@@ -56,7 +56,7 @@ class ManipulationTool(Tool):
         audio_path.parent.mkdir(parents=True, exist_ok=True)
         (
             ffmpeg.input(str(video_path))
-            .audio.output(str(audio_path), **{"q:a": 0, "ac": 1, "ar": 32000})
+            .audio.output(str(audio_path), **{"q:a": 0, "ar": 32000})
             .overwrite_output()
             .run(quiet=self.verbose <= 1)
         )
@@ -98,6 +98,51 @@ class ManipulationTool(Tool):
         mono_audio_path.parent.mkdir(parents=True, exist_ok=True)
 
         mono_audio.export(mono_audio_path, format="wav")
+
+    def split(
+            self,
+            stereo_audio_path: Union[str, Path],
+            left_audio_path: Union[str, Path],
+            right_audio_path: Union[str, Path],
+    ):
+        """
+        Splits a stereo audio track into two mono audio tracks.
+
+        :param stereo_audio_path: Path to the stereo audio track.
+        :param left_audio_path: Path to the left channel mono audio track.
+        :param right_audio_path: Path to the right channel mono audio track.
+        :return:
+        """
+        stereo_audio_path = Path(stereo_audio_path)
+        left_audio_path = Path(left_audio_path)
+        right_audio_path = Path(right_audio_path)
+
+        if self.verbose:
+            print(f"stereo_audio   =   {stereo_audio_path}")
+            print(f"left_audio     =   {left_audio_path}")
+            print(f"right_audio    =   {right_audio_path}")
+
+        stereo_audio = AudioSegment.from_file(stereo_audio_path)
+        assert stereo_audio.channels == 2, "Input audio is not stereo."
+
+        left_channel, right_channel = stereo_audio.split_to_mono()
+
+        if left_audio_path.exists():
+            if self.overwrite:
+                left_audio_path.unlink()
+            else:
+                raise FileExistsError(left_audio_path)
+        if right_audio_path.exists():
+            if self.overwrite:
+                right_audio_path.unlink()
+            else:
+                raise FileExistsError(right_audio_path)
+
+        left_audio_path.parent.mkdir(parents=True, exist_ok=True)
+        right_audio_path.parent.mkdir(parents=True, exist_ok=True)
+
+        left_channel.export(left_audio_path, format="wav")
+        right_channel.export(right_audio_path, format="wav")
 
     def mixdown(
         self,

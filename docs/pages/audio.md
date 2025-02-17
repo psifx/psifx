@@ -8,22 +8,34 @@ This document covers the `psifx` commands for audio pre-processing, inference, a
 Extracts audio from a video file.
 ```bash
 psifx audio manipulation extraction \
-    --video Videos/Left.mp4 \
-    --audio Audios/Left.wav
+    --video Videos/Video.mp4 \
+    --audio Audios/Audio.wav
 ```
 - `--video`: Path to the input video file.
 - `--audio`: Path for the output audio file.
 
 
-### Audio Conversion:
+### Audio Conversion
 Converts any audio track to a mono audio track at 16kHz sample rate.
 ```bash
 psifx audio manipulation conversion \
-    --audio Audios/Left.wav \
-    --mono_audio Audios/MonoLeft.wav
+    --audio Audios/Audio.wav \
+    --mono_audio Audios/MonoAudio.wav
 ```
 - `--audio`: Path to the input audio file.
 - `--mono_audio`: Path to the output audio file.
+
+### Audio Split
+Split a stereo audio track into two mono audio tracks.
+```bash
+psifx audio manipulation split \
+    --stereo_audio  Audios/Audio.wav \
+    --left_audio Audios/MonoLeft.wav \
+    --right_audio Audios/MonoRight.wav
+```
+- `--stereo-audio`: Path to the input stereo audio file.
+- `--left_audio`: Path to the output left channel mono audio file.
+- `--right_audio`: Path to the output right channel mono audio file.
 
 
 ### Audio Mixing

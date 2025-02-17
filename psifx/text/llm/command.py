@@ -2,32 +2,13 @@
 
 import argparse
 from pathlib import Path
-
-from langchain_core.language_models import BaseChatModel
-
 from psifx.io.yaml import YAMLReader
-from psifx.text.llm.tool import LLMTool
 
-
-def instantiate_llm_tool(args: argparse.Namespace) -> LLMTool:
+def format_llm_namespace(args: argparse.Namespace) -> argparse.Namespace:
     """
-    Instantiate a LLMTool.
-    :param args: Argument Namespace.
-    :return: A LLMTool.
-    """
-    return LLMTool(
-        device=getattr(args, 'device', '?'),
-        overwrite=getattr(args, 'overwrite', False),
-        verbose=getattr(args, 'verbose', True)
-    )
-
-
-def instantiate_llm(args: argparse.Namespace, llm_tool: LLMTool) -> BaseChatModel:
-    """
-    Instantiate a large language model.
+    Format an Argument Namespace for LLM use.
     :param args:  Argument Namespace.
-    :param llm_tool: A LLMTool.
-    :return: A large language model.
+    :return: A formatted Argument Namespace.
     """
     llm_kw_args = YAMLReader.read(args.model_config) if args.model_config else {}
     assert 'api_key' not in llm_kw_args, f"api_key should not be specified in the model config file, please provide it with --api_key or as an environment variable"
@@ -39,7 +20,7 @@ def instantiate_llm(args: argparse.Namespace, llm_tool: LLMTool) -> BaseChatMode
         llm_kw_args['model'] = args.model if 'model' in args else 'llama3.1:8b'
     if args.api_key is not None:
         llm_kw_args['api_key'] = args.api_key
-    return llm_tool.instantiate_llm(**llm_kw_args)
+    return argparse.Namespace(**llm_kw_args)
 
 
 def add_llm_argument(parser: argparse.ArgumentParser):

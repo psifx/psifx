@@ -147,6 +147,7 @@ class LLMTool(TextTool):
 
     def default_parser(self, generation: AIMessage, data: dict,
                        start_after: Optional[str] = None,
+                       regex: Optional[str] = None,
                        to_lower: Optional[bool] = False,
                        expect: Optional[list[str]] = None) -> str:
         """
@@ -154,8 +155,9 @@ class LLMTool(TextTool):
 
         :param generation: Message from a llm.
         :param data: Additional data from the chain.
-        :param start_after: If not None, parse the message from the last instance of start_after.
-        :param to_lower: If True, change the output to lowercase (it applies subsequently to start_after).
+        :param start_after: If not None, parses the message from the last instance of start_after.
+        :param regex: If not None, performs regex search to the output (it applies subsequently to start_after).
+        :param to_lower: If True, changes the output to lowercase (it applies subsequently to regex).
         :param expect: If not None, when the final output is not one of the expected labels prints an error message.
         :return: The parsed message.
         """
@@ -163,21 +165,52 @@ class LLMTool(TextTool):
         if start_after:
             parts = output.split(start_after)
             if len(parts) == 1:
-                print(f"START FLAG NOT PRESENT IN GENERATION\nDATA:\n{data}\nGENERATION:\n{generation.content}")
+                print(f"START AFTER: {start_after}\n"
+                      f"NOT FOUND IN GENERATION:\n"
+                      f"{generation.content}\n"
+                      f"AND DATA:\n"
+                      f"{data}")
             output = parts[-1]
+
+        if regex:
+            match = re.search(regex, output)
+            if match:
+                if match.groups():
+                    output = ''.join(match.groups())
+                else:
+                    output = match.group(0)
+            else:
+                print(f"REGEX: {regex}\n"
+                      f"NO MATCH FOUND IN GENERATION:\n"
+                      f"{generation.content}\n"
+                      f"AND DATA:\n"
+                      f"{data}")
+
         if to_lower:
             output = output.lower()
         output = output.strip()
 
-        str_data = f"\nDATA:\n{data}"
-        str_generation = f"\nGENERATION:\n{generation.content}"
-        str_output = f"\nOUTPUT:\n{output}"
-
         if expect and output not in expect:
-            print(f"UNEXPECTED OUTPUT{str_data}{str_generation}{str_output}")
+            print(f"EXPECTED: {expect}\n"
+                  f"BUT GOT OUTPUT:\n"
+                  f"{output}\n"
+                  f"FROM GENERATION:\n"
+                  f"{generation.content}\n"
+                  f"AND DATA:\n"
+                  f"{data}")
         elif self.verbose:
             if generation.content != output:
-                print(f"{str_data}{str_generation}{str_output}")
+                print(f"VERBOSE MESSAGE\n"
+                      f"OUTPUT:\n"
+                      f"{output}\n"
+                      f"GENERATION:\n"
+                      f"{generation.content}\n"
+                      f"DATA:\n"
+                      f"{data}")
             else:
-                print(f"{str_data}{str_output}")
+                print(f"VERBOSE MESSAGE\n"
+                      f"GENERATION=OUTPUT:\n"
+                      f"{generation.content}\n"
+                      f"DATA:\n"
+                      f"{data}")
         return output

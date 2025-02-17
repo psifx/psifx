@@ -22,7 +22,7 @@ class YAMLReader:
         """
         path = Path(path)
         if path.suffix not in [".yaml", ".yml"]:
-            raise NameError(f"Path {path} does not have a .csv extension.")
+            raise NameError(f"Path {path} does not have a .yaml extension.")
         if not path.exists():
             raise FileNotFoundError(f"File missing at path {path}")
 

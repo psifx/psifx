@@ -123,7 +123,8 @@ class ManipulationTool(Tool):
             print(f"right_audio    =   {right_audio_path}")
 
         stereo_audio = AudioSegment.from_file(stereo_audio_path)
-        assert stereo_audio.channels == 2, "Input audio is not stereo."
+        if stereo_audio.channels != 2:
+            raise ValueError("Input audio is not stereo.")
 
         left_channel, right_channel = stereo_audio.split_to_mono()
 

@@ -23,9 +23,9 @@ dynamic = ["dependencies", "optional-dependencies", "version"]
 
 
 [project.urls]
-homepage = "https://github.com/psfix/psifx"
+homepage = "https://github.com/psifx/psifx"
 documentation = "https://psifx.github.io/psifx/"
-repository = "https://github.com/psfix/psifx"
+repository = "https://github.com/psifx/psifx"
 
 [project.scripts]
 psifx = "psifx.command:main"

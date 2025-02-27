@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from psifx.utils.command import Command, register_command
-from psifx.audio.transcription.whisper.tool import WhisperTranscriptionTool
+from psifx.audio.transcription.whisper.tool import WhisperTranscriptionTool, HuggingFaceTranscriptionTool
 
 
 class WhisperCommand(Command):
@@ -69,21 +69,27 @@ class WhisperTranscriptionCommand(Command):
             type=str,
             default=None,
             help="language of the audio, if ignore, the model will try to guess it, "
-            "it is advised to specify it",
+                 "it is advised to specify it",
+        )
+        parser.add_argument(
+            "--use_hf",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="use model from hugging face (by default use openai-whisper)",
         )
         parser.add_argument(
             "--model_name",
             type=str,
-            default="small",
-            help="name of the model, check "
-            "https://github.com/openai/whisper#available-models-and-languages",
+            default=None,
+            help="name of the model, check https://github.com/openai/whisper#available-models-and-languages; for hf check https://huggingface.co/models?other=whisper instead",
         )
+
         parser.add_argument(
             "--translate_to_english",
             default=False,
             action=argparse.BooleanOptionalAction,
             help="whether to transcribe the audio in its original language or"
-            " to translate it to english",
+                 " to translate it to english",
         )
         parser.add_argument(
             "--device",
@@ -113,16 +119,22 @@ class WhisperTranscriptionCommand(Command):
         :param args: The arguments.
         :return:
         """
-        tool = WhisperTranscriptionTool(
-            model_name=args.model_name,
-            task="transcribe" if not args.translate_to_english else "translate",
-            device=args.device,
-            overwrite=args.overwrite,
-            verbose=args.verbose,
-        )
+        tool_class = HuggingFaceTranscriptionTool if args.use_hf else WhisperTranscriptionTool
+
+        tool_kwargs = {
+            "device": args.device,
+            "overwrite": args.overwrite,
+            "verbose": args.verbose,
+        }
+        if args.model_name is not None:
+            tool_kwargs["model_name"] = args.model_name
+
+        tool = tool_class(**tool_kwargs)
+
         tool.inference(
             audio_path=args.audio,
             transcription_path=args.transcription,
+            task="transcribe" if not args.translate_to_english else "translate",
             language=args.language,
         )
         del tool

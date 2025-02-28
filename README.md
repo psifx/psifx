@@ -2,8 +2,6 @@
 
 ---
 
-## Abstract
-
 *`psifx` is a "plug-and-play" multi-modal feature extraction toolkit, aiming to facilitate and democratize the use of state-of-the-art machine learning techniques for human sciences research.
 It is motivated by a need 
 (a) to automate and standardize data annotation processes, otherwise involving expensive, lengthy, and inconsistent human labor, such as the transcription or coding of behavior changes from audio and video sources;

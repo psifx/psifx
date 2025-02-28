@@ -100,11 +100,13 @@ psifx audio identification pyannote inference \
 
 
 ### Speech Transcription
-Transcribes speech in an audio file to text.
+Use Whisper to transcribe speech in an audio file to text.
+
 ```bash
 psifx audio transcription whisper inference \
     --audio Audios/MixedNormalized.wav \
     --transcription Transcriptions/Mixed.vtt \
+    [--use_hf] \
     [--model_name small] \
     [--language fr] \
     [--device cuda] \
@@ -112,10 +114,20 @@ psifx audio transcription whisper inference \
 ```
 - `--audio`: Input audio file for transcription.
 - `--transcription`: Path to save the transcription in `.vtt` format.
-- `--model_name`: Model name (e.g., `large` for higher accuracy) check [Whisper](https://github.com/openai/whisper#available-models-and-languages), default `small`.
+- `--use_hf`: Set this flag to use a Hugging Face model instead of OpenAI Whisper (default: `False`).
+- `--model_name`: The name of the model to use.
+  - **For OpenAI Whisper**, use one of the [official model](https://github.com/openai/whisper#available-models-and-languages) sizes:  
+    ```bash
+    --model_name small  # Other options: tiny, base, medium, large, large-v2, large-v3
+    ```
+  - **For a Hugging Face model**, set `--use_hf` and provide a valid [model name](https://huggingface.co/models?other=whisper).  
+    Example using Nizar Michaud's Swiss German model:  
+    ```bash
+    --use_hf --model_name nizarmichaud/whisper-large-v3-turbo-swissgerman
+    ```
 - `--language`: Language of the audio content.
-- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU), default `cpu`.
-- `--translate_to_english`: Whether to transcribe the audio in its original language or to translate it to english, default `False`.
+- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU, default: `cpu`).
+- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).  
 
 ### Enhanced Transcription
 Enhances transcription with diarization and speaker labels.

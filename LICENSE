@@ -10,7 +10,7 @@ Software: psifx
 
 License: Apache 2.0
 
-Licensor: Guillaume Rochette
+Licensors: Guillaume Rochette, Matthew Vowels, Mathieu Rochat
 
 ------------------------------------------------------------------------------------------------------------------------
 
@@ -202,7 +202,7 @@ Licensor: Guillaume Rochette
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright 2023 Guillaume Rochette
+   Copyright 2025 Guillaume Rochette, Matthew Vowels, Mathieu Rochat
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

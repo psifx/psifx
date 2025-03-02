@@ -1,4 +1,4 @@
-# CLI
+# Command Line Interface
 
 ```{argparse}
 :module: psifx.command

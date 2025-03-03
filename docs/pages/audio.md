@@ -100,13 +100,13 @@ psifx audio identification pyannote inference \
 
 
 ### Speech Transcription
-Use Whisper to transcribe speech in an audio file to text.
+Use Whisper to transcribe speech in an audio file to text. Two implementations are available: OpenAI Whisper and HuggingFace Whisper.
 
+#### OpenAI Whisper
 ```bash
-psifx audio transcription whisper inference \
+psifx audio transcription whisper inference openai \
     --audio Audios/MixedNormalized.wav \
     --transcription Transcriptions/Mixed.vtt \
-    [--use_hf] \
     [--model_name small] \
     [--language fr] \
     [--device cuda] \
@@ -114,18 +114,33 @@ psifx audio transcription whisper inference \
 ```
 - `--audio`: Input audio file for transcription.
 - `--transcription`: Path to save the transcription in `.vtt` format.
-- `--use_hf`: Set this flag to use a Hugging Face model instead of OpenAI Whisper (default: `False`).
-- `--model_name`: The name of the model to use.
-  - **For OpenAI Whisper**, use one of the [official model](https://github.com/openai/whisper#available-models-and-languages) sizes:  
-    ```bash
-    --model_name small  # Other options: tiny, base, medium, large, large-v2, large-v3
-    ```
-  - **For a Hugging Face model**, set `--use_hf` and provide a valid [model name](https://huggingface.co/models?other=whisper).  
-    Example using Nizar Michaud's Swiss German model:  
-    ```bash
-    --use_hf --model_name nizarmichaud/whisper-large-v3-turbo-swissgerman
-    ```
-- `--language`: Language of the audio content.
+- `--model_name`: Name of the OpenAI Whisper model (default: `small`).  
+  Available models: `tiny`, `base`, `small`, `medium`, `large`, `large-v2`, `large-v3`.  
+  See [official models](https://github.com/openai/whisper#available-models-and-languages) for details.
+- `--language`: Two-letter language code of the audio content (e.g., `en` for English, `fr` for French, `de` for German).  
+  If not specified, the model will attempt to auto-detect the language, but this may be less accurate.  
+  It is recommended to specify the language when known.
+- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU, default: `cpu`).
+- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).
+
+#### HuggingFace Whisper
+```bash
+psifx audio transcription whisper inference huggingface \
+    --audio Audios/MixedNormalized.wav \
+    --transcription Transcriptions/Mixed.vtt \
+    [--model_name "openai/whisper-small"] \
+    [--language fr] \
+    [--device cuda] \
+    [--translate_to_english] 
+```
+- `--audio`: Input audio file for transcription.
+- `--transcription`: Path to save the transcription in `.vtt` format.
+- `--model_name`: Name of the HuggingFace model (default: `openai/whisper-small`).  
+  Can use any [Whisper model from HuggingFace](https://huggingface.co/models?other=whisper).  
+  Example: `nizarmichaud/whisper-large-v3-turbo-swissgerman`
+- `--language`: Two-letter language code of the audio content (e.g., `en` for English, `fr` for French, `de` for German).  
+  If not specified, the model will attempt to auto-detect the language, but this may be less accurate.  
+  It is recommended to specify the language when known.
 - `--device`: Processing device (`cuda` for GPU, `cpu` for CPU, default: `cpu`).
 - `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).  
 

@@ -1,7 +1,7 @@
 furo
-m2r2
 myst_parser
-sphinx==7.3.7
+sphinx==8.2.3
 sphinx-argparse
 sphinx-copybutton
-sphinx_toolbox
+sphinx-autodoc-typehints
+sphinxcontrib-napoleon

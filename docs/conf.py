@@ -5,18 +5,8 @@
 from datetime import datetime
 from pathlib import Path
 
-import m2r2
 import psifx
-
-
-# Process docstrings as Markdown.
-def docstring(app, what, name, obj, options, lines):
-    lines[:] = m2r2.convert("\n".join(lines)).splitlines()
-
-
-def setup(app):
-    app.connect("autodoc-process-docstring", docstring)
-
+from sphinx_autodoc_typehints import format_annotation
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -35,18 +25,19 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
+    "sphinx.ext.napoleon",
     # Add links to source code.
     "sphinx.ext.viewcode",
     # Enable mathjax.
     "sphinx.ext.mathjax",
     # Autodocument argparse.
     "sphinxarg.ext",
-    # Autodocument variables.
-    "sphinx_toolbox.more_autodoc.variables",
     # Adds a `copy` button to code blocks.
     "sphinx_copybutton",
     # Parse markdown docs.
     "myst_parser",
+    # Type hints support
+    "sphinx_autodoc_typehints",
 ]
 
 templates_path = ["_templates"]

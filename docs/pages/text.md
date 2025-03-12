@@ -152,20 +152,22 @@ parser:
     to_lower: True 
     expect:
         - 'yes'
-        - 'no' 
+        - 'no'
+    on_failure:
+        - 'error'
 ```
 The steps are all optional and are applied in the following order:
 - `start_after` (*str*, optional):  
   Retains only the portion of the generated text that follows the last occurrence of the specified string. 
   
-   _If the string is not found, the full text is retained, and an error message is displayed._
+   _If the string is not found, the full text is retained, and a failure message is displayed._
 
 - `regex` (*str*, optional):  
   Applies a regular expression search to the retained text. 
   
   If capturing groups are present, only the matched groups are returned; otherwise, the full match is used.
   
-  _If no match is found, the full text is retained, and an error message is displayed._
+  _If no match is found, the full text is retained, and a failure message is displayed._
 
 - `to_lower` (*bool*, default=`False`):  
   Converts the final output to lowercase if set to `True`.
@@ -173,4 +175,8 @@ The steps are all optional and are applied in the following order:
 - `expect` (*list[str]*, optional):  
   A list of expected output values. 
   
-  _If the final result is not found in this list, an error message is displayed._
+    _If the final result is not found in this list a failure message is displayed._
+
+- `on_failure` (*str*, optional):  
+  If a failure occurs `on_failure` is returned instead of retaining the full text.
+  

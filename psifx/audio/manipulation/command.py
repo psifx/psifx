@@ -27,6 +27,7 @@ class ManipulationCommand(Command):
         register_command(subparsers, "split", SplitCommand)
         register_command(subparsers, "mixdown", MixDownCommand)
         register_command(subparsers, "normalization", NormalizationCommand)
+        register_command(subparsers, "trim", TrimCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -335,5 +336,78 @@ class NormalizationCommand(Command):
         tool.normalization(
             audio_path=args.audio,
             normalized_audio_path=args.normalized_audio,
+        )
+        del tool
+
+
+
+class TrimCommand(Command):
+    """
+    Command-line interface for trimming an audio track.
+    """
+
+    @staticmethod
+    def setup(parser: argparse.ArgumentParser):
+        """
+        Sets up the command.
+
+        :param parser: The argument parser.
+        :return:
+        """
+        parser.add_argument(
+            "--audio",
+            type=Path,
+            required=True,
+            help="path to the input audio file, such as ``/path/to/audio.wav``",
+        )
+        parser.add_argument(
+            "--trimmed_audio",
+            type=Path,
+            required=True,
+            help="path to the output trimmed audio file, such as ``/path/to/trimmed-audio.wav``",
+        )
+        parser.add_argument(
+            "--start_time",
+            type=float,
+            default=None,
+            help="start time in seconds (None to keep from beginning)",
+        )
+        parser.add_argument(
+            "--end_time",
+            type=float,
+            default=None,
+            help="end time in seconds (None to keep until end)",
+        )
+        parser.add_argument(
+            "--overwrite",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="overwrite existing files, otherwise raises an error",
+        )
+        parser.add_argument(
+            "--verbose",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="verbosity of the script",
+        )
+
+    @staticmethod
+    def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
+        """
+        Executes the command.
+
+        :param parser: The argument parser.
+        :param args: The arguments.
+        :return:
+        """
+        tool = ManipulationTool(
+            overwrite=args.overwrite,
+            verbose=args.verbose,
+        )
+        tool.trim(
+            audio_path=args.audio,
+            trimmed_audio_path=args.trimmed_audio,
+            start_time=args.start_time,
+            end_time=args.end_time,
         )
         del tool

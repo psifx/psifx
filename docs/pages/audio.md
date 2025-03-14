@@ -58,6 +58,18 @@ psifx audio manipulation normalization \
 - `--audio`: Path to the input audio file.
 - `--normalized_audio`: Path for the output normalized audio file.
 
+
+### Audio Trimming
+Trims the audio file to be within given start and end times (in seconds). Both are optional (e.g. in the absence of a start time, only the end time will be used to reduce the length).
+```bash
+psifx audio manipulation trim \
+    --audio Audios/Mixed.wav \
+    --trimmed_audio Audios/MixedTrimmed.wav \
+    [--start_time 5] \
+    [--end_time 25.8]
+```
+
+
 ## 2. Inference
 
 ### Speaker Diarization

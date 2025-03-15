@@ -73,7 +73,10 @@ psifx audio manipulation trim \
 ## 2. Inference
 
 ### Speaker Diarization
-Identifies segments for each speaker in an audio file.
+Identifies segments for each speaker in an audio file. This first function takes in a 'mixed' .wav file, which is a down-mix of all the individual channels from each available microphone. 
+
+For best results, the audio should derive from collar-/shirt-worn lavalier microphones.
+
 ```bash
 psifx audio diarization pyannote inference \
     --audio Audios/MixedNormalized.wav \
@@ -91,7 +94,7 @@ psifx audio diarization pyannote inference \
 - `--model_name`: Name of the diarization model used, default `pyannote/speaker-diarization@2.1.1`.
 
 ### Speaker Identification
-Associates speakers in a mixed audio file with known audio samples.
+Associates speakers in a mixed audio file with known audio samples. This combines the mixdown file with the individual channels of audio, and performs re-embedding and clustering, using the names of the individual audio files to assign identities in the identification out json.
 ```bash
 psifx audio identification pyannote inference \
     --mixed_audio Audios/MixedNormalized.wav \
@@ -157,7 +160,7 @@ psifx audio transcription whisper huggingface inference \
 - `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).  
 
 ### Enhanced Transcription
-Enhances transcription with diarization and speaker labels.
+Enhances the transcription using the speaker labels from the diarization process.
 ```bash
 psifx audio transcription enhance \
     --transcription Transcriptions/Mixed.vtt \

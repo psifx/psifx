@@ -94,7 +94,8 @@ psifx audio diarization pyannote inference \
 - `--model_name`: Name of the diarization model used, default `pyannote/speaker-diarization@2.1.1`.
 
 ### Speaker Identification
-Associates speakers in a mixed audio file with known audio samples. This combines the mixdown file with the individual channels of audio, and performs re-embedding and clustering, using the names of the individual audio files to assign identities in the identification out json.
+Associates speakers in a mixed audio file with known audio samples. This combines the mixdown file with the individual channels of audio, and performs re-embedding and clustering, using the names of the individual audio files to assign identities in the identification out json. The purpose is (a) to improve diarization, and (b) to provide a mapping from the allocated/detected speakers from in the diarization process to enhance the transcription with.
+
 ```bash
 psifx audio identification pyannote inference \
     --mixed_audio Audios/MixedNormalized.wav \
@@ -113,6 +114,13 @@ psifx audio identification pyannote inference \
 - `--api_token`: Hugging Face token, may be required to download the model. Can also be provided as the environment variable **HF_TOKEN**.
 - `--model_names`: Names of the embedding models.
 
+The output of the identification is a `.json` structured like this:
+
+```json
+{"mapping": {"SPEAKER_00": "patient_micropone.wav", "SPEAKER_01": "therapist_microphone.wav"}, "agreement": 0.7874015748031497}
+```
+
+So if necessary, this can be manually edited and used for subsequent transcription enhancement.
 
 ### Speech Transcription
 Use Whisper to transcribe speech in an audio file to text. Two implementations are available: OpenAI Whisper and HuggingFace Whisper.

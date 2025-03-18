@@ -151,6 +151,7 @@ psifx audio transcription whisper openai inference \
 psifx audio transcription whisper huggingface inference \
     --audio Audios/MixedNormalized.wav \
     --transcription Transcriptions/Mixed.vtt \
+    [--api_token hf_SomeLetters] \
     [--model_name "openai/whisper-small"] \
     [--language fr] \
     [--device cuda] \
@@ -158,6 +159,7 @@ psifx audio transcription whisper huggingface inference \
 ```
 - `--audio`: Input audio file for transcription.
 - `--transcription`: Path to save the transcription in `.vtt` format.
+- `--api_token`: Hugging Face token, may be required to download the model. Can also be provided as the environment variable **HF_TOKEN**.
 - `--model_name`: Name of the HuggingFace model (default: `openai/whisper-small`).  
   Can use any [Whisper model from HuggingFace](https://huggingface.co/models?other=whisper).  
   Example: `nizarmichaud/whisper-large-v3-turbo-swissgerman`
@@ -165,7 +167,7 @@ psifx audio transcription whisper huggingface inference \
   If not specified, the model will attempt to auto-detect the language, but this may be less accurate.  
   It is recommended to specify the language when known.
 - `--device`: Processing device (`cuda` for GPU, `cpu` for CPU, default: `cpu`).
-- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).  
+- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).
 
 ### Enhanced Transcription
 Enhances the transcription using the speaker labels from the diarization process.

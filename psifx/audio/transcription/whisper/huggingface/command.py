@@ -74,6 +74,12 @@ class HuggingFaceWhisperInferenceCommand(Command):
             help="name of the model, check https://huggingface.co/models?other=whisper",
         )
         parser.add_argument(
+            "--api_token",
+            type=str,
+            default=None,
+            help="API token for downloading the model from HuggingFace",
+        )
+        parser.add_argument(
             "--translate_to_english",
             default=False,
             action=argparse.BooleanOptionalAction,
@@ -110,6 +116,7 @@ class HuggingFaceWhisperInferenceCommand(Command):
         """
         tool = HuggingFaceWhisperTool(
             model_name=args.model_name,
+            api_token=args.api_token,
             device=args.device,
             overwrite=args.overwrite,
             verbose=args.verbose,

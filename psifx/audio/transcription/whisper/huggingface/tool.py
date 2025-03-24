@@ -1,4 +1,5 @@
 """HuggingFace Whisper transcription tool."""
+import os
 from typing import Union, Optional
 from pathlib import Path
 import torch
@@ -21,6 +22,7 @@ class HuggingFaceWhisperTool(TranscriptionTool):
     def __init__(
             self,
             model_name: str = "openai/whisper-small",
+            api_token: Optional[str] = None,
             device: str = "cpu",
             overwrite: bool = False,
             verbose: Union[bool, int] = True,
@@ -31,14 +33,20 @@ class HuggingFaceWhisperTool(TranscriptionTool):
             verbose=verbose,
         )
 
+        self.api_token = api_token or os.environ.get('HF_TOKEN')
+
+        self.model_name = model_name
+
         torch_dtype = torch.float16 if device == 'cuda' else torch.float32
 
         self.model = AutoModelForSpeechSeq2Seq.from_pretrained(
-            model_name, torch_dtype=torch_dtype, low_cpu_mem_usage=True, use_safetensors=True
+            model_name,
+            token=api_token,
+            torch_dtype=torch_dtype,
+            low_cpu_mem_usage=True,
+            use_safetensors=True
         )
         self.model.to(device)
-
-        self.model_name = model_name
 
         self.processor = AutoProcessor.from_pretrained(model_name)
 
@@ -87,7 +95,7 @@ class HuggingFaceWhisperTool(TranscriptionTool):
         vtt.VTTWriter.check(path=transcription_path, overwrite=self.overwrite)
 
         result = self.pipeline(str(audio_path), return_timestamps=True,
-                           generate_kwargs={"language": language, "task": task})
+                               generate_kwargs={"language": language, "task": task})
 
         segments = [{'start': chunk['timestamp'][0], 'end': chunk['timestamp'][1], 'text': chunk['text']} for chunk in
                     result['chunks']]

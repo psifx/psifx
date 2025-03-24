@@ -13,32 +13,9 @@ We will apply **psifx** to:
 
 ## Setup  
 Let's begin by installing up psifx and getting the example video from the git repository.
-<style>
-details {
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px;
-  margin: 10px 0;
-  background-color: #f8faff;
-}
-
-summary {
-  font-weight: bold;
-  cursor: pointer;
-  padding: 5px;
-}
-
-details[open] {
-  background-color: #ffffff;
-  border-left: 4px solid #007bff;
-}
-</style>
-
-
-
 
 <details>
-  <summary> DOCKER</summary>
+  <summary> DOCKER </summary>
 
   
 1. Install [Docker Engine](https://docs.docker.com/engine/install/#server) and make sure to follow
@@ -72,7 +49,7 @@ details[open] {
 </details>
 
 <details>
-  <summary>LINUX</summary>
+  <summary> LINUX </summary>
 
 1. For Linux users, install the following system-wide:
    ```bash

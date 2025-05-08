@@ -49,9 +49,6 @@ We recommend using Docker for reducing compatibility issues.
    pip install psifx
    ```
    
-4. [Optional] We use [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace) for face inference in videos. The instructions to install OpenFace are in the [Video Processing Guide](video.md#requirements).
+4. [Optional] We use [OpenFace](https://github.com/TadasBaltrusaitis/OpenFace) for face inference in videos. The instructions to install OpenFace are in the [Video Processing Guide - Face section](video.md#face).
 
-5. [Optional] Language models are required for the text tools. The installation instructions for each models provider are in the [Text Processing Guide](text.md#requirements).
-   
-   ```
-
+5. [Optional] Language models are required for the text tools. The installation instructions for each models provider are in the [Text Processing Guide - Model section](text.md#model).

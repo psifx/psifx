@@ -3,10 +3,13 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 from datetime import datetime
-from pathlib import Path
+import sys
+import os
+
+# Add the parent directory to the Python path
+sys.path.insert(0, os.path.abspath('..'))
 
 import psifx
-from sphinx_autodoc_typehints import format_annotation
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -25,19 +28,18 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.autosectionlabel",
-    "sphinx.ext.napoleon",
     # Add links to source code.
     "sphinx.ext.viewcode",
     # Enable mathjax.
     "sphinx.ext.mathjax",
-    # Autodocument argparse.
-    "sphinxarg.ext",
     # Adds a `copy` button to code blocks.
     "sphinx_copybutton",
     # Parse markdown docs.
     "myst_parser",
     # Type hints support
     "sphinx_autodoc_typehints",
+    # Autoprogram directive for rendering CLI argparse
+    "sphinxcontrib.autoprogram",
 ]
 
 templates_path = ["_templates"]
@@ -56,6 +58,9 @@ autosectionlabel_prefix_document = True
 myst_enable_extensions = [
     "substitution",
 ]
+
+# Enable heading anchors
+myst_heading_anchors = 3
 
 # Markdown macros, accessed as {{ variable_name }}
 myst_substitutions = {

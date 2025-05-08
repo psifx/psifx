@@ -17,8 +17,8 @@ pages/bibliography
 :caption: Reference
 :hidden:
 
-reference/api
-reference/cli
+api/api
+cli/index
 ```
 
 Package for <u>P</u>sychological and <u>S</u>ocial <u>I</u>nteractions <u>F</u>eature e<u>X</u>traction

@@ -58,10 +58,25 @@ psifx audio manipulation normalization \
 - `--audio`: Path to the input audio file.
 - `--normalized_audio`: Path for the output normalized audio file.
 
+
+### Audio Trimming
+Trims the audio file to be within given start and end times (in seconds). Both are optional (e.g. in the absence of a start time, only the end time will be used to reduce the length).
+```bash
+psifx audio manipulation trim \
+    --audio Audios/Mixed.wav \
+    --trimmed_audio Audios/MixedTrimmed.wav \
+    [--start_time 5] \
+    [--end_time 25.8]
+```
+
+
 ## 2. Inference
 
 ### Speaker Diarization
-Identifies segments for each speaker in an audio file.
+Identifies segments for each speaker in an audio file. This first function takes in a 'mixed' .wav file, which is a down-mix of all the individual channels from each available microphone. 
+
+For best results, the audio should derive from collar-/shirt-worn lavalier microphones.
+
 ```bash
 psifx audio diarization pyannote inference \
     --audio Audios/MixedNormalized.wav \
@@ -79,7 +94,8 @@ psifx audio diarization pyannote inference \
 - `--model_name`: Name of the diarization model used, default `pyannote/speaker-diarization@2.1.1`.
 
 ### Speaker Identification
-Associates speakers in a mixed audio file with known audio samples.
+Associates speakers in a mixed audio file with known audio samples. This combines the mixdown file with the individual channels of audio, and performs re-embedding and clustering, using the names of the individual audio files to assign identities in the identification out json. The purpose is (a) to improve diarization, and (b) to provide a mapping from the allocated/detected speakers from in the diarization process to enhance the transcription with.
+
 ```bash
 psifx audio identification pyannote inference \
     --mixed_audio Audios/MixedNormalized.wav \
@@ -98,15 +114,22 @@ psifx audio identification pyannote inference \
 - `--api_token`: Hugging Face token, may be required to download the model. Can also be provided as the environment variable **HF_TOKEN**.
 - `--model_names`: Names of the embedding models.
 
+The output of the identification is a `.json` structured like this:
+
+```json
+{"mapping": {"SPEAKER_00": "patient_micropone.wav", "SPEAKER_01": "therapist_microphone.wav"}, "agreement": 0.7874015748031497}
+```
+
+So if necessary, this can be manually edited and used for subsequent transcription enhancement.
 
 ### Speech Transcription
-Use Whisper to transcribe speech in an audio file to text.
+Use Whisper to transcribe speech in an audio file to text. Two implementations are available: OpenAI Whisper and HuggingFace Whisper.
 
+#### OpenAI Whisper
 ```bash
-psifx audio transcription whisper inference \
+psifx audio transcription whisper openai inference \
     --audio Audios/MixedNormalized.wav \
     --transcription Transcriptions/Mixed.vtt \
-    [--use_hf] \
     [--model_name small] \
     [--language fr] \
     [--device cuda] \
@@ -114,25 +137,42 @@ psifx audio transcription whisper inference \
 ```
 - `--audio`: Input audio file for transcription.
 - `--transcription`: Path to save the transcription in `.vtt` format.
-- `--use_hf`: Set this flag to use a Hugging Face model instead of OpenAI Whisper (default: `False`).
-- `--model_name`: The name of the model to use.
-  - **For OpenAI Whisper**, use one of the [official model](https://github.com/openai/whisper#available-models-and-languages) sizes:  
-    ```bash
-    --model_name small  # Other options: tiny, base, medium, large, large-v2, large-v3
-    ```
-  - **For a Hugging Face model**, set `--use_hf` and provide a valid [model name](https://huggingface.co/models?other=whisper).  
-    Example using Nizar Michaud's Swiss German model:  
-    ```bash
-    --use_hf --model_name nizarmichaud/whisper-large-v3-turbo-swissgerman
-    ```
-- `--language`: Language of the audio content.
+- `--model_name`: Name of the OpenAI Whisper model (default: `small`).  
+  Available models: `tiny`, `base`, `small`, `medium`, `large`, `large-v2`, `large-v3`.  
+  See [official models](https://github.com/openai/whisper#available-models-and-languages) for details.
+- `--language`: Two-letter language code of the audio content (e.g., `en` for English, `fr` for French, `de` for German).  
+  If not specified, the model will attempt to auto-detect the language, but this may be less accurate.  
+  It is recommended to specify the language when known.
 - `--device`: Processing device (`cuda` for GPU, `cpu` for CPU, default: `cpu`).
-- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).  
+- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).
+
+#### HuggingFace Whisper
+```bash
+psifx audio transcription whisper huggingface inference \
+    --audio Audios/MixedNormalized.wav \
+    --transcription Transcriptions/Mixed.vtt \
+    [--api_token hf_SomeLetters] \
+    [--model_name "openai/whisper-small"] \
+    [--language fr] \
+    [--device cuda] \
+    [--translate_to_english] 
+```
+- `--audio`: Input audio file for transcription.
+- `--transcription`: Path to save the transcription in `.vtt` format.
+- `--api_token`: Hugging Face token, may be required to download the model. Can also be provided as the environment variable **HF_TOKEN**.
+- `--model_name`: Name of the HuggingFace model (default: `openai/whisper-small`).  
+  Can use any [Whisper model from HuggingFace](https://huggingface.co/models?other=whisper).  
+  Example: `nizarmichaud/whisper-large-v3-turbo-swissgerman`
+- `--language`: Two-letter language code of the audio content (e.g., `en` for English, `fr` for French, `de` for German).  
+  If not specified, the model will attempt to auto-detect the language, but this may be less accurate.  
+  It is recommended to specify the language when known.
+- `--device`: Processing device (`cuda` for GPU, `cpu` for CPU, default: `cpu`).
+- `--translate_to_english`: Whether to transcribe the audio in its original language or translate it to English (default: `False`).
 
 ### Enhanced Transcription
-Enhances transcription with diarization and speaker labels.
+Enhances the transcription using the speaker labels from the diarization process.
 ```bash
-psifx audio transcription whisper enhance \
+psifx audio transcription enhance \
     --transcription Transcriptions/Mixed.vtt \
     --diarization Diarizations/Mixed.rttm \
     --identification Identifications/Mixed.json \

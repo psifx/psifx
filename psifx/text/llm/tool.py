@@ -149,7 +149,8 @@ class LLMTool(TextTool):
                        start_after: Optional[str] = None,
                        regex: Optional[str] = None,
                        to_lower: Optional[bool] = False,
-                       expect: Optional[list[str]] = None) -> str:
+                       expect: Optional[list[str]] = None,
+                       on_failure: Optional[str] = None) -> str:
         """
         Parse a message starting from start_flag and check whether it is one of the expected_labels.
 
@@ -158,7 +159,8 @@ class LLMTool(TextTool):
         :param start_after: If not None, parses the message from the last instance of start_after.
         :param regex: If not None, performs regex search to the output (it applies subsequently to start_after).
         :param to_lower: If True, changes the output to lowercase (it applies subsequently to regex).
-        :param expect: If not None, when the final output is not one of the expected labels prints an error message.
+        :param expect: If not None, when the final output is not one of the expected labels prints a failure message.
+        :param on_failure: If a failure occur, i.e. start_after missing or regex not found or unexpected output, set the output to default.
         :return: The parsed message.
         """
         output = generation.content
@@ -170,6 +172,8 @@ class LLMTool(TextTool):
                       f"{generation.content}\n"
                       f"AND DATA:\n"
                       f"{data}")
+                if on_failure:
+                    return on_failure
             output = parts[-1]
 
         if regex:
@@ -185,6 +189,8 @@ class LLMTool(TextTool):
                       f"{generation.content}\n"
                       f"AND DATA:\n"
                       f"{data}")
+                if on_failure:
+                    return on_failure
 
         if to_lower:
             output = output.lower()
@@ -198,6 +204,8 @@ class LLMTool(TextTool):
                   f"{generation.content}\n"
                   f"AND DATA:\n"
                   f"{data}")
+            if on_failure:
+                return on_failure
         elif self.verbose:
             if generation.content != output:
                 print(f"VERBOSE MESSAGE\n"

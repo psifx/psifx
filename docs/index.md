@@ -9,6 +9,7 @@ pages/usage
 pages/audio
 pages/video
 pages/text
+pages/example
 pages/development
 pages/bibliography
 ```

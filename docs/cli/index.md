@@ -1,4 +1,4 @@
-# CLI Reference
+# Commands
 
 This section documents the command-line interface.
 

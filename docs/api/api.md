@@ -1,5 +1,6 @@
 # Python API 
 
+This section documents the python api.
 ```{eval-rst}
 .. autosummary::
     :toctree: generated

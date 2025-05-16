@@ -49,6 +49,7 @@ jobs:
           context: .
           build-args: |
             HF_TOKEN=${{ env.HF_TOKEN }}
+            PYTHON_VERSION=3.9
           push: true
           no-cache: true
           tags: |

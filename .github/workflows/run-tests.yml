@@ -1,0 +1,47 @@
+name: run-tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'psifx/**'
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+    paths:
+      - 'psifx/**'
+
+
+jobs:
+  run-tests:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.9', '3.10', '3.11', '3.12' ]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Free up space
+        run: |
+          df -h
+          sudo rm -rf /opt/hostedtoolcache /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm
+          df -h
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
+            --build-arg HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            -t psifx-test:${{ matrix.python-version }} .
+
+      - name: Run tests
+        run: |
+          echo "Running tests..."
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace psifx-test:${{ matrix.python-version }} \
+            /bin/bash -c "pip install -r requirements-dev.txt && pytest tests"
+          df -h

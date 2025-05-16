@@ -32,6 +32,7 @@ RUN apt-get -y update && \
     apt-get -y autoclean  && \
     apt-get -y clean
 
+ARG PYTHON_VERSION=3.9
 ARG HF_TOKEN
 
 ARG CONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
@@ -42,17 +43,16 @@ ARG OPENFACE_PREFIX="$HOME/openface"
 ARG PSIFX_PREFIX="$HOME/psifx"
 ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:$OPENFACE_PREFIX/build/bin:${PATH}"
 ENV HF_TOKEN=$HF_TOKEN
+
 COPY . $PSIFX_PREFIX
 RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
     chown --recursive $USERNAME:$USERNAME $HOME && \
     chmod --recursive a+rwx $HOME && \
-    curl \
-        -sSf $CONDA_URL \
-        -o $HOME/miniconda.sh && \
+    curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
     bash $HOME/miniconda.sh -b -p $CONDA_PREFIX && \
     rm $HOME/miniconda.sh && \
     conda update -y -c defaults conda && \
-    conda install -y python=3.9 pip && \
+    conda install -y python=$PYTHON_VERSION pip && \
     pip cache purge && \
     conda clean -y --all && \
     wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
@@ -67,5 +67,5 @@ RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
     rm -r $PSIFX_PREFIX && \
     pip cache purge && \
     conda clean -y --all && \
-    chmod --recursive a+rwx $CONDA_PREFIX/lib/python3.9/site-packages/mediapipe && \
+    chmod --recursive a+rwx $CONDA_PREFIX/lib/python${PYTHON_VERSION}/site-packages/mediapipe && \
     curl -fsSL https://ollama.com/install.sh | sh

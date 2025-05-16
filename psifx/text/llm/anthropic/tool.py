@@ -7,7 +7,7 @@ from langchain_core.language_models import BaseChatModel
 
 
 def get_anthropic(model: str = 'claude-3-5-sonnet-20240620', api_key: Optional[str] = None, temperature: int = 0,
-                  max_tokens: Optional[int] = None, timeout: Optional[int] = None,
+                  max_tokens: Optional[int] = 1024, timeout: Optional[int] = None,
                   max_retries: int = 2, **kwargs) -> BaseChatModel:
     """
     Get an anthropic langchain base chat model.

@@ -1,1 +1,1 @@
-"""whisper transcription module."""
+"""whisperx transcription module."""

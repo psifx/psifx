@@ -3,20 +3,13 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 from datetime import datetime
-from pathlib import Path
+import sys
+import os
 
-import m2r2
+# Add the parent directory to the Python path
+sys.path.insert(0, os.path.abspath('..'))
+
 import psifx
-
-
-# Process docstrings as Markdown.
-def docstring(app, what, name, obj, options, lines):
-    lines[:] = m2r2.convert("\n".join(lines)).splitlines()
-
-
-def setup(app):
-    app.connect("autodoc-process-docstring", docstring)
-
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -39,14 +32,14 @@ extensions = [
     "sphinx.ext.viewcode",
     # Enable mathjax.
     "sphinx.ext.mathjax",
-    # Autodocument argparse.
-    "sphinxarg.ext",
-    # Autodocument variables.
-    "sphinx_toolbox.more_autodoc.variables",
     # Adds a `copy` button to code blocks.
     "sphinx_copybutton",
     # Parse markdown docs.
     "myst_parser",
+    # Type hints support
+    "sphinx_autodoc_typehints",
+    # Autoprogram directive for rendering CLI argparse
+    "sphinxcontrib.autoprogram",
 ]
 
 templates_path = ["_templates"]
@@ -65,6 +58,9 @@ autosectionlabel_prefix_document = True
 myst_enable_extensions = [
     "substitution",
 ]
+
+# Enable heading anchors
+myst_heading_anchors = 3
 
 # Markdown macros, accessed as {{ variable_name }}
 myst_substitutions = {

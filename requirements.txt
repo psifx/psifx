@@ -22,3 +22,5 @@ langchain-openai
 langchain-ollama
 nltk
 ollama
+sam-2 @ git+https://github.com/yangchris11/samurai.git#egg=sam-2&subdirectory=sam2
+ultralytics

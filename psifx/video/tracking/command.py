@@ -1,17 +1,17 @@
-"""pose estimation command-line interface."""
+"""tracking command-line interface."""
 
 import argparse
 import os
 from pathlib import Path
 
 from psifx.utils.command import Command, register_command
-from psifx.video.pose.mediapipe.command import MediaPipeCommand
-from psifx.video.pose.tool import PoseEstimationTool
+from psifx.video.tracking.samurai.command import SamuraiCommand
+from psifx.video.tracking.tool import TrackingTool
 
 
-class PoseEstimationCommand(Command):
+class TrackingCommand(Command):
     """
-    Command-line interface for estimating human poses from videos.
+    Command-line interface for processing videos.
     """
 
     @staticmethod
@@ -24,8 +24,8 @@ class PoseEstimationCommand(Command):
         """
         subparsers = parser.add_subparsers(title="available commands")
 
-        register_command(subparsers, "mediapipe", MediaPipeCommand)
-        register_command(subparsers, "visualization", VisualizationCommand)
+        register_command(subparsers, "samurai", SamuraiCommand)
+        register_command(subparsers, "visualization", VisualizationTrackingCommand)
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):
@@ -39,9 +39,9 @@ class PoseEstimationCommand(Command):
         parser.print_help()
 
 
-class VisualizationCommand(Command):
+class VisualizationTrackingCommand(Command):
     """
-    Command-line interface for visualizing the poses over the video.
+    Command-line interface for the visualization of tracking.
     """
 
     @staticmethod
@@ -52,30 +52,55 @@ class VisualizationCommand(Command):
         :param parser: The argument parser.
         :return:
         """
+
         parser.add_argument(
             "--video",
             type=Path,
             required=True,
             help="path to the input video file, such as ``/path/to/video.mp4`` (or .avi, .mkv, etc.)",
         )
+
         parser.add_argument(
-            "--poses",
+            "--masks",
             type=Path,
-            required=True,
             nargs='+',
-            help="list of path to the input pose directories or individual archive ``.tar.gz`` files",
+            required=True,
+            help="list of path to mask directories or individual .mp4 mask files",
         )
+
         parser.add_argument(
             "--visualization",
             type=Path,
             required=True,
             help="path to the output visualization video file, such as ``/path/to/visualization.mp4`` (or .avi, .mkv, etc.)",
         )
+
         parser.add_argument(
-            "--confidence_threshold",
-            type=float,
-            default=0.0,
-            help="threshold for not displaying low confidence keypoints",
+            "--blackout",
+            default=False,
+            action=argparse.BooleanOptionalAction,
+            help="whether to black out the background (non-mask regions)",
+        )
+
+        parser.add_argument(
+            "--labels",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="whether to add labels",
+        )
+
+        parser.add_argument(
+            "--color",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help="whether to color the masks",
+        )
+
+        parser.add_argument(
+            "--device",
+            type=str,
+            default="cpu",
+            help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
             "--overwrite",
@@ -99,23 +124,25 @@ class VisualizationCommand(Command):
         :param args: The arguments.
         :return:
         """
-
-        pose_files = []
-        for poses in args.poses:
-            if os.path.isdir(poses):
-                pose_files += [f for f in poses.iterdir()]
-            else:
-                pose_files.append(poses)
-
-        tool = PoseEstimationTool(
-            device="cpu",
+        tool = TrackingTool(
+            device=args.device,
             overwrite=args.overwrite,
             verbose=args.verbose,
         )
-        tool.visualization(
+
+        mask_files = []
+        for masks in args.masks:
+            if os.path.isdir(masks):
+                mask_files += [f for f in masks.iterdir()]
+            else:
+                mask_files.append(masks)
+
+        tool.visualize(
             video_path=args.video,
-            poses_path=pose_files,
+            mask_paths=mask_files,
             visualization_path=args.visualization,
-            confidence_threshold=args.confidence_threshold,
+            blackout=args.blackout,
+            color=args.color,
+            labels=args.labels,
         )
         del tool

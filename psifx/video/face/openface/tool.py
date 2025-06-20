@@ -27,11 +27,11 @@ DEFAULT_OPTIONS = "-2Dfp -3Dfp -pdmparams -pose -aus -gaze -au_static"
 
 
 def gaze_vector_2d(
-    eye_2d: ndarray,
-    gaze_3d,
-    depth: float,
-    K: ndarray,
-    K_inverse: ndarray,
+        eye_2d: ndarray,
+        gaze_3d,
+        depth: float,
+        K: ndarray,
+        K_inverse: ndarray,
 ):
     """
     Projects the gaze vector in 2D starting from the center of the eye.
@@ -60,9 +60,9 @@ class OpenFaceTool(FaceAnalysisTool):
     """
 
     def __init__(
-        self,
-        overwrite: bool = False,
-        verbose: Union[bool, int] = True,
+            self,
+            overwrite: bool = False,
+            verbose: Union[bool, int] = True,
     ):
         super().__init__(
             device="cpu",
@@ -71,9 +71,9 @@ class OpenFaceTool(FaceAnalysisTool):
         )
 
     def inference(
-        self,
-        video_path: Union[str, Path],
-        features_path: Union[str, Path],
+            self,
+            video_path: Union[str, Path],
+            features_path: Union[str, Path],
     ):
         """
         Implementation of OpenFace's face analysis inference method.
@@ -105,9 +105,9 @@ class OpenFaceTool(FaceAnalysisTool):
 
         try:
             for i in tqdm(
-                range(1),
-                desc="Processing",
-                disable=not self.verbose,
+                    range(1),
+                    desc="Processing",
+                    disable=not self.verbose,
             ):
                 process = subprocess.run(
                     args=shlex.split(args),
@@ -142,9 +142,9 @@ class OpenFaceTool(FaceAnalysisTool):
             }
         }
         for i in tqdm(
-            range(n_rows),
-            desc="Parsing",
-            disable=not self.verbose,
+                range(n_rows),
+                desc="Parsing",
+                disable=not self.verbose,
         ):
             index = clean_dataframe["index"][i]
             features[f"{index: 015d}"] = {
@@ -169,45 +169,8 @@ class OpenFaceTool(FaceAnalysisTool):
             verbose=self.verbose,
         )
 
-    def visualization(
-        self,
-        video_path: Union[str, Path],
-        features_path: Union[str, Path],
-        visualization_path: Union[str, Path],
-        depth: Optional[float] = 3.0,
-        f_x: Optional[float] = None,
-        f_y: Optional[float] = None,
-        c_x: Optional[float] = None,
-        c_y: Optional[float] = None,
-    ):
-        """
-        Produces a visualization of the face pose and eye gaze vectors over a video.
-
-        :param video_path: The path to the video file.
-        :param features_path: The path to the features archive.
-        :param visualization_path: The path to the visualization file.
-        :param depth: The (guesstimated) depth between the camera and the subject.
-        :param f_x: The (guesstimated) focal length of the x-axis.
-        :param f_y: The (guesstimated) focal length of the y-axis.
-        :param c_x: The (guesstimated) principal point of the x-axis.
-        :param c_y: The (guesstimated) principal point of the x-axis.
-        :return:
-        """
-        video_path = Path(video_path)
-        features_path = Path(features_path)
-        visualization_path = Path(visualization_path)
-
-        if self.verbose:
-            print(f"video           =   {video_path}")
-            print(f"features        =   {features_path}")
-            print(f"visualization   =   {visualization_path}")
-
-        assert video_path != visualization_path
+    def decode(self, features_path: Union[str, Path]):
         tar.TarReader.check(path=features_path)
-
-        calibration = all(p is not None for p in [f_x, f_y, c_x, c_y])
-        no_calibration = all(p is None for p in [f_x, f_y, c_x, c_y])
-        assert calibration or no_calibration, "Either specify all calibrations or none."
 
         features = tar.TarReader.read(
             features_path,
@@ -232,6 +195,50 @@ class OpenFaceTool(FaceAnalysisTool):
                 disable=not self.verbose,
             )
         }
+        return features, edges
+
+    def visualization(
+            self,
+            video_path: Union[str, Path],
+            features_path: Union[str, Path, list[Union[str, Path]]],
+            visualization_path: Union[str, Path],
+            depth: Optional[float] = 3.0,
+            f_x: Optional[float] = None,
+            f_y: Optional[float] = None,
+            c_x: Optional[float] = None,
+            c_y: Optional[float] = None,
+    ):
+        """
+        Produces a visualization of the face pose and eye gaze vectors over a video.
+
+        :param video_path: The path to the video file.
+        :param features_path: The path or list of path to the features archive.
+        :param visualization_path: The path to the visualization file.
+        :param depth: The (guesstimated) depth between the camera and the subject.
+        :param f_x: The (guesstimated) focal length of the x-axis.
+        :param f_y: The (guesstimated) focal length of the y-axis.
+        :param c_x: The (guesstimated) principal point of the x-axis.
+        :param c_y: The (guesstimated) principal point of the x-axis.
+        :return:
+        """
+        video_path = Path(video_path)
+        if not isinstance(features_path, list):
+            features_path = [features_path]
+        visualization_path = Path(visualization_path)
+
+        if self.verbose:
+            print(f"video           =   {video_path}")
+            print(f"features        =   {' '.join(map(str,features_path))}")
+            print(f"visualization   =   {visualization_path}")
+
+        assert video_path != visualization_path
+
+        calibration = all(p is not None for p in [f_x, f_y, c_x, c_y])
+        no_calibration = all(p is None for p in [f_x, f_y, c_x, c_y])
+        assert calibration or no_calibration, "Either specify all calibrations or none."
+
+        decoded = [self.decode(pose) for pose in features_path]
+
         h, w = None, None
         K, K_inverse = None, None
         with (
@@ -247,31 +254,11 @@ class OpenFaceTool(FaceAnalysisTool):
                 overwrite=self.overwrite,
             ) as visualization_writer,
         ):
-            for image, feature in zip(
-                tqdm(
-                    video_reader,
-                    desc="Processing",
-                    disable=not self.verbose,
-                ),
-                features.values(),
+            for frame_idx, image in enumerate(
+                    tqdm(video_reader, desc="Processing", disable=not self.verbose)
             ):
                 h_, w_, _ = image.shape
                 image = Image.fromarray(image.copy())
-                for key in [
-                    "face_keypoints_2d",
-                    "eye_right_keypoints_2d",
-                    "eye_left_keypoints_2d",
-                ]:
-                    points = np.array(feature[key]).reshape(-1, 2)
-                    image = draw.draw_pose(
-                        image=image,
-                        points=points,
-                        edges=edges[key],
-                        circle_radius=0,
-                        circle_thickness=0,
-                        line_thickness=1,
-                    )
-
                 if h != h_ or w != w_:
                     h, w = h_, w_
 
@@ -290,29 +277,48 @@ class OpenFaceTool(FaceAnalysisTool):
                     )
                     K_inverse = np.linalg.inv(K)
 
-                center_right, gaze_right = gaze_vector_2d(
-                    eye_2d=np.array(feature["eye_right_keypoints_2d"]).reshape(-1, 2),
-                    gaze_3d=np.array(feature["gaze_right_3d"]),
-                    depth=depth,
-                    K=K,
-                    K_inverse=K_inverse,
-                )
+                for features, edges in decoded:
+                    feature = features[frame_idx]
 
-                center_left, gaze_left = gaze_vector_2d(
-                    eye_2d=np.array(feature["eye_left_keypoints_2d"]).reshape(-1, 2),
-                    gaze_3d=np.array(feature["gaze_left_3d"]),
-                    depth=depth,
-                    K=K,
-                    K_inverse=K_inverse,
-                )
+                    for key in [
+                        "face_keypoints_2d",
+                        "eye_right_keypoints_2d",
+                        "eye_left_keypoints_2d",
+                    ]:
+                        points = np.array(feature[key]).reshape(-1, 2)
+                        image = draw.draw_pose(
+                            image=image,
+                            points=points,
+                            edges=edges[key],
+                            circle_radius=0,
+                            circle_thickness=0,
+                            line_thickness=1,
+                        )
 
-                image = draw.draw_pose(
-                    image=image,
-                    points=np.stack([center_right, gaze_right, center_left, gaze_left]),
-                    edges=((0, 1), (2, 3)),
-                    circle_radius=1,
-                    circle_thickness=1,
-                    line_thickness=1,
-                )
+                    center_right, gaze_right = gaze_vector_2d(
+                        eye_2d=np.array(feature["eye_right_keypoints_2d"]).reshape(-1, 2),
+                        gaze_3d=np.array(feature["gaze_right_3d"]),
+                        depth=depth,
+                        K=K,
+                        K_inverse=K_inverse,
+                    )
+
+                    center_left, gaze_left = gaze_vector_2d(
+                        eye_2d=np.array(feature["eye_left_keypoints_2d"]).reshape(-1, 2),
+                        gaze_3d=np.array(feature["gaze_left_3d"]),
+                        depth=depth,
+                        K=K,
+                        K_inverse=K_inverse,
+                    )
+
+                    image = draw.draw_pose(
+                        image=image,
+                        points=np.stack([center_right, gaze_right, center_left, gaze_left]),
+                        edges=((0, 1), (2, 3)),
+                        circle_radius=1,
+                        circle_thickness=1,
+                        line_thickness=1,
+                    )
+
                 image = np.asarray(image)
                 visualization_writer.write(image=image)

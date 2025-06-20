@@ -105,23 +105,23 @@ To simplify the workflow only one point of view is provided.
 ### Pose
 Detect and analyze human poses using MediaPipe.
 ```bash
-psifx video pose mediapipe inference \
+psifx video pose mediapipe single-inference \
     --video Video.mp4 \
-    --poses Poses.tar.xz --overwrite
+    --poses Poses.tar.gz --overwrite
 ```
 Create a visual overlay of the poses detected in the video.
 ```bash
 psifx video pose mediapipe visualization \
     --video Video.mp4 \
-    --poses Poses.tar.xz \
+    --poses Poses.tar.gz \
     --visualization VisualizationPoses.mp4 --overwrite
 ```
 ### Face
 Extract facial features from the video using OpenFace.
 ```bash
-psifx video face openface inference \
+psifx video face openface single-inference \
     --video Video.mp4 \
-    --features Faces.tar.xz --overwrite
+    --features Faces.tar.gz --overwrite
 ```
 
 Create a visual overlay of facial features detected in the video.
@@ -129,7 +129,7 @@ Add it on top of the overlay for poses.
 ```bash
 psifx video face openface visualization \
     --video VisualizationPoses.mp4 \
-    --features Faces.tar.xz \
+    --features Faces.tar.gz \
     --visualization VisualizationFaces.mp4
 ```
 

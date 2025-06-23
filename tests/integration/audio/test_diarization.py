@@ -1,30 +1,31 @@
 import os
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-from psifx import command
+from tests.integration.conftest import run_command
 
 
+@pytest.mark.skipif(not os.getenv("HF_TOKEN"), reason="HF_TOKEN not available")
 @pytest.mark.integration
-def test_audio_diarization(audio_path, output_dir, diarization_rttm):
+def test_audio_diarization(audio_path: Path, output_dir: Path, diarization_rttm: Path):
     """Test audio diarization."""
 
-    pyannote = pytest.importorskip("pyannote.audio", reason="Pyannote not installed")
+    pytest.importorskip("pyannote.audio", reason="Pyannote not installed")
 
-    diarization_path = os.path.join(output_dir, "e2e_diarization.rttm")
+    diarization_path = output_dir / "diarization.rttm"
 
-    with patch("sys.argv",
-               ["psifx", "audio", "diarization", "pyannote", "inference", "--audio", audio_path, "--diarization",
-                diarization_path]):
-        command.main()
+    run_command(
+        "psifx", "audio", "diarization", "pyannote", "inference",
+        "--audio", audio_path,
+        "--diarization", diarization_path
+    )
 
-    assert os.path.exists(audio_path), "Audio extraction failed"
-    assert os.path.exists(diarization_path), "Audio diarization failed"
+    assert audio_path.exists(), "Audio extraction failed"
+    assert diarization_path.exists(), "Audio diarization failed"
 
-    def parse_rttm_file(path):
-        lines = Path(path).read_text().splitlines()
+    def parse_rttm_file(path: Path):
+        lines = path.read_text().splitlines()
         content = []
         for line in lines:
             parts = line.strip().split()

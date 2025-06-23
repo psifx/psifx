@@ -1,17 +1,15 @@
-import os
 from pathlib import Path
 import re
-from unittest.mock import patch
 
 import pytest
-
-from psifx import command
 from rapidfuzz import fuzz
 
+from tests.integration.conftest import run_command
 
-def parse_vtt(filepath):
+
+def parse_vtt(filepath: Path):
     """Parse a VTT file into a list of (start, end, text) tuples."""
-    content = Path(filepath).read_text(encoding='utf-8')
+    content = filepath.read_text(encoding='utf-8')
     entries = []
     blocks = content.strip().split("\n\n")
     for block in blocks:
@@ -27,24 +25,23 @@ def parse_vtt(filepath):
 
 
 @pytest.mark.integration
-def test_audio_transcription_openai(audio_path, output_dir, video_text):
-    """Test audio transcription with openai."""
+def test_audio_transcription_openai(audio_path: Path, output_dir: Path, video_text: str):
+    """Test audio transcription with OpenAI Whisper."""
 
-    whisper = pytest.importorskip("whisper", reason="Whisper not installed")
+    pytest.importorskip("whisper", reason="Whisper not installed")
 
-    transcription_path = os.path.join(output_dir, "e2e_transcription.vtt")
+    transcription_path = output_dir / "transcription.vtt"
 
-    with patch("sys.argv",
-               ["psifx", "audio", "transcription", "whisper", "openai", "inference", "--audio", audio_path,
-                "--transcription",
-                transcription_path], ):
-        command.main()
+    run_command(
+        "psifx", "audio", "transcription", "whisper", "openai", "inference",
+        "--audio", audio_path,
+        "--transcription", transcription_path
+    )
 
-    assert os.path.exists(transcription_path), "Audio transcription failed"
+    assert transcription_path.exists(), "Audio transcription failed"
 
     actual_entries = parse_vtt(transcription_path)
-    actual_text = " ".join(text for (start, end, text) in actual_entries)
-
+    actual_text = " ".join(text for (_, _, text) in actual_entries)
     similarity = fuzz.ratio(actual_text, video_text)
 
     assert similarity > 90, (
@@ -55,22 +52,21 @@ def test_audio_transcription_openai(audio_path, output_dir, video_text):
 
 
 @pytest.mark.integration
-def test_audio_transcription_huggingface(audio_path, output_dir, video_text):
-    """Test audio transcription with huggingface."""
+def test_audio_transcription_huggingface(audio_path: Path, output_dir: Path, video_text: str):
+    """Test audio transcription with HuggingFace Whisper."""
 
-    transcription_path = os.path.join(output_dir, "e2e_transcription.vtt")
+    transcription_path = output_dir / "transcription.vtt"
 
-    with patch("sys.argv",
-               ["psifx", "audio", "transcription", "whisper", "huggingface", "inference", "--audio", audio_path,
-                "--transcription",
-                transcription_path], ):
-        command.main()
+    run_command(
+        "psifx", "audio", "transcription", "whisper", "huggingface", "inference",
+        "--audio", audio_path,
+        "--transcription", transcription_path
+    )
 
-    assert os.path.exists(transcription_path), "Audio transcription failed"
+    assert transcription_path.exists(), "Audio transcription failed"
 
     actual_entries = parse_vtt(transcription_path)
-    actual_text = " ".join(text for (start, end, text) in actual_entries)
-
+    actual_text = " ".join(text for (_, _, text) in actual_entries)
     similarity = fuzz.ratio(actual_text, video_text)
 
     assert similarity > 90, (

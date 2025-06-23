@@ -3,25 +3,59 @@ Shared pytest fixtures for psifx integration tests.
 """
 
 import tempfile
-import os
 import shutil
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
+
+from psifx import command
+
+
+def run_command(*args):
+    with patch("sys.argv", list(map(str, args))):
+        command.main()
 
 
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for integration test files."""
     with tempfile.TemporaryDirectory() as tmp_dir:
-        yield tmp_dir
+        yield Path(tmp_dir)
 
 
 @pytest.fixture
-def video_path(temp_dir):
+def video_single_path(temp_dir):
     """Return a temp copy of the test video file to avoid modifying the original."""
-    original = os.path.join(os.path.dirname(__file__), "data", "Video.mp4")
-    temp_copy = os.path.join(temp_dir, "Video.mp4")
+    original = Path(__file__).parent / "data" / "Single.mp4"
+    temp_copy = temp_dir / "Single.mp4"
+    shutil.copy(original, temp_copy)
+    return temp_copy
+
+
+@pytest.fixture
+def video_multi_path(temp_dir):
+    """Return a temp copy of the test video file to avoid modifying the original."""
+    original = Path(__file__).parent / "data" / "Multi.mp4"
+    temp_copy = temp_dir / "Multi.mp4"
+    shutil.copy(original, temp_copy)
+    return temp_copy
+
+
+@pytest.fixture
+def mask_dir(temp_dir):
+    """Return a temp copy of the masks directory to avoid modifying the original."""
+    original = Path(__file__).parent / "data" / "MaskDir"
+    temp_copy = temp_dir / "MaskDir"
+    shutil.copytree(original, temp_copy)
+    return temp_copy
+
+
+@pytest.fixture
+def mask_path(temp_dir):
+    """Return a temp copy of the mask video file to avoid modifying the original."""
+    original = Path(__file__).parent / "data" / "1.mp4"
+    temp_copy = temp_dir / "1.mp4"
     shutil.copy(original, temp_copy)
     return temp_copy
 
@@ -29,17 +63,35 @@ def video_path(temp_dir):
 @pytest.fixture
 def audio_path(temp_dir):
     """Return a temp copy of the test audio file to avoid modifying the original."""
-    original = os.path.join(os.path.dirname(__file__), "data", "Audio.wav")
-    temp_copy = os.path.join(temp_dir, "Audio.wav")
+    original = Path(__file__).parent / "data" / "Audio.wav"
+    temp_copy = temp_dir / "Audio.wav"
     shutil.copy(original, temp_copy)
+    return temp_copy
+
+
+@pytest.fixture
+def faces_dir(temp_dir):
+    """Return a temp copy of the faces directory to avoid modifying the original."""
+    original = Path(__file__).parent / "data" / "FacesDir"
+    temp_copy = temp_dir / "FacesDir"
+    shutil.copytree(original, temp_copy)
+    return temp_copy
+
+
+@pytest.fixture
+def poses_dir(temp_dir):
+    """Return a temp copy of the poses directory to avoid modifying the original."""
+    original = Path(__file__).parent / "data" / "PosesDir"
+    temp_copy = temp_dir / "PosesDir"
+    shutil.copytree(original, temp_copy)
     return temp_copy
 
 
 @pytest.fixture
 def output_dir(temp_dir):
     """Create a directory for test outputs."""
-    output_dir = os.path.join(temp_dir, "output")
-    os.makedirs(output_dir, exist_ok=True)
+    output_dir = temp_dir / "output"
+    output_dir.mkdir(exist_ok=True)
     return output_dir
 
 
@@ -53,8 +105,8 @@ def diarization_rttm(temp_dir):
         {"start": 34.979, "duration": 10.918, "speaker": "SPEAKER_01"},
     ]
 
-    rttm_path = os.path.join(temp_dir, "test.rttm")
-    with Path(rttm_path).open("w") as f:
+    rttm_path = temp_dir / "test.rttm"
+    with rttm_path.open("w") as f:
         for entry in data:
             line = f"SPEAKER Audio 1 {entry['start']:.3f} {entry['duration']:.3f} <NA> <NA> {entry['speaker']} <NA> <NA>\n"
             f.write(line)

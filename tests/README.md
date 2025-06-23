@@ -38,12 +38,3 @@ To run tests for a specific module:
 ```bash
 pytest tests/integration/io/
 ```
-
-## Writing Tests
-
-When adding new tests:
-
-1. Create test files with the naming pattern `test_*.py`
-2. Create test functions with the naming pattern `test_*`
-3. Use appropriate fixtures from `conftest.py` when needed
-4. Follow the existing test structure and patterns

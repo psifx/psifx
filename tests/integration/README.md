@@ -31,19 +31,3 @@ To run integration tests for a specific module:
 ```bash
 pytest audio/
 ```
-
-## Writing Integration Tests
-
-When adding new integration tests:
-
-1. Create test files with the naming pattern `test_*.py`
-2. Create test functions with the naming pattern `test_*`
-3. Use appropriate fixtures from `conftest.py` when needed
-4. Follow the existing test structure and patterns
-
-## Test Data
-
-The `data/` directory contains sample files used for integration testing. These files are:
-
-- `Video.mp4`: A sample video file for testing video and audio processing
-- `Audio.wav`: The audio of `Video.mp4`

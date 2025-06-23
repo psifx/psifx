@@ -1,9 +1,10 @@
 """MediaPipe pose estimation command-line interface."""
 
 import argparse
-import os
 import tempfile
 from pathlib import Path
+
+import torch
 
 from psifx.utils.command import Command, register_command
 from psifx.video.pose.mediapipe.tool import MediaPipePoseEstimationTool
@@ -95,7 +96,7 @@ class MediaPipeSingleInferenceCommand(Command):
         parser.add_argument(
             "--device",
             type=str,
-            default="cpu",
+            default="cuda" if torch.cuda.is_available() else "cpu",
             help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
@@ -213,7 +214,7 @@ class MediaPipeMultiInferenceCommand(Command):
         parser.add_argument(
             "--device",
             type=str,
-            default="cpu",
+            default="cuda" if torch.cuda.is_available() else "cpu",
             help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
@@ -285,7 +286,7 @@ class MediaPipeMultiInferenceCommand(Command):
                 )
                 mediapipe_tool.inference(
                     video_path=tmp_dir / mask.name,
-                    poses_path=args.poses_dir / f"{mask.stem}.tar",
+                    poses_path=args.poses_dir / f"{mask.stem}.tar.gz",
                 )
         del tracking_tool
         del mediapipe_tool

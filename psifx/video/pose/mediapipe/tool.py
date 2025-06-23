@@ -39,7 +39,8 @@ class MediaPipePoseEstimationTool(PoseEstimationTool):
             verbose=verbose,
         )
 
-        assert self.device == "cpu", "Only CPU support is currently available."
+        if self.device != "cpu":
+            print("Only CPU support is currently available for MediaPipe pose estimation tool.")
         self.model_complexity = model_complexity
         self.smooth = smooth
 

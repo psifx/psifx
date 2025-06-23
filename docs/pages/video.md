@@ -42,13 +42,15 @@ Segment and track humans/objects in a video using **Yolo** and **Samurai**.
 
 Detect the specified humans or objects with **YOLO**, and track them across the video with Samurai (**SAM-2** model).
 To work, it is necessary to have at least an instant in the video where all humans/objects of interest appear
-simultaneously.
+simultaneously. For detection, this method goes through the whole video to find the instant with the maximum number of
+humans/objects of interest.
+It stops early if all objects are detected, as specified by `max_objects`. The id assignment (1 up to the number of
+detected humans/objects) are arbitrary.
 
 ```bash
 psifx video tracking samurai inference \
     --video Video.mp4 \
     --mask_dir MaskDir \
-    [--checkpoint_dir ./checkpoints] \
     [--model_size tiny] \
     [--yolo_model yolo11n.pt] \
     [--object_class 0] \
@@ -59,12 +61,13 @@ psifx video tracking samurai inference \
 
 * `--video`: Path to the input video file (supports `.mp4`, `.avi`, `.mkv`, etc.).
 * `--mask_dir`: Path to the output mask directory.
-* `--checkpoint_dir`: Path to the SAM-2 model checkpoint directory, default is `./checkpoints`.
 * `--model_size`: Size of the SAM-2 model, either `tiny`, `small`, `base_plus`, or `large` default is `tiny`.
 * `--yolo_model`: Name of the YOLO model to use, from small to big: `yolo11n.pt`, `yolo11s.pt`, `yolo11m.pt`,
   `yolo11l.pt`, `yolo11x.pt`, default is `yolo11n.pt`.
-* `--object_class`: Class of the object to detect according to YOLO (e.g., `0` for people), default is `0`.
-* `--max_objects`: Maximum number of people/objects to detect. Default is unlimited.
+* `--object_class`: Class of the object to detect from `0` (_people_) to `79`(_toothbrush_), default is
+  `0`. [Click here for the full list.](https://gist.github.com/rcland12/dc48e1963268ff98c8b2c4543e7a9be8)
+* `--max_objects`: Maximum number of people/objects to detect. If not specified, the method will search for the frame
+  with the most people/objects.
 * `--step`: Step size in frames to perform object detection, default is `30`.
 * `--device`: Device on which to run the inference, either `cpu` or `cuda`, default is `cpu`.
 
@@ -118,12 +121,12 @@ Multi-inference requires the masks which are generated with the samurai tracking
 psifx video pose mediapipe multi-inference \
     --video Video.mp4 \
     --masks Mask1.mp4 Mask2.mp4 MaskDir \
-    --poses Poses.tar.gz \
+    --poses_dir PosesDir \
 ```
 
 - `--video`: Input video file for pose estimation, can be `.mp4`, `.avi`, `.mkv`, etc...
 - `--masks`: List of path to mask directories or individual `.mp4` mask files.
-- `--poses`: Path to save pose estimation data in `.tar.gz` format.
+- `--poses_dir`: Directory path to save pose estimation data.
 
 #### Common Optional Arguments
 
@@ -140,7 +143,7 @@ These arguments can be used in both the above commands to configure the inferenc
 - `--model_complexity`: Complexity of the model: {`0`, `1`, `2`}, higher means more FLOPs, but also more accurate
   results, default `2`.
 - `--smooth`: Temporally smooth the inference results to reduce the jitter, default `True`.
-- `--device`: Device on which to run the inference, either `cpu` or `cuda`, default `cpu`.
+- `--device`: Device on which to run the inference, either `cpu` or `cuda`, by default `cuda` if available.
 
 ### Pose Visualization
 
@@ -199,12 +202,14 @@ There are two method for whether the video contains a single person or multiple 
 psifx video face openface single-inference \
     --video Video.mp4 \
     --features Faces.tar.gz \
-    [--mask Mask.mp4]
+    [--mask Mask.mp4] \
+    [--device cuda]
 ```
 
 - `--video`: Input video file for face feature extraction.
 - `--features`: Path to save extracted facial features in `.tar.gz` format.
 - `--mask`: Path to an optional input .mp4 mask file.
+- `--device`: Device on which to run the inference, either `cpu` or `cuda`, by default `cuda` if available.
 
 #### Multi-Inference
 
@@ -214,12 +219,14 @@ To perform multi-inference, it is necessary to get the masks from the tracking t
 psifx video face openface multi-inference \
     --video Video.mp4 \
     --masks Mask1.mp4 Mask2.mp4 MaskDir \
-    --features_dir FacesDir
+    --features_dir FacesDir \
+    [--device cuda]
 ```
 
 - `--video`: Input video file for face feature extraction.
 - `--masks`: List of path to mask directories or individual .mp4 mask files.
 - `--features_dir`: Directory path to save extracted facial features.
+- `--device`: Device on which to run the inference, either `cpu` or `cuda`, by default `cuda` if available.
 
 ### Face Visualization
 

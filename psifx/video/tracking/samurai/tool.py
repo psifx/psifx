@@ -16,6 +16,8 @@ from pathlib import Path
 from psifx.io.video import VideoReader, VideoWriter
 from psifx.video.tracking.tool import TrackingTool
 
+from platformdirs import user_cache_dir
+
 # Base URL for SAM 2.1 checkpoints
 SAM2p1_BASE_URL = "https://dl.fbaipublicfiles.com/segment_anything_2/092824"
 
@@ -34,16 +36,14 @@ CONFIG_FILES = {
 }
 
 
-def download_checkpoint(model_size: str, checkpoint_dir: Union[str, Path]):
+def download_checkpoint(model_size: str):
     if model_size not in CHECKPOINT_FILES:
         raise ValueError(f"Invalid model size '{model_size}'. Choose from: {', '.join(CHECKPOINT_FILES.keys())}")
-    checkpoint_dir = Path(checkpoint_dir)
-
-    checkpoint_dir.mkdir(parents=True, exist_ok=True)
-
     filename = CHECKPOINT_FILES[model_size]
-    file_path = checkpoint_dir / filename
 
+    cache_dir = Path(user_cache_dir("psifx")) / "sam-2"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    file_path = cache_dir / filename
     if not file_path.exists():
         url = f"{SAM2p1_BASE_URL}/{filename}"
         print(f"Downloading {filename} from {url}...")
@@ -58,7 +58,6 @@ def download_checkpoint(model_size: str, checkpoint_dir: Union[str, Path]):
 
 class SamuraiTrackingTool(TrackingTool):
     def __init__(self,
-                 checkpoint_dir: Union[str, Path] = "./checkpoints",
                  model_size: str = "tiny",
                  use_samurai: bool = True,
                  yolo_model: str = "yolo11n.pt",
@@ -72,9 +71,10 @@ class SamuraiTrackingTool(TrackingTool):
             verbose=verbose,
         )
 
-        self.sam2_checkpoint = download_checkpoint(model_size=model_size, checkpoint_dir=checkpoint_dir)
+        self.sam2_checkpoint = download_checkpoint(model_size=model_size)
         self.sam2_cfg = f"configs/{'samurai' if use_samurai else 'sam2.1'}/{CONFIG_FILES[model_size]}"
-        self.yolo_model = YOLO(yolo_model)
+        cache_dir = Path(user_cache_dir("psifx"))
+        self.yolo_model = YOLO(cache_dir / "ultralytics" / yolo_model)
 
         if device == "cuda":
             torch.autocast("cuda", dtype=torch.bfloat16).__enter__()
@@ -118,11 +118,16 @@ class SamuraiTrackingTool(TrackingTool):
         frame_idx = 0
         detected_frame = None
 
+        if step_size <= 0:
+            raise ValueError(f"step_size should be a positive integer, not {step_size}")
+        if not (0 <= object_class <= 79):
+            raise ValueError(f"object_class should be between 0 and 79 inclusive, not {object_class}")
+
         with (VideoReader(path=video_path) as video_reader):
             frame_rate = video_reader.frame_rate
             for image in video_reader:
                 if frame_idx % step_size == 0:
-                    result: Results = self.yolo_model(image)[0]
+                    result: Results = self.yolo_model(image, verbose=False)[0]
 
                     object_detected = [list(summary['box'].values()) for summary in result.summary() if
                                        summary['class'] == object_class]
@@ -163,10 +168,10 @@ class SamuraiTrackingTool(TrackingTool):
                 object_masks.append(mask_rgb)
 
             with VideoWriter(
-                        path=mask_dir / f"{object_id}.mp4",
-                        input_dict={"-r": frame_rate},
-                        output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
-                        overwrite=self.overwrite,
-                ) as mask_writer:
-                    for mask in object_masks:
-                        mask_writer.write(image=mask)
+                    path=mask_dir / f"{object_id}.mp4",
+                    input_dict={"-r": frame_rate},
+                    output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
+                    overwrite=self.overwrite,
+            ) as mask_writer:
+                for mask in object_masks:
+                    mask_writer.write(image=mask)

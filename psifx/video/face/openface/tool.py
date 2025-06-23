@@ -61,14 +61,17 @@ class OpenFaceTool(FaceAnalysisTool):
 
     def __init__(
             self,
+            device: str = "cpu",
             overwrite: bool = False,
             verbose: Union[bool, int] = True,
     ):
         super().__init__(
-            device="cpu",
+            device=device,
             overwrite=overwrite,
             verbose=verbose,
         )
+        if self.device != "cpu":
+            print("Only CPU support is currently available for OpenFace face analysis tool.")
 
     def inference(
             self,
@@ -228,7 +231,7 @@ class OpenFaceTool(FaceAnalysisTool):
 
         if self.verbose:
             print(f"video           =   {video_path}")
-            print(f"features        =   {' '.join(map(str,features_path))}")
+            print(f"features        =   {' '.join(map(str, features_path))}")
             print(f"visualization   =   {visualization_path}")
 
         assert video_path != visualization_path

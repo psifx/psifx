@@ -5,6 +5,8 @@ import os
 import tempfile
 from pathlib import Path
 
+import torch
+
 from psifx.utils.command import Command, register_command
 from psifx.video.face.openface.tool import OpenFaceTool
 from psifx.video.tracking.tool import TrackingTool
@@ -72,6 +74,12 @@ class OpenFaceSingleInferenceCommand(Command):
             help="path to the input .mp4 mask file",
         )
         parser.add_argument(
+            "--device",
+            type=str,
+            default="cuda" if torch.cuda.is_available() else "cpu",
+            help="device on which to run the inference, either 'cpu' or 'cuda'",
+        )
+        parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
@@ -95,6 +103,7 @@ class OpenFaceSingleInferenceCommand(Command):
         """
         if args.mask is None:
             openface_tool = OpenFaceTool(
+                device=args.device,
                 overwrite=args.overwrite,
                 verbose=args.verbose,
             )
@@ -123,6 +132,7 @@ class OpenFaceSingleInferenceCommand(Command):
                 )
                 del tracking_tool
                 openface_tool = OpenFaceTool(
+                    device=args.device,
                     overwrite=args.overwrite,
                     verbose=args.verbose,
                 )
@@ -168,6 +178,12 @@ class OpenFaceMultiInferenceCommand(Command):
             help="path to the output feature directory, such as ``/path/to/openface``",
         )
         parser.add_argument(
+            "--device",
+            type=str,
+            default="cuda" if torch.cuda.is_available() else "cpu",
+            help="device on which to run the inference, either 'cpu' or 'cuda'",
+        )
+        parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
@@ -210,11 +226,13 @@ class OpenFaceMultiInferenceCommand(Command):
                 raise FileNotFoundError(f"{mask} is not a directory or a .mp4 file")
 
         tracking_tool = TrackingTool(
+            device=args.device,
             overwrite=args.overwrite,
             verbose=args.verbose,
         )
 
         openface_tool = OpenFaceTool(
+            device=args.device,
             overwrite=args.overwrite,
             verbose=args.verbose,
         )
@@ -232,7 +250,7 @@ class OpenFaceMultiInferenceCommand(Command):
                 )
                 openface_tool.inference(
                     video_path=tmp_dir / mask.name,
-                    features_path=args.features_dir / f"{mask.stem}.tar",
+                    features_path=args.features_dir / f"{mask.stem}.tar.gz",
                 )
         del tracking_tool
         del openface_tool

@@ -3,6 +3,8 @@
 import argparse
 from pathlib import Path
 
+import torch
+
 from psifx.utils.command import Command, register_command
 from psifx.video.tracking.samurai.tool import SamuraiTrackingTool
 
@@ -69,20 +71,12 @@ class SamuraiInferenceCommand(Command):
             help="path to the output mask directory, such as ``/path/to/mask_dir``",
         )
         parser.add_argument(
-            "--checkpoint_dir",
-            type=Path,
-            default="./checkpoints",
-            help="path to the sam-2 model checkpoint directory",
-        )
-
-        parser.add_argument(
             "--model_size",
             type=str,
             choices=["tiny", "small", "base_plus", "large"],
             default="tiny",
             help="size of the sam-2 model",
         )
-
         parser.add_argument(
             "--yolo_model",
             type=str,
@@ -90,7 +84,6 @@ class SamuraiInferenceCommand(Command):
             default="yolo11n.pt",
             help="name of the yolo model",
         )
-
         parser.add_argument(
             "--object_class",
             type=int,
@@ -112,7 +105,7 @@ class SamuraiInferenceCommand(Command):
         parser.add_argument(
             "--device",
             type=str,
-            default="cpu",
+            default="cuda" if torch.cuda.is_available() else "cpu",
             help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
@@ -138,7 +131,6 @@ class SamuraiInferenceCommand(Command):
         :return:
         """
         tool = SamuraiTrackingTool(
-            checkpoint_dir=args.checkpoint_dir,
             model_size=args.model_size,
             use_samurai=True,
             yolo_model=args.yolo_model,

@@ -14,7 +14,7 @@ from psifx.video.tool import VideoTool
 
 class TrackingTool(VideoTool):
     def __init__(self,
-                 device: str = "cpu",
+                 device: str,
                  overwrite: bool = False,
                  verbose: Union[bool, int] = True,
                  ):
@@ -26,7 +26,7 @@ class TrackingTool(VideoTool):
 
     def visualize(self,
                   video_path: Union[str, Path],
-                  mask_paths: list[Union[str, Path]],
+                  mask_paths: Union[str, Path, list[Union[str, Path]]],
                   visualization_path: Union[str, Path],
                   blackout: bool = False,
                   color: bool = True,
@@ -36,12 +36,14 @@ class TrackingTool(VideoTool):
         Applies color masks to the video and writes a new video.
 
         :param video_path: Path to original video.
-        :param mask_paths: List of paths to .mp4 video masks. Each mask is a video with white objects on a black background.
+        :param mask_paths: Single or list of paths to .mp4 video masks.
         :param visualization_path: Path to save the output video.
         :param blackout: Whether to black out the background.
         :param color: Whether to color each mask.
         :param labels: Whether to draw labels.
         """
+        if not isinstance(mask_paths, list):
+            mask_paths = [mask_paths]
         mask_paths = [Path(p) for p in mask_paths]
         for path in mask_paths:
             if not path.suffix == ".mp4":
@@ -109,7 +111,6 @@ class TrackingTool(VideoTool):
                         if blackout:
                             background[binary_mask] = frame[binary_mask]
 
-
                 if color:
                     overlay = cv2.addWeighted(background, 1.0, composite_mask, 0.5, 0)
                 else:
@@ -161,4 +162,3 @@ class TrackingTool(VideoTool):
                 thickness=1,
                 lineType=cv2.LINE_AA,
             )
-

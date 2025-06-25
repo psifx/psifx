@@ -63,7 +63,7 @@ Let's begin by installing up psifx and getting the example video from the git re
    ```
 2. Create a dedicated `conda` environment:
    ```bash
-   conda create -y -n psifx-env python=3.9 pip
+   conda create -y -n psifx-env python=3.11 pip
    conda activate psifx-env
    ```
 3. Install `psifx`:

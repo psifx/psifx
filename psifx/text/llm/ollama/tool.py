@@ -58,10 +58,10 @@ def pull_model(model: str):
             current_digest = data['digest']
             total_size = data['total']
             pbar = tqdm(total=total_size, desc=f"{data['status']}", unit="B", unit_scale=True)
-
-        completed_size = data.get('completed', 0)
-        pbar.n = completed_size
-        pbar.refresh()
+        if pbar is not None:
+            completed_size = data.get('completed', 0) or 0
+            pbar.n = completed_size
+            pbar.refresh()
 
     if pbar:
         pbar.close()

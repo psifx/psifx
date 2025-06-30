@@ -37,7 +37,6 @@ jobs:
         run: |
           docker build \
             --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
-            --build-arg HF_TOKEN=${{ secrets.HF_TOKEN }} \
             -t psifx-test:${{ matrix.python-version }} .
 
       - name: Start container

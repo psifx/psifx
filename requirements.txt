@@ -1,24 +1,42 @@
-absolutely-not-scikit-video
-ffmpeg-python
-matplotlib <= 3.8.4
-mediapipe
+# Audio Processing
 openai-whisper
 opensmile
 pyannote.audio
 pydub
-speechbrain <= 0.5.16
+speechbrain
+
+# Video Processing
+absolutely-not-scikit-video
+ffmpeg-python
+mediapipe
+
+# Computer Vision
+sam-2 @ git+https://github.com/yangchris11/samurai.git@76ba195#egg=sam-2&subdirectory=sam2
+ultralytics
+
+# Deep Learning and Torch Ecosystem
 torch
 torchvision
 torchaudio
-tqdm
-transformers >= 4.41.0
-huggingface_hub
 accelerate
 bitsandbytes
+
+# Transformers and Hugging Face Ecosystem
+transformers >= 4.41.0
+huggingface_hub
+
+# LangChain and LLM Integration
 langchain
 langchain-community
 langchain-anthropic
 langchain-openai
 langchain-ollama
-nltk
 ollama
+
+# Utilities
+matplotlib <= 3.8.4
+nltk
+platformdirs
+tqdm
+loguru
+decord

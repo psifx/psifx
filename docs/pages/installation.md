@@ -36,7 +36,7 @@ We recommend using Docker for reducing compatibility issues.
    ```
 2. Create a dedicated `conda` environment following the instructions in that order:
    ```bash
-   conda create -y -n psifx-env python=3.9 pip
+   conda create -y -n psifx-env python=3.11 pip
    conda activate psifx-env
    ```
 3. Install `psifx`:

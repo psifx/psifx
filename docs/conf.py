@@ -42,6 +42,14 @@ extensions = [
     "sphinxcontrib.autoprogram",
 ]
 
+autodoc_mock_imports = [
+    "mediapipe.tasks.vision.face_detector.proto",
+    "mediapipe.tasks.vision.face_detector",
+    "mediapipe.tasks.vision",
+    "mediapipe.tasks",
+    "mediapipe"
+]
+
 templates_path = ["_templates"]
 exclude_patterns = []
 

@@ -20,6 +20,14 @@ jobs:
         with:
           python-version: '3.11'
       -
+        name: free-up-space
+        run: |
+          echo "Disk usage before cleanup:"
+          df -h
+          sudo rm -rf /opt/hostedtoolcache /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm
+          echo "Disk usage after cleanup:"
+          df -h
+      -
         name: install-packages
         id: install-packages
         run: |

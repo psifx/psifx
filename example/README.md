@@ -189,6 +189,14 @@ psifx audio diarization pyannote inference \
     --diarization Diarization.rttm
 ```
 
+### Diarization Visualization
+Generate a visual timeline of speaker segments.
+```bash
+psifx audio diarization visualization \
+    --diarization Diarization.rttm \
+    --visualization VisualizationDiarization.png
+```
+
 ### Speaker Identification
 Associates speakers in a mixed audio file with known audio samples.
 ```bash
@@ -202,7 +210,7 @@ psifx audio identification pyannote inference \
 ### Speech Transcription
 Transcribe speech in the audio file to text.
 ```bash
-psifx audio transcription whisper openai inference \
+psifx audio transcription whisperx inference \
     --audio Audio.wav \
     --transcription Transcription.vtt
 ```
@@ -215,14 +223,6 @@ psifx audio transcription enhance \
     --diarization Diarization.rttm \
     --identification Identification.json \
     --enhanced_transcription TranscriptionEnhanced.vtt
-```
-
-### Diarization Visualization
-Generate a visual timeline of speaker segments.
-```bash
-psifx audio diarization visualization \
-    --diarization Diarization.rttm \
-    --visualization VisualizationDiarization.png
 ```
 
 ## Process text

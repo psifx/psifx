@@ -1,5 +1,5 @@
 # Audio Processing
-openai-whisper
+whisperx
 opensmile
 pyannote.audio
 pydub

@@ -1,6 +1,7 @@
 """MediaPipe pose estimation command-line interface."""
 
 import argparse
+import sys
 import tempfile
 from pathlib import Path
 
@@ -192,6 +193,17 @@ class MediaPipeMultiInferenceCommand(Command):
             required=True,
             help="list of path to mask directories or individual .mp4 mask files",
         )
+
+        def custom_error(message):
+            parser.print_usage(sys.stderr)
+            args = {'prog': parser.prog, 'message': message}
+            sys.stderr.write('%(prog)s: error: %(message)s\n' % args)
+            if 'masks' in message:
+                sys.stderr.write("run psifx tracking samurai inference to get masks\n")
+            parser.exit(2)
+
+        parser.error = custom_error
+
         parser.add_argument(
             "--mask_threshold",
             type=float,

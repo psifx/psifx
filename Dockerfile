@@ -33,7 +33,6 @@ RUN apt-get -y update && \
     apt-get -y clean
 
 ARG PYTHON_VERSION=3.11
-ARG HF_TOKEN
 
 ARG CONDA_URL="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
 ARG USERNAME="root"
@@ -42,7 +41,6 @@ ARG CONDA_PREFIX="$HOME/conda"
 ARG OPENFACE_PREFIX="$HOME/openface"
 ARG PSIFX_PREFIX="$HOME/psifx"
 ENV PATH="$CONDA_PREFIX/bin:$CONDA_PREFIX/condabin:$OPENFACE_PREFIX/build/bin:${PATH}"
-ENV HF_TOKEN=$HF_TOKEN
 
 COPY . $PSIFX_PREFIX
 RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \

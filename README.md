@@ -11,7 +11,7 @@ The framework contains an array of tools for tasks, such as speaker diarization,
 The package has been designed with a modular and task-oriented approach, enabling the community to add or update new tools easily.
 We strongly hope that this package will provide psychologists a simple and practical solution for efficiently a range of audio, linguistic, and visual features from audio and video, thereby creating new opportunities for in-depth study of real-time behavioral phenomena.*
 
-https://github.com/user-attachments/assets/f33cdac0-57f6-4936-acb2-8866ccfea7b2
+https://github.com/user-attachments/assets/263affe8-f435-42ee-84c9-cabc1f19efde
 
 This demo clip is not intended for commercial use, and is solely for demonstration in an academic or research context.
 

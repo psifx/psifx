@@ -49,10 +49,15 @@ RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
     curl -sSf $CONDA_URL -o $HOME/miniconda.sh && \
     bash $HOME/miniconda.sh -b -p $CONDA_PREFIX && \
     rm $HOME/miniconda.sh && \
-    conda update -y -c defaults conda && \
-    conda install -y python=$PYTHON_VERSION pip && \
-    pip cache purge && \
-    conda clean -y --all && \
+    $CONDA_PREFIX/bin/conda config --set always_yes yes && \
+    $CONDA_PREFIX/bin/conda config --set channel_priority strict && \
+    $CONDA_PREFIX/bin/conda config --add channels defaults && \
+    $CONDA_PREFIX/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main && \
+    $CONDA_PREFIX/bin/conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r && \
+    $CONDA_PREFIX/bin/conda update -y conda && \
+    $CONDA_PREFIX/bin/conda install -y python=$PYTHON_VERSION pip && \
+    $CONDA_PREFIX/bin/pip cache purge && \
+    $CONDA_PREFIX/bin/conda clean -y --all && \
     wget https://raw.githubusercontent.com/GuillaumeRochette/OpenFace/master/install.py && \
     python install.py \
         --license_accepted \

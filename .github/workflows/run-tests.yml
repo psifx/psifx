@@ -12,6 +12,7 @@ on:
       - main
     paths:
       - 'psifx/**'
+  workflow_dispatch:
 
 
 jobs:

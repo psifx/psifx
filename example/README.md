@@ -102,6 +102,23 @@ Let's begin by installing up psifx and getting the example video from the git re
 The video setting feature a staged discussion between two individuals.
 To simplify the workflow only one point of view is provided.
 
+
+### Tracking
+To track and segment the individual, and to produce the associated segmentation mask.
+```bash
+psifx video tracking samurai inference \
+    --video Video.mp4 \
+    --mask_dir masks --overwrite
+```
+To visualize the tracking / segmentation masks:
+
+```bash
+psifx video tracking visualization \
+    --video Video.mp4 \
+    --masks masks \
+    --visualization VisualizationTracking.mp4 --overwrite
+```
+
 ### Pose
 Detect and analyze human poses using MediaPipe.
 ```bash

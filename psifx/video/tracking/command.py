@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from psifx.utils.command import Command, register_command
-from psifx.video.tracking.samurai.command import SamuraiCommand
+from psifx.video.tracking.sam3.command import Sam3Command
 from psifx.video.tracking.tool import TrackingTool
 
 
@@ -24,7 +24,7 @@ class TrackingCommand(Command):
         """
         subparsers = parser.add_subparsers(title="available commands")
 
-        register_command(subparsers, "samurai", SamuraiCommand)
+        register_command(subparsers, "sam3", Sam3Command)
         register_command(subparsers, "visualization", VisualizationTrackingCommand)
 
     @staticmethod
@@ -114,6 +114,8 @@ class VisualizationTrackingCommand(Command):
             action=argparse.BooleanOptionalAction,
             help="verbosity of the script",
         )
+        
+        
 
     @staticmethod
     def execute(parser: argparse.ArgumentParser, args: argparse.Namespace):

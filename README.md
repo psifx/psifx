@@ -19,10 +19,10 @@ This demo clip is not intended for commercial use, and is solely for demonstrati
 
 Visit https://psifx.github.io/psifx/
 
-arXiv preprint:  https://www.arxiv.org/abs/2407.10266
+arXiv preprint:  https://www.arxiv.org/abs/2407.10266```
 
 
-# Setup Instructions for psifx with Local SAM3 Model
+# Setup Instructions for psifx with Local SAM3 Model```
 
 ## 1. Clone the SAM3 Model Locally
 
@@ -71,5 +71,7 @@ conda activate psifx-env
 ## 6. Install psifx
 ```bash
 cd /home/[user_name]/psifx
+```
 ```bash
 pip install .
+```

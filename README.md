@@ -64,14 +64,10 @@ sudo apt install ffmpeg ubuntu-restricted-extras
 
 ```bash
 conda create -y -n psifx-env python=3.11 pip
-```
-```bash
 conda activate psifx-env
 ```
 ## 6. Install psifx
 ```bash
 cd /home/[user_name]/psifx
-```
-```bash
 pip install .
 ```

@@ -36,6 +36,7 @@ Note: Facebook requires ethical approval to download or access the model online.
 
 ```bash
 git clone https://github.com/BogdanvL/psifx.git
+```
 
 ## 3. Configure SAM3 Path
 
@@ -47,24 +48,26 @@ Update the SAM3_PATH variable to point to your local SAM3 directory:
 
 ```python
 SAM3_PATH = "/home/[user_name]/path/to/sam3"
-
+```
 The default value is:
 
 ```python
 SAM3_PATH = "facebook/sam3"
-
+```
 This requires automatic authorization via Hugging Face.
 
 ## 4. Install System Dependencies
+```bash
 sudo apt install ffmpeg ubuntu-restricted-extras
-
+```
 ## 5. Create and Activate Conda Environment
 
 ```bash
 conda create -y -n psifx-env python=3.11 pip
+```
 ```bash
 conda activate psifx-env
-
+```
 ## 6. Install psifx
 ```bash
 cd /home/[user_name]/psifx

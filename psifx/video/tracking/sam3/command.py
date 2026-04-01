@@ -1,10 +1,12 @@
 """sam3 tracking command-line interface."""
 
 import argparse
+import os
 from pathlib import Path
 
 import torch
 
+from psifx.utils.constants import SAM3_PATH
 from psifx.utils.command import Command, register_command
 from psifx.video.tracking.sam3.tool import Sam3TrackingTool
 
@@ -92,6 +94,18 @@ class Sam3InferenceCommand(Command):
             help="device on which to run the inference, either 'cpu' or 'cuda'",
         )
         parser.add_argument(
+            "--model_path",
+            type=str,
+            default=SAM3_PATH,
+            help="SAM3 model id or local path (e.g. 'facebook/sam3' or '/path/to/sam3')",
+        )
+        parser.add_argument(
+            "--api_token",
+            type=str,
+            default=os.environ.get("HF_TOKEN"),
+            help="Hugging Face token (defaults to HF_TOKEN env var when available)",
+        )
+        parser.add_argument(
             "--overwrite",
             default=False,
             action=argparse.BooleanOptionalAction,
@@ -115,6 +129,8 @@ class Sam3InferenceCommand(Command):
         """
         tool = Sam3TrackingTool(
             device=args.device,
+            model_path=args.model_path,
+            api_token=args.api_token,
             overwrite=args.overwrite,
             verbose=args.verbose,
         )

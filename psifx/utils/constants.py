@@ -1,3 +1,7 @@
-"""paths with local version of models like SAM3. Defoulf using HugingFace online version"""
+"""Shared runtime constants."""
 
-SAM3_PATH = "facebook/sam3"
+import os
+
+
+# Allow overriding the default SAM3 model path without editing source files.
+SAM3_PATH = os.environ.get("SAM3_PATH", "facebook/sam3")

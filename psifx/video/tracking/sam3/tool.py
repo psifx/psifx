@@ -1,42 +1,61 @@
 """sam3 tracking tool."""
 
+from collections import deque
+from pathlib import Path
+from typing import Dict, Iterable, List, Tuple, Union
+
+import cv2
 import numpy as np
 import torch
 from PIL import Image
-import cv2
-from psifx.utils.constants import SAM3_PATH
-
-
 from transformers import Sam3VideoModel, Sam3VideoProcessor
 
-from typing import Union, Optional
-from pathlib import Path
-
 from psifx.io.video import VideoReader, VideoWriter
+from psifx.utils.constants import SAM3_PATH
 from psifx.video.tracking.tool import TrackingTool
 
 
 class Sam3TrackingTool(TrackingTool):
-    def __init__(self,
-                 device: str = "cpu",
-                 overwrite: bool = False,
-                 verbose: Union[bool, int] = True,
-                 ):
+    def __init__(
+        self,
+        device: str = "cpu",
+        model_path: str = SAM3_PATH,
+        api_token: str = None,
+        overwrite: bool = False,
+        verbose: Union[bool, int] = True,
+    ):
         super().__init__(
             device=device,
             overwrite=overwrite,
             verbose=verbose,
         )
+        self.compute_dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
+        self.model_path = model_path
+        # Keep raw video frames on CPU to cap CUDA memory usage for long clips.
+        self.video_storage_device = "cpu" if self.device == "cuda" else self.device
 
-        self.model = Sam3VideoModel.from_pretrained(SAM3_PATH).to(device, dtype=torch.bfloat16)
-        self.processor = Sam3VideoProcessor.from_pretrained(SAM3_PATH)
+        if self.verbose:
+            print(f"Loading SAM3 model from '{self.model_path}' on device '{self.device}'")
 
-    def infer(self,
-              video_path: Union[str, Path],
-              mask_dir: Union[str, Path],
-              text_prompt: str = 'people',
-              chunk_size: int = 300,
-              iou_threshold: float = 0.3):
+        try:
+            self.model = Sam3VideoModel.from_pretrained(self.model_path, token=api_token).to(
+                self.device, dtype=self.compute_dtype
+            )
+            self.processor = Sam3VideoProcessor.from_pretrained(self.model_path, token=api_token)
+        except Exception as exc:
+            raise RuntimeError(
+                "Failed to load SAM3 model. "
+                "Check model access/token, or pass a local model path with --model_path."
+            ) from exc
+
+    def infer(
+        self,
+        video_path: Union[str, Path],
+        mask_dir: Union[str, Path],
+        text_prompt: str = "people",
+        chunk_size: int = 300,
+        iou_threshold: float = 0.3,
+    ):
         """
         Perform text-based segmentation and tracking from a video file.
 
@@ -46,6 +65,9 @@ class Sam3TrackingTool(TrackingTool):
         :param chunk_size: Number of frames to process at once.
         :param iou_threshold: IoU threshold for stitching chunks together.
         """
+        if chunk_size <= 0:
+            raise ValueError(f"chunk_size must be > 0, got {chunk_size}.")
+
         mask_dir = Path(mask_dir)
         if mask_dir.exists() and any(mask_dir.iterdir()):
             if self.overwrite:
@@ -55,231 +77,266 @@ class Sam3TrackingTool(TrackingTool):
 
         mask_dir.mkdir(parents=True, exist_ok=True)
 
-        # Load video frames
-        frames = self._load_video_frames(video_path)
-
-        # Get frame rate for output
         with VideoReader(path=video_path) as video_reader:
             frame_rate = video_reader.frame_rate
 
-        # Segment video in chunks
-        chunked_outputs = self._segment_video(frames, text_prompt, chunk_size)
+        writers: Dict[int, VideoWriter] = {}
+        written_frames: Dict[int, int] = {}
+        next_global_id = 0
+        prev_last_global_masks: Dict[int, np.ndarray] = {}
+        frame_size: Tuple[int, int] = (0, 0)
+        processed_frame_count = 0
 
-        # Stitch chunks with consistent IDs
-        id_mappings = self._stitch_chunks(chunked_outputs, iou_threshold)
+        try:
+            for start_frame, chunk in self._iter_video_chunks(video_path, chunk_size):
+                if not frame_size[0] and not frame_size[1]:
+                    frame_size = chunk[0].size
 
-        # Build unified output
-        unified = self._build_unified_output(chunked_outputs, id_mappings)
+                # If a chunk still OOMs, split and retry recursively in-order.
+                pending_subchunks = deque([(start_frame, chunk)])
 
-        # Write masks to separate videos
-        self._write_masks(unified, mask_dir, frame_rate, frames[0].size)
+                while pending_subchunks:
+                    sub_start_frame, sub_chunk = pending_subchunks.popleft()
 
-    def _load_video_frames(self, video_path):
-        """Load video frames as PIL Images."""
-        cap = cv2.VideoCapture(str(video_path))
-        frames = []
-        while True:
-            ret, frame = cap.read()
-            if not ret:
-                break
-            frames.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
-        cap.release()
-        return frames
+                    try:
+                        chunk_outputs = self._segment_chunk(sub_chunk, text_prompt)
+                    except RuntimeError as exc:
+                        if self._is_cuda_oom(exc) and self.device == "cuda" and len(sub_chunk) > 1:
+                            self._clear_cuda_memory()
+                            split_idx = len(sub_chunk) // 2
+                            first_half = sub_chunk[:split_idx]
+                            second_half = sub_chunk[split_idx:]
+                            pending_subchunks.appendleft((sub_start_frame + split_idx, second_half))
+                            pending_subchunks.appendleft((sub_start_frame, first_half))
+                            if self.verbose:
+                                print(
+                                    "CUDA OOM while processing frames "
+                                    f"{sub_start_frame}-{sub_start_frame + len(sub_chunk) - 1}; "
+                                    f"retrying as chunks of {len(first_half)} and {len(second_half)} frames."
+                                )
+                            continue
+                        raise
 
-    def _segment_video(self, frames, text_prompt, chunk_size):
-        """Segment video in chunks."""
-        chunked_outputs = []
+                    id_mapping, next_global_id = self._map_chunk_object_ids(
+                        chunk_outputs=chunk_outputs,
+                        prev_last_global_masks=prev_last_global_masks,
+                        iou_threshold=iou_threshold,
+                        next_global_id=next_global_id,
+                    )
 
-        for start in range(0, len(frames), chunk_size):
-            chunk = frames[start:start + chunk_size]
+                    self._write_chunk_masks(
+                        chunk_outputs=chunk_outputs,
+                        id_mapping=id_mapping,
+                        writers=writers,
+                        written_frames=written_frames,
+                        mask_dir=mask_dir,
+                        frame_rate=frame_rate,
+                        frame_size=frame_size,
+                        start_frame=sub_start_frame,
+                    )
 
-            session = self.processor.init_video_session(
-                video=chunk,
-                inference_device=self.device,
-                processing_device=self.device,
-                video_storage_device=self.device,
-                dtype=torch.bfloat16,
-            )
-            self.processor.add_text_prompt(session, text_prompt)
+                    prev_last_global_masks = self._extract_last_global_masks(chunk_outputs, id_mapping)
+                    processed_frame_count += len(sub_chunk)
 
-            chunk_outputs = {
-                'start_frame': start,
-                'end_frame': start + len(chunk),
-                'frames': {}
-            }
+                    del chunk_outputs
+                    if self.device == "cuda":
+                        self._clear_cuda_memory()
+        finally:
+            for writer in writers.values():
+                writer.close()
 
-            for out in self.model.propagate_in_video_iterator(session, max_frame_num_to_track=len(chunk)):
-                chunk_outputs['frames'][out.frame_idx] = self.processor.postprocess_outputs(session, out)
-
-            chunked_outputs.append(chunk_outputs)
-
-            del session
-            if self.device == "cuda":
-                torch.cuda.empty_cache()
-
-        return chunked_outputs
+        if processed_frame_count == 0:
+            raise ValueError(f"No frames found in input video: {video_path}")
+        if not writers:
+            print("No masks to write.")
 
     @staticmethod
-    def _compute_mask_iou(mask1, mask2):
-        """Compute IoU between two binary masks."""
-        intersection = (mask1 & mask2).sum()
-        union = (mask1 | mask2).sum()
-        return intersection / union if union > 0 else 0
+    def _iter_video_chunks(
+        video_path: Union[str, Path], chunk_size: int
+    ) -> Iterable[Tuple[int, List[Image.Image]]]:
+        cap = cv2.VideoCapture(str(video_path))
+        if not cap.isOpened():
+            raise ValueError(f"Failed to open video for reading: {video_path}")
 
-    def _stitch_chunks(self, chunked_outputs, iou_threshold):
-        """Stitch chunks with consistent global IDs."""
-        if len(chunked_outputs) <= 1:
-            if len(chunked_outputs) == 0:
-                return []
-            # Single chunk: map all object IDs
-            id_mapping = {}
-            next_global_id = 0
-            for frame_out in chunked_outputs[0]['frames'].values():
-                for obj_id in frame_out['object_ids'].tolist():
-                    if obj_id not in id_mapping:
-                        id_mapping[obj_id] = next_global_id
-                        next_global_id += 1
-            return [id_mapping]
-
-        id_mappings = [{} for _ in chunked_outputs]
-        next_global_id = 0
-
-        # First chunk: map ALL object IDs from all frames
-        for frame_out in chunked_outputs[0]['frames'].values():
-            for obj_id in frame_out['object_ids'].tolist():
-                if obj_id not in id_mappings[0]:
-                    id_mappings[0][obj_id] = next_global_id
-                    next_global_id += 1
-
-        # Match subsequent chunks
-        for i in range(1, len(chunked_outputs)):
-            prev_chunk = chunked_outputs[i - 1]
-            curr_chunk = chunked_outputs[i]
-
-            prev_last_idx = max(prev_chunk['frames'].keys())
-
-            # Find first frame with detections
-            curr_first_idx = None
-            for f in sorted(curr_chunk['frames'].keys()):
-                if len(curr_chunk['frames'][f]['object_ids']) > 0:
-                    curr_first_idx = f
+        chunk: List[Image.Image] = []
+        start_frame = 0
+        try:
+            while True:
+                ret, frame = cap.read()
+                if not ret:
                     break
 
-            if curr_first_idx is None:
-                continue
+                chunk.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+                if len(chunk) >= chunk_size:
+                    yield start_frame, chunk
+                    start_frame += len(chunk)
+                    chunk = []
 
-            prev_out = prev_chunk['frames'][prev_last_idx]
-            curr_out = curr_chunk['frames'][curr_first_idx]
+            if chunk:
+                yield start_frame, chunk
+        finally:
+            cap.release()
 
-            prev_masks = prev_out['masks']
-            curr_masks = curr_out['masks']
-            prev_ids = prev_out['object_ids'].tolist()
-            curr_ids = curr_out['object_ids'].tolist()
+    def _segment_chunk(self, chunk: List[Image.Image], text_prompt: str):
+        chunk_outputs = {idx: {"object_ids": [], "masks": []} for idx in range(len(chunk))}
 
-            # Match current chunk's first frame objects to prev chunk's last frame
-            for ci, curr_id in enumerate(curr_ids):
-                best_iou, best_prev_id = 0, None
-                for pi, prev_id in enumerate(prev_ids):
-                    iou = self._compute_mask_iou(prev_masks[pi], curr_masks[ci])
-                    if iou > best_iou:
-                        best_iou, best_prev_id = iou, prev_id
+        session = self.processor.init_video_session(
+            video=chunk,
+            inference_device=self.device,
+            processing_device=self.device,
+            video_storage_device=self.video_storage_device,
+            dtype=self.compute_dtype,
+        )
+        try:
+            self.processor.add_text_prompt(session, text_prompt)
+            for out in self.model.propagate_in_video_iterator(session, max_frame_num_to_track=len(chunk)):
+                processed = self.processor.postprocess_outputs(session, out)
+                object_ids = self._to_int_list(processed["object_ids"])
+                masks = self._to_bool_mask_list(processed["masks"])
+                chunk_outputs[out.frame_idx] = {"object_ids": object_ids, "masks": masks}
+        finally:
+            del session
 
-                if best_iou >= iou_threshold and best_prev_id in id_mappings[i-1]:
-                    id_mappings[i][curr_id] = id_mappings[i-1][best_prev_id]
-                else:
-                    id_mappings[i][curr_id] = next_global_id
-                    next_global_id += 1
-
-            # Map remaining object IDs from other frames in this chunk
-            for frame_out in curr_chunk['frames'].values():
-                for obj_id in frame_out['object_ids'].tolist():
-                    if obj_id not in id_mappings[i]:
-                        id_mappings[i][obj_id] = next_global_id
-                        next_global_id += 1
-
-        return id_mappings
+        return chunk_outputs
 
     @staticmethod
-    def _build_unified_output(chunked_outputs, id_mappings):
-        """
-        Build unified output with consistent global IDs across all frames.
-        Returns: {global_frame_idx: {global_obj_id: mask, ...}, ...}
-        """
-        # First pass: find all global IDs that ever appear
-        all_global_ids = set()
-        for mapping in id_mappings:
-            all_global_ids.update(mapping.values())
+    def _to_int_list(ids) -> List[int]:
+        if isinstance(ids, torch.Tensor):
+            values = ids.detach().cpu().tolist()
+        else:
+            values = np.asarray(ids).tolist()
+        return [int(value) for value in values]
 
-        unified = {}
+    @staticmethod
+    def _to_bool_mask_list(masks) -> List[np.ndarray]:
+        if isinstance(masks, torch.Tensor):
+            return [mask.detach().cpu().numpy().astype(bool) for mask in masks]
+        return [np.asarray(mask).astype(bool) for mask in masks]
 
-        for chunk_idx, chunk in enumerate(chunked_outputs):
-            mapping = id_mappings[chunk_idx]
-            start_frame = chunk['start_frame']
+    @staticmethod
+    def _compute_mask_iou(mask1: np.ndarray, mask2: np.ndarray) -> float:
+        """Compute IoU between two binary masks."""
+        intersection = np.logical_and(mask1, mask2).sum()
+        union = np.logical_or(mask1, mask2).sum()
+        return float(intersection / union) if union > 0 else 0.0
 
-            for local_frame_idx, frame_out in chunk['frames'].items():
-                global_frame_idx = start_frame + local_frame_idx
+    def _map_chunk_object_ids(
+        self,
+        chunk_outputs: Dict[int, Dict[str, List]],
+        prev_last_global_masks: Dict[int, np.ndarray],
+        iou_threshold: float,
+        next_global_id: int,
+    ) -> Tuple[Dict[int, int], int]:
+        id_mapping: Dict[int, int] = {}
 
-                # Skip if we already have this frame (from overlap)
-                if global_frame_idx in unified:
-                    continue
+        curr_first_with_objects = None
+        for frame_idx in sorted(chunk_outputs.keys()):
+            frame_out = chunk_outputs[frame_idx]
+            if frame_out["object_ids"]:
+                curr_first_with_objects = frame_out
+                break
 
-                # Init with None for all known objects
-                unified[global_frame_idx] = {gid: None for gid in all_global_ids}
+        if curr_first_with_objects and prev_last_global_masks:
+            used_global_ids = set()
+            curr_ids = curr_first_with_objects["object_ids"]
+            curr_masks = curr_first_with_objects["masks"]
+            for curr_id, curr_mask in zip(curr_ids, curr_masks):
+                best_iou = 0.0
+                best_global_id = None
+                for global_id, prev_mask in prev_last_global_masks.items():
+                    if global_id in used_global_ids:
+                        continue
+                    iou = self._compute_mask_iou(prev_mask, curr_mask)
+                    if iou > best_iou:
+                        best_iou = iou
+                        best_global_id = global_id
 
-                # Fill in detected masks
-                obj_ids = frame_out['object_ids'].tolist()
-                masks = frame_out['masks']
+                if best_global_id is not None and best_iou >= iou_threshold:
+                    id_mapping[curr_id] = best_global_id
+                    used_global_ids.add(best_global_id)
 
-                for i, local_id in enumerate(obj_ids):
-                    if local_id in mapping:
-                        global_id = mapping[local_id]
-                        unified[global_frame_idx][global_id] = masks[i]
+        for frame_idx in sorted(chunk_outputs.keys()):
+            frame_out = chunk_outputs[frame_idx]
+            for obj_id in frame_out["object_ids"]:
+                if obj_id not in id_mapping:
+                    id_mapping[obj_id] = next_global_id
+                    next_global_id += 1
 
-        # Sort by frame index
-        unified = dict(sorted(unified.items()))
+        return id_mapping, next_global_id
 
-        return unified
+    @staticmethod
+    def _extract_last_global_masks(
+        chunk_outputs: Dict[int, Dict[str, List]], id_mapping: Dict[int, int]
+    ) -> Dict[int, np.ndarray]:
+        for frame_idx in sorted(chunk_outputs.keys(), reverse=True):
+            frame_out = chunk_outputs[frame_idx]
+            if not frame_out["object_ids"]:
+                continue
 
-    def _write_masks(self, unified, mask_dir, frame_rate, frame_size):
-        """Write masks to separate video files for each object."""
-        if not unified:
-            print("No masks to write.")
-            return
+            global_masks = {}
+            for local_id, local_mask in zip(frame_out["object_ids"], frame_out["masks"]):
+                if local_id in id_mapping:
+                    global_masks[id_mapping[local_id]] = local_mask
+            return global_masks
+        return {}
 
-        # Get all object IDs
-        all_obj_ids = set()
-        for frame_data in unified.values():
-            all_obj_ids.update(frame_data.keys())
-
-        # Create a video writer for each object
-        writers = {}
-        for obj_id in all_obj_ids:
-            writers[obj_id] = VideoWriter(
-                path=mask_dir / f"{obj_id}.mp4",
-                input_dict={"-r": frame_rate},
-                output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
-                overwrite=self.overwrite,
-            )
-
-        # Write frames
+    def _write_chunk_masks(
+        self,
+        chunk_outputs: Dict[int, Dict[str, List]],
+        id_mapping: Dict[int, int],
+        writers: Dict[int, VideoWriter],
+        written_frames: Dict[int, int],
+        mask_dir: Path,
+        frame_rate,
+        frame_size: Tuple[int, int],
+        start_frame: int,
+    ):
         width, height = frame_size
-        for frame_idx in sorted(unified.keys()):
-            frame_data = unified[frame_idx]
+        empty_mask_rgb = np.zeros((height, width, 3), dtype=np.uint8)
 
-            for obj_id in all_obj_ids:
-                data_tens = frame_data.get(obj_id)
-                
-                mask = data_tens.detach().cpu().numpy()
+        for local_frame_idx in sorted(chunk_outputs.keys()):
+            global_frame_idx = start_frame + local_frame_idx
+            frame_out = chunk_outputs[local_frame_idx]
 
-                if mask is not None:
-                    # Convert boolean mask to RGB
-                    mask_rgb = np.repeat((mask * 255).astype(np.uint8)[..., np.newaxis], 3, axis=-1)
+            masks_by_global_id: Dict[int, np.ndarray] = {}
+            for local_obj_id, local_mask in zip(frame_out["object_ids"], frame_out["masks"]):
+                global_obj_id = id_mapping.get(local_obj_id)
+                if global_obj_id is not None:
+                    masks_by_global_id[global_obj_id] = local_mask
+
+            for global_obj_id in sorted(masks_by_global_id.keys()):
+                if global_obj_id in writers:
+                    continue
+                writers[global_obj_id] = VideoWriter(
+                    path=mask_dir / f"{global_obj_id}.mp4",
+                    input_dict={"-r": frame_rate},
+                    output_dict={"-c:v": "libx264", "-crf": "0", "-pix_fmt": "yuv420p"},
+                    overwrite=self.overwrite,
+                )
+                written_frames[global_obj_id] = 0
+
+                # Back-fill earlier frames so all mask videos keep identical frame counts.
+                for _ in range(global_frame_idx):
+                    writers[global_obj_id].write(image=empty_mask_rgb)
+                    written_frames[global_obj_id] += 1
+
+            for global_obj_id, writer in sorted(writers.items()):
+                mask = masks_by_global_id.get(global_obj_id)
+                if mask is None:
+                    mask_rgb = empty_mask_rgb
                 else:
-                    # Empty mask
-                    mask_rgb = np.zeros((height, width, 3), dtype=np.uint8)
+                    mask_uint8 = (mask.astype(np.uint8) * 255)
+                    mask_rgb = np.repeat(mask_uint8[..., np.newaxis], 3, axis=-1)
+                writer.write(image=mask_rgb)
+                written_frames[global_obj_id] += 1
 
-                writers[obj_id].write(image=mask_rgb)
+    @staticmethod
+    def _is_cuda_oom(exc: RuntimeError) -> bool:
+        message = str(exc).lower()
+        return "cuda" in message and "out of memory" in message
 
-        # Close all writers
-        for writer in writers.values():
-            writer.close()
+    @staticmethod
+    def _clear_cuda_memory():
+        torch.cuda.empty_cache()
+        if hasattr(torch.cuda, "ipc_collect"):
+            torch.cuda.ipc_collect()

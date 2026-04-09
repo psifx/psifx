@@ -104,12 +104,19 @@ To simplify the workflow only one point of view is provided.
 
 
 ### Tracking
-To track and segment the individual, and to produce the associated segmentation mask.
+To track and segment individuals with SAM3, and produce segmentation masks.
 ```bash
-psifx video tracking samurai inference \
+psifx video tracking sam3 inference \
     --video Video.mp4 \
-    --mask_dir masks --overwrite
+    --mask_dir masks \
+    --text_prompt "people" \
+    --chunk_size 300 \
+    --iou_threshold 0.3 \
+    --device cuda \
+    --overwrite
 ```
+For very long videos or limited GPU memory, reduce `--chunk_size` (for example `64` or `128`).
+
 To visualize the tracking / segmentation masks:
 
 ```bash

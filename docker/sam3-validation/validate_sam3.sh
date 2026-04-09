@@ -155,11 +155,11 @@ fi
   echo "cpu_mask_count=${cpu_mask_count}"
 } > "${SUMMARY}"
 
-python - <<'PY' >> "${SUMMARY}"
+python - <<PY >> "${SUMMARY}"
 from pathlib import Path
 import cv2
 
-work = Path("/workspace/sam3_test_outputs/stable-run")
+work = Path("${WORK_DIR}")
 for name in ["masks-gpu", "masks-cpu"]:
     d = work / name
     if not d.exists():
@@ -180,4 +180,3 @@ fi
 if [[ "${cpu_status}" -ne 0 ]]; then
   exit "${cpu_status}"
 fi
-

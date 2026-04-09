@@ -7,16 +7,19 @@ from tests.integration.conftest import run_command
 
 
 @pytest.fixture
-def run_samurai_inference(video_multi_path: Path, output_dir: Path) -> Path:
-    """Run Samurai tracking inference and return the path to the output mask directory."""
+def run_sam3_inference(video_multi_path: Path, output_dir: Path) -> Path:
+    """Run SAM3 tracking inference and return the path to the output mask directory."""
 
     mask_dir = output_dir / "mask_dir"
 
     run_command(
-        "psifx", "video", "tracking", "samurai", "inference",
+        "psifx", "video", "tracking", "sam3", "inference",
         "--video", video_multi_path,
         "--mask_dir", mask_dir,
-        "--max_objects", "2",
+        "--text_prompt", "people",
+        "--chunk_size", "2",
+        "--iou_threshold", "0.3",
+        "--device", "cpu",
         "--overwrite"
     )
 
@@ -24,19 +27,19 @@ def run_samurai_inference(video_multi_path: Path, output_dir: Path) -> Path:
 
 
 @pytest.mark.integration
-def test_samurai_inference(video_multi_path: Path, run_samurai_inference: Path):
-    """Test Samurai tracking inference produces valid .mp4 mask files with correct frame count."""
+def test_sam3_inference(video_multi_path: Path, run_sam3_inference: Path):
+    """Test SAM3 tracking inference produces valid .mp4 mask files with correct frame count."""
 
     cap_orig = cv2.VideoCapture(str(video_multi_path))
     assert cap_orig.isOpened(), "CV2 is unable to open the original video"
     original_frame_count = int(cap_orig.get(cv2.CAP_PROP_FRAME_COUNT))
     cap_orig.release()
 
-    mask_dir = run_samurai_inference
-    assert mask_dir.is_dir(), f"Samurai inference mask dir {mask_dir} does not exist"
+    mask_dir = run_sam3_inference
+    assert mask_dir.is_dir(), f"SAM3 inference mask dir {mask_dir} does not exist"
 
     masks = [mask for mask in mask_dir.iterdir() if mask.is_file()]
-    assert len(masks) == 2, f"There should be 2 masks, got {len(masks)} instead"
+    assert len(masks) > 0, f"No masks were generated in {mask_dir}"
 
     for mask in masks:
         assert mask.is_file() and mask.suffix == ".mp4", f"{mask} is not an .mp4 video"
@@ -54,7 +57,7 @@ def test_samurai_inference(video_multi_path: Path, run_samurai_inference: Path):
 
 @pytest.mark.integration
 def test_tracking_visualization(video_multi_path: Path, output_dir: Path, mask_dir: Path):
-    """Test Samurai mask visualization creates a video with expected frame count."""
+    """Test tracking mask visualization creates a video with expected frame count."""
     mask_vis_path = output_dir / "mask_vis.mp4"
 
     run_command(

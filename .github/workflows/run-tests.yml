@@ -41,20 +41,25 @@ jobs:
             -t psifx-test:${{ matrix.python-version }} .
 
       - name: Start container
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          HF_TOKEN_SAM3: ${{ secrets.HF_TOKEN_SAM3 }}
         run: |
+          TOKEN="${HF_TOKEN_SAM3:-$HF_TOKEN}"
           docker run -dit --name test-container \
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
-            -e HF_TOKEN=${{ secrets.HF_TOKEN }} \
+            -e HF_TOKEN="$TOKEN" \
             psifx-test:${{ matrix.python-version }}
-
+      
       - name: Install requirements
         run: |
           docker exec test-container pip install -r requirements-dev.txt
-
+      
       - name: Run tests
         run: |
           docker exec test-container pytest -rs tests
+
 
       - name: Stop and remove container
         if: always()

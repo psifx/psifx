@@ -47,10 +47,16 @@ class PyannoteDiarizationTool(DiarizationTool):
         self._register_torch_safe_globals()
         patch_hf_hub_download_use_auth_token()
 
-        self.model: Pipeline = Pipeline.from_pretrained(
+        model = Pipeline.from_pretrained(
             checkpoint_path=model_name,
             use_auth_token=self.api_token,
-        ).to(device=torch.device(device))
+        )
+        if model is None:
+            raise PermissionError(
+                "Could not load pyannote diarization model. Ensure HF_TOKEN is valid and "
+                "the token account accepted pyannote model terms on Hugging Face."
+            )
+        self.model: Pipeline = model.to(device=torch.device(device))
 
     def inference(
         self,

@@ -1,6 +1,8 @@
 """pyannote speaker diarization tool."""
+from collections import OrderedDict, defaultdict
 import os
 from typing import Optional, Union
+from typing import Any
 
 from pathlib import Path
 from tqdm import tqdm
@@ -11,6 +13,7 @@ from pyannote.core import Annotation
 
 from psifx.audio.diarization.tool import DiarizationTool
 from psifx.io import rttm, wav
+from psifx.utils.huggingface import patch_hf_hub_download_use_auth_token
 
 
 class PyannoteDiarizationTool(DiarizationTool):
@@ -40,11 +43,13 @@ class PyannoteDiarizationTool(DiarizationTool):
 
         self.model_name = model_name
         self.api_token = api_token or os.environ.get('HF_TOKEN')
+        os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
         self._register_torch_safe_globals()
+        patch_hf_hub_download_use_auth_token()
 
         self.model: Pipeline = Pipeline.from_pretrained(
             checkpoint_path=model_name,
-            use_auth_token=api_token,
+            use_auth_token=self.api_token,
         ).to(device=torch.device(device))
 
     def inference(
@@ -136,6 +141,28 @@ class PyannoteDiarizationTool(DiarizationTool):
             safe_globals.append(ContainerMetadata)
         except Exception:
             pass
+
+        try:
+            import omegaconf.base as omegaconf_base
+
+            safe_globals.extend(
+                value for value in vars(omegaconf_base).values() if isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        try:
+            import omegaconf.nodes as omegaconf_nodes
+
+            safe_globals.extend(
+                value
+                for name, value in vars(omegaconf_nodes).items()
+                if name.endswith("Node") and isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        safe_globals.extend([Any, list, dict, tuple, set, int, float, bool, str, bytes, OrderedDict, defaultdict])
 
         if safe_globals:
             add_safe_globals(safe_globals)

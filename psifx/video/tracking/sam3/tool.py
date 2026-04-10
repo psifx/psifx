@@ -1,8 +1,10 @@
 """sam3 tracking tool."""
 
 from collections import deque
+from collections import OrderedDict, defaultdict
+import os
 from pathlib import Path
-from typing import Dict, Iterable, List, Tuple, Union
+from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -31,6 +33,8 @@ class Sam3TrackingTool(TrackingTool):
         )
         self.compute_dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
         self.model_path = model_path
+        self.api_token = api_token or os.environ.get("HF_TOKEN")
+        os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
         # Keep raw video frames on CPU to cap GPU memory usage for long clips.
         self.video_storage_device = "cpu" if self.device == "cuda" else self.device
 
@@ -39,10 +43,10 @@ class Sam3TrackingTool(TrackingTool):
 
         try:
             self._register_torch_safe_globals()
-            self.model = Sam3VideoModel.from_pretrained(self.model_path, token=api_token).to(
+            self.model = Sam3VideoModel.from_pretrained(self.model_path, token=self.api_token).to(
                 self.device, dtype=self.compute_dtype
             )
-            self.processor = Sam3VideoProcessor.from_pretrained(self.model_path, token=api_token)
+            self.processor = Sam3VideoProcessor.from_pretrained(self.model_path, token=self.api_token)
         except Exception as exc:
             raise RuntimeError(
                 "Failed to load SAM3 model. "
@@ -369,6 +373,28 @@ class Sam3TrackingTool(TrackingTool):
             safe_globals.append(ContainerMetadata)
         except Exception:
             pass
+
+        try:
+            import omegaconf.base as omegaconf_base
+
+            safe_globals.extend(
+                value for value in vars(omegaconf_base).values() if isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        try:
+            import omegaconf.nodes as omegaconf_nodes
+
+            safe_globals.extend(
+                value
+                for name, value in vars(omegaconf_nodes).items()
+                if name.endswith("Node") and isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        safe_globals.extend([Any, list, dict, tuple, set, int, float, bool, str, bytes, OrderedDict, defaultdict])
 
         if safe_globals:
             add_safe_globals(safe_globals)

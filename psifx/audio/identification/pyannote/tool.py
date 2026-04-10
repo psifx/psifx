@@ -1,6 +1,8 @@
 """pyannote speaker identification tool."""
+from collections import OrderedDict, defaultdict
 import os
 from typing import Union, Optional, Sequence
+from typing import Any
 
 from itertools import permutations
 from pathlib import Path
@@ -18,6 +20,7 @@ from pyannote.core import Segment
 
 from psifx.audio.identification.tool import IdentificationTool
 from psifx.io import rttm, json, wav
+from psifx.utils.huggingface import patch_hf_hub_download_use_auth_token
 
 def cropped_waveform(
     path: Union[str, Path],
@@ -71,12 +74,14 @@ class PyannoteIdentificationTool(IdentificationTool):
         )
 
         self.api_token = api_token or os.environ.get('HF_TOKEN')
+        os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
         self._register_torch_safe_globals()
+        patch_hf_hub_download_use_auth_token()
         self.models = {
             name: PretrainedSpeakerEmbedding(
                 embedding=name,
                 device=torch.device(device),
-                use_auth_token=api_token,
+                use_auth_token=self.api_token,
             )
             for name in model_names
         }
@@ -233,6 +238,28 @@ class PyannoteIdentificationTool(IdentificationTool):
             safe_globals.append(ContainerMetadata)
         except Exception:
             pass
+
+        try:
+            import omegaconf.base as omegaconf_base
+
+            safe_globals.extend(
+                value for value in vars(omegaconf_base).values() if isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        try:
+            import omegaconf.nodes as omegaconf_nodes
+
+            safe_globals.extend(
+                value
+                for name, value in vars(omegaconf_nodes).items()
+                if name.endswith("Node") and isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        safe_globals.extend([Any, list, dict, tuple, set, int, float, bool, str, bytes, OrderedDict, defaultdict])
 
         if safe_globals:
             add_safe_globals(safe_globals)

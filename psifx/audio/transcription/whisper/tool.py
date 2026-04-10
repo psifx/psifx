@@ -1,9 +1,13 @@
 """WhisperX transcription tool."""
+from collections import OrderedDict, defaultdict
+import os
 from typing import Union, Optional
+from typing import Any
 from pathlib import Path
 import torch
 from psifx.audio.transcription.tool import TranscriptionTool
 from psifx.io import vtt, wav
+from psifx.utils.huggingface import patch_hf_hub_download_use_auth_token
 import whisperx
 
 
@@ -36,8 +40,10 @@ class WhisperXTool(TranscriptionTool):
             raise NameError(f"task should be 'transcribe' or 'translate', got '{task}' instead")
         self.task = task
         compute_type = "float16" if device == 'cuda' else "float32"
+        os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
 
         self._register_torch_safe_globals()
+        patch_hf_hub_download_use_auth_token()
         self.pipeline = whisperx.load_model(model_name, task=task, device=device, compute_type=compute_type)
 
     def inference(
@@ -109,6 +115,28 @@ class WhisperXTool(TranscriptionTool):
             safe_globals.append(ContainerMetadata)
         except Exception:
             pass
+
+        try:
+            import omegaconf.base as omegaconf_base
+
+            safe_globals.extend(
+                value for value in vars(omegaconf_base).values() if isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        try:
+            import omegaconf.nodes as omegaconf_nodes
+
+            safe_globals.extend(
+                value
+                for name, value in vars(omegaconf_nodes).items()
+                if name.endswith("Node") and isinstance(value, type)
+            )
+        except Exception:
+            pass
+
+        safe_globals.extend([Any, list, dict, tuple, set, int, float, bool, str, bytes, OrderedDict, defaultdict])
 
         if safe_globals:
             add_safe_globals(safe_globals)

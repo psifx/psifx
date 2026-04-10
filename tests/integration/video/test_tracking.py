@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -6,9 +7,15 @@ import cv2
 from tests.integration.conftest import run_command
 
 
+def _require_hf_token() -> None:
+    if not os.getenv("HF_TOKEN"):
+        pytest.skip("HF_TOKEN not available")
+
+
 @pytest.fixture
 def run_sam3_inference(video_multi_path: Path, output_dir: Path) -> Path:
     """Run SAM3 tracking inference and return the path to the output mask directory."""
+    _require_hf_token()
 
     mask_dir = output_dir / "mask_dir"
 

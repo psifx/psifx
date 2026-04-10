@@ -38,6 +38,7 @@ class Sam3TrackingTool(TrackingTool):
             print(f"Loading SAM3 model from '{self.model_path}' on device '{self.device}'")
 
         try:
+            self._register_torch_safe_globals()
             self.model = Sam3VideoModel.from_pretrained(self.model_path, token=api_token).to(
                 self.device, dtype=self.compute_dtype
             )
@@ -340,3 +341,27 @@ class Sam3TrackingTool(TrackingTool):
         torch.cuda.empty_cache()
         if hasattr(torch.cuda, "ipc_collect"):
             torch.cuda.ipc_collect()
+
+    @staticmethod
+    def _register_torch_safe_globals() -> None:
+        add_safe_globals = getattr(torch.serialization, "add_safe_globals", None)
+        if add_safe_globals is None:
+            return
+
+        safe_globals = []
+        try:
+            from omegaconf.listconfig import ListConfig
+
+            safe_globals.append(ListConfig)
+        except Exception:
+            pass
+
+        try:
+            from omegaconf.dictconfig import DictConfig
+
+            safe_globals.append(DictConfig)
+        except Exception:
+            pass
+
+        if safe_globals:
+            add_safe_globals(safe_globals)

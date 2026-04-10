@@ -1,6 +1,7 @@
 """WhisperX transcription tool."""
 from typing import Union, Optional
 from pathlib import Path
+import torch
 from psifx.audio.transcription.tool import TranscriptionTool
 from psifx.io import vtt, wav
 import whisperx
@@ -36,6 +37,7 @@ class WhisperXTool(TranscriptionTool):
         self.task = task
         compute_type = "float16" if device == 'cuda' else "float32"
 
+        self._register_torch_safe_globals()
         self.pipeline = whisperx.load_model(model_name, task=task, device=device, compute_type=compute_type)
 
     def inference(
@@ -79,3 +81,27 @@ class WhisperXTool(TranscriptionTool):
         vtt.VTTWriter.write(
             segments=result["segments"], path=transcription_path, overwrite=self.overwrite
         )
+
+    @staticmethod
+    def _register_torch_safe_globals() -> None:
+        add_safe_globals = getattr(torch.serialization, "add_safe_globals", None)
+        if add_safe_globals is None:
+            return
+
+        safe_globals = []
+        try:
+            from omegaconf.listconfig import ListConfig
+
+            safe_globals.append(ListConfig)
+        except Exception:
+            pass
+
+        try:
+            from omegaconf.dictconfig import DictConfig
+
+            safe_globals.append(DictConfig)
+        except Exception:
+            pass
+
+        if safe_globals:
+            add_safe_globals(safe_globals)

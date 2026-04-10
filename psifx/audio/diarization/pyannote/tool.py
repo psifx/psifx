@@ -40,6 +40,7 @@ class PyannoteDiarizationTool(DiarizationTool):
 
         self.model_name = model_name
         self.api_token = api_token or os.environ.get('HF_TOKEN')
+        self._register_torch_safe_globals()
 
         self.model: Pipeline = Pipeline.from_pretrained(
             checkpoint_path=model_name,
@@ -107,3 +108,27 @@ class PyannoteDiarizationTool(DiarizationTool):
         rttm.RTTMWriter.write(
             segments=segments, path=diarization_path, overwrite=self.overwrite
         )
+
+    @staticmethod
+    def _register_torch_safe_globals() -> None:
+        add_safe_globals = getattr(torch.serialization, "add_safe_globals", None)
+        if add_safe_globals is None:
+            return
+
+        safe_globals = []
+        try:
+            from omegaconf.listconfig import ListConfig
+
+            safe_globals.append(ListConfig)
+        except Exception:
+            pass
+
+        try:
+            from omegaconf.dictconfig import DictConfig
+
+            safe_globals.append(DictConfig)
+        except Exception:
+            pass
+
+        if safe_globals:
+            add_safe_globals(safe_globals)

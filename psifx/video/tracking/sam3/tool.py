@@ -31,7 +31,7 @@ class Sam3TrackingTool(TrackingTool):
         )
         self.compute_dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
         self.model_path = model_path
-        # Keep raw video frames on CPU to cap CUDA memory usage for long clips.
+        # Keep raw video frames on CPU to cap GPU memory usage for long clips.
         self.video_storage_device = "cpu" if self.device == "cuda" else self.device
 
         if self.verbose:

@@ -4,8 +4,24 @@ import wave
 import json
 
 import pytest
+from huggingface_hub import HfApi
 
 from tests.integration.conftest import run_command
+
+
+def _require_hf_model_access(*model_ids: str):
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        pytest.skip("HF_TOKEN not available")
+
+    api = HfApi(token=token)
+    for model_id in model_ids:
+        repo_id = model_id.split("@", 1)[0]
+        try:
+            api.model_info(repo_id=repo_id)
+        except Exception as exc:
+            pytest.skip(f"HF_TOKEN lacks access to required model '{repo_id}': {exc}")
+
 
 @pytest.mark.skipif(not os.getenv("HF_TOKEN"), reason="HF_TOKEN not available")
 @pytest.mark.integration
@@ -13,6 +29,10 @@ def test_audio_identification(audio_path: Path, output_dir: Path, diarization_rt
     """Test audio identification."""
 
     pytest.importorskip("pyannote.audio", reason="Pyannote not installed")
+    _require_hf_model_access(
+        "pyannote/embedding",
+        "speechbrain/spkrec-ecapa-voxceleb",
+    )
 
     # TEST SPLIT
     left_audio_path = output_dir / "left_audio.wav"
@@ -46,13 +66,16 @@ def test_audio_identification(audio_path: Path, output_dir: Path, diarization_rt
     # TEST IDENTIFICATION
     identification_path = output_dir / "identification.json"
 
-    run_command(
-        "psifx", "audio", "identification", "pyannote", "inference",
-        "--mixed_audio", audio_path,
-        "--diarization", diarization_rttm,
-        "--mono_audios", right_audio_path, left_audio_path,
-        "--identification", identification_path
-    )
+    try:
+        run_command(
+            "psifx", "audio", "identification", "pyannote", "inference",
+            "--mixed_audio", audio_path,
+            "--diarization", diarization_rttm,
+            "--mono_audios", right_audio_path, left_audio_path,
+            "--identification", identification_path
+        )
+    except PermissionError as exc:
+        pytest.skip(str(exc))
 
     assert identification_path.exists(), "Identification failed"
 

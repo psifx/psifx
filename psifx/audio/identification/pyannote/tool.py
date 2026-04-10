@@ -77,14 +77,23 @@ class PyannoteIdentificationTool(IdentificationTool):
         os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
         self._register_torch_safe_globals()
         patch_hf_hub_download_use_auth_token()
-        self.models = {
-            name: PretrainedSpeakerEmbedding(
-                embedding=name,
-                device=torch.device(device),
-                use_auth_token=self.api_token,
-            )
-            for name in model_names
-        }
+        try:
+            self.models = {
+                name: PretrainedSpeakerEmbedding(
+                    embedding=name,
+                    device=torch.device(device),
+                    use_auth_token=self.api_token,
+                )
+                for name in model_names
+            }
+        except AttributeError as exc:
+            message = str(exc)
+            if "'NoneType' object has no attribute 'eval'" in message:
+                raise PermissionError(
+                    "Could not load pyannote embedding model(s). Ensure HF_TOKEN is valid and "
+                    "the token account accepted pyannote model terms on Hugging Face."
+                ) from exc
+            raise
 
     def inference(
         self,

@@ -227,5 +227,12 @@ class PyannoteIdentificationTool(IdentificationTool):
         except Exception:
             pass
 
+        try:
+            from omegaconf.base import ContainerMetadata
+
+            safe_globals.append(ContainerMetadata)
+        except Exception:
+            pass
+
         if safe_globals:
             add_safe_globals(safe_globals)

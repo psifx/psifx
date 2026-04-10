@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 import re
 
@@ -24,6 +25,7 @@ def parse_vtt(filepath: Path):
     return entries
 
 
+@pytest.mark.skipif(not os.getenv("HF_TOKEN"), reason="HF_TOKEN not available")
 @pytest.mark.integration
 def test_audio_transcription(audio_path: Path, output_dir: Path, video_text: str):
     """Test audio transcription with WhisperX."""

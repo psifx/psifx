@@ -7,3 +7,8 @@ public
 
 *.pyc
 *.egg-info
+
+
+.env
+.codex
+sam3_test_outputs/

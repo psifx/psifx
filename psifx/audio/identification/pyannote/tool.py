@@ -71,6 +71,7 @@ class PyannoteIdentificationTool(IdentificationTool):
         )
 
         self.api_token = api_token or os.environ.get('HF_TOKEN')
+        self._register_torch_safe_globals()
         self.models = {
             name: PretrainedSpeakerEmbedding(
                 embedding=name,
@@ -204,3 +205,34 @@ class PyannoteIdentificationTool(IdentificationTool):
             overwrite=self.overwrite,
             verbose=self.verbose,
         )
+
+    @staticmethod
+    def _register_torch_safe_globals() -> None:
+        add_safe_globals = getattr(torch.serialization, "add_safe_globals", None)
+        if add_safe_globals is None:
+            return
+
+        safe_globals = []
+        try:
+            from omegaconf.listconfig import ListConfig
+
+            safe_globals.append(ListConfig)
+        except Exception:
+            pass
+
+        try:
+            from omegaconf.dictconfig import DictConfig
+
+            safe_globals.append(DictConfig)
+        except Exception:
+            pass
+
+        try:
+            from omegaconf.base import ContainerMetadata
+
+            safe_globals.append(ContainerMetadata)
+        except Exception:
+            pass
+
+        if safe_globals:
+            add_safe_globals(safe_globals)

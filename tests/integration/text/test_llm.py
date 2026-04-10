@@ -1,5 +1,6 @@
 """Integration tests for LLM providers."""
 import os
+import time
 from pathlib import Path
 
 import pytest
@@ -21,11 +22,40 @@ def write_test_files(output_dir: Path, instruction: dict, model_config: dict, in
     return instruction_path, model_config_path, text_path
 
 
+def wait_for_ollama_service(timeout_sec: int = 30, poll_interval_sec: float = 1.0) -> bool:
+    """Wait for Ollama local endpoint to be reachable."""
+    from urllib.request import urlopen
+
+    deadline = time.time() + timeout_sec
+    while time.time() < deadline:
+        try:
+            with urlopen("http://127.0.0.1:11434/api/tags", timeout=5):
+                return True
+        except Exception:
+            time.sleep(poll_interval_sec)
+    return False
+
+
+def is_transient_ollama_error(error: Exception) -> bool:
+    """Return True for short-lived local Ollama startup/network failures."""
+    message = str(error).lower()
+    transient_patterns = (
+        "server disconnected without sending a response",
+        "connection refused",
+        "remoteprotocolerror",
+        "timed out",
+    )
+    return any(pattern in message for pattern in transient_patterns)
+
+
 @pytest.mark.integration
 def test_text_ollama(output_dir: Path):
     """Integration test with Ollama LLM."""
     pytest.importorskip("langchain_core", reason="LangChain not installed")
     pytest.importorskip("langchain_ollama", reason="LangChain Ollama not installed")
+
+    if not wait_for_ollama_service():
+        pytest.skip("Ollama endpoint was not ready in time")
 
     instruction = {"prompt": "user: Of which color is this flower : {text} ?"}
     model_config = {"provider": "ollama", "model": "qwen3:0.6b"}
@@ -34,13 +64,20 @@ def test_text_ollama(output_dir: Path):
     instruction_path, model_config_path, text_path = write_test_files(output_dir, instruction, model_config, input_text)
     output_path = output_dir / "output.txt"
 
-    run_command(
-        "psifx", "text", "instruction",
-        "--instruction", instruction_path,
-        "--input", text_path,
-        "--output", output_path,
-        "--model_config", model_config_path
-    )
+    for attempt in range(3):
+        try:
+            run_command(
+                "psifx", "text", "instruction",
+                "--instruction", instruction_path,
+                "--input", text_path,
+                "--output", output_path,
+                "--model_config", model_config_path
+            )
+            break
+        except Exception as exc:
+            if attempt == 2 or not is_transient_ollama_error(exc):
+                raise
+            time.sleep(2)
 
     assert output_path.exists(), "Ollama LLM processing failed"
     assert output_path.read_text().strip(), "Ollama output file is empty"

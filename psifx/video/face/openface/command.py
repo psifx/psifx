@@ -177,7 +177,7 @@ class OpenFaceMultiInferenceCommand(Command):
             args = {'prog': parser.prog, 'message': message}
             sys.stderr.write('%(prog)s: error: %(message)s\n' % args)
             if 'masks' in message:
-                sys.stderr.write("run psifx tracking samurai inference to get masks\n")
+                sys.stderr.write("run psifx tracking Sam3 inference to get masks\n")
             parser.exit(2)
 
         parser.error = custom_error

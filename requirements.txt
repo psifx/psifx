@@ -1,42 +1,42 @@
 # Audio Processing
-whisperx
-opensmile
-pyannote.audio
-pydub
-speechbrain
+whisperx==3.7.4
+opensmile==2.6.0
+pyannote.audio==3.3.2
+pydub==0.25.1
+speechbrain==1.0.3
 
 # Video Processing
-absolutely-not-scikit-video
-ffmpeg-python
-mediapipe
+absolutely-not-scikit-video==1.1.12
+ffmpeg-python==0.2.0
+mediapipe==0.10.14
 
 # Computer Vision
-absolutely-not-samurai
-ultralytics
+ultralytics==8.3.212
 
 # Deep Learning and Torch Ecosystem
-torch
-torchvision
-torchaudio
-accelerate
-bitsandbytes
+torch==2.8.0
+torchvision==0.23.0
+torchaudio==2.8.0
+accelerate==1.10.1
+bitsandbytes==0.49.1
 
 # Transformers and Hugging Face Ecosystem
-transformers >= 4.41.0
-huggingface_hub
+transformers==5.3.0
+huggingface-hub==1.7.1
 
 # LangChain and LLM Integration
-langchain
-langchain-community
-langchain-anthropic
-langchain-openai
-langchain-ollama
-ollama
+langchain==0.3.27
+langchain-community==0.3.31
+langchain-anthropic==0.3.22
+langchain-openai==0.3.35
+langchain-ollama==0.3.10
+ollama==0.6.0
 
 # Utilities
-matplotlib <= 3.8.4
-nltk
-platformdirs
-tqdm
-loguru
-decord
+matplotlib==3.8.4
+nltk==3.9.2
+platformdirs==4.5.0
+tqdm==4.67.1
+loguru==0.7.3
+decord==0.6.0
+pytest==9.0.0

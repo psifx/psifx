@@ -8,10 +8,15 @@ import cv2
 from tests.integration.conftest import run_command
 
 
-@pytest.mark.skipif(shutil.which("FeatureExtraction") is None, reason="FeatureExtraction executable not found in PATH")
+def _require_openface() -> None:
+    if shutil.which("FeatureExtraction") is None:
+        pytest.skip("FeatureExtraction executable not found in PATH")
+
+
 @pytest.fixture
 def run_openface_single_inference(video_single_path: Path, output_dir: Path):
     """Run OpenFace single inference and return the path to the features file."""
+    _require_openface()
     faces_path = output_dir / "faces.tar.gz"
 
     run_command("psifx", "video", "face", "openface", "single-inference",
@@ -21,10 +26,10 @@ def run_openface_single_inference(video_single_path: Path, output_dir: Path):
     return faces_path
 
 
-@pytest.mark.skipif(shutil.which("FeatureExtraction") is None, reason="FeatureExtraction executable not found in PATH")
 @pytest.fixture
 def run_openface_single_inference_mask(video_single_path: Path, mask_path: Path, output_dir: Path):
     """Run OpenFace single inference and return the path to the features file."""
+    _require_openface()
     faces_path = output_dir / "faces.tar.gz"
 
     run_command("psifx", "video", "face", "openface", "single-inference",
@@ -35,10 +40,10 @@ def run_openface_single_inference_mask(video_single_path: Path, mask_path: Path,
     return faces_path
 
 
-@pytest.mark.skipif(shutil.which("FeatureExtraction") is None, reason="FeatureExtraction executable not found in PATH")
 @pytest.fixture
 def run_openface_multi_inference(video_multi_path: Path, mask_dir: Path, output_dir: Path):
     """Run OpenFace multi inference and return the path to the features directory."""
+    _require_openface()
     features_dir = output_dir / "features_dir"
 
     run_command("psifx", "video", "face", "openface", "multi-inference",

@@ -41,7 +41,8 @@ Segment and track humans/objects in a video using **SAM3**.
 ### Tracking with SAM3
 
 SAM3 supports text-prompted segmentation/tracking and chunked processing for long videos.
-Chunking helps keep memory usage stable by processing frames sequentially and stitching object IDs between chunks.
+Chunking helps keep memory usage stable by processing frames sequentially and stitching object IDs between chunks
+with IoU matching at the chunk boundary.
 
 ```bash
 psifx video tracking sam3 inference \
@@ -50,6 +51,7 @@ psifx video tracking sam3 inference \
     [--text_prompt "people"] \
     [--chunk_size 300] \
     [--iou_threshold 0.3] \
+    [--max_num_objects 2] \
     [--device cuda] \
     [--model_path facebook/sam3] \
 ```
@@ -57,8 +59,10 @@ psifx video tracking sam3 inference \
 * `--video`: Path to the input video file (supports `.mp4`, `.avi`, `.mkv`, etc.).
 * `--mask_dir`: Path to the output mask directory.
 * `--text_prompt`: Text query describing what to track, default is `"people"`.
-* `--chunk_size`: Number of frames processed per chunk. Lower values reduce peak memory usage.
+* `--chunk_size`: Number of frames processed per chunk, not seconds. Lower values reduce peak memory usage.
 * `--iou_threshold`: IoU threshold used to stitch object IDs between adjacent chunks.
+* `--max_num_objects`: Keep only the strongest output tracks on disk. When tracking people, set this to the
+  expected participant count.
 * `--device`: Device on which to run inference, either `cpu` or `cuda`.
 * `--model_path`: Hugging Face model id or local path for SAM3 weights. You can also set `SAM3_PATH` as an environment variable.
 * `--api_token`: Optional Hugging Face token (defaults to `HF_TOKEN` env var if set).

@@ -88,6 +88,12 @@ class Sam3InferenceCommand(Command):
             help="IoU threshold for stitching chunks together (0.0 to 1.0)",
         )
         parser.add_argument(
+            "--max_num_objects",
+            type=int,
+            default=None,
+            help="keep at most this many output object tracks (useful when tracking people)",
+        )
+        parser.add_argument(
             "--device",
             type=str,
             default="cuda" if torch.cuda.is_available() else "cpu",
@@ -140,5 +146,6 @@ class Sam3InferenceCommand(Command):
             text_prompt=args.text_prompt,
             chunk_size=args.chunk_size,
             iou_threshold=args.iou_threshold,
+            max_num_objects=args.max_num_objects,
         )
         del tool

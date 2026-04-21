@@ -60,6 +60,7 @@ class Sam3TrackingTool(TrackingTool):
         text_prompt: str = "people",
         chunk_size: int = 300,
         iou_threshold: float = 0.3,
+        max_num_objects: int = None,
     ):
         """
         Perform text-based segmentation and tracking from a video file.
@@ -69,9 +70,12 @@ class Sam3TrackingTool(TrackingTool):
         :param text_prompt: Text description of objects to track.
         :param chunk_size: Number of frames to process at once.
         :param iou_threshold: IoU threshold for stitching chunks together.
+        :param max_num_objects: Keep at most this many output mask tracks.
         """
         if chunk_size <= 0:
             raise ValueError(f"chunk_size must be > 0, got {chunk_size}.")
+        if max_num_objects is not None and max_num_objects <= 0:
+            raise ValueError(f"max_num_objects must be > 0, got {max_num_objects}.")
 
         mask_dir = Path(mask_dir)
         if mask_dir.exists() and any(mask_dir.iterdir()):
@@ -87,6 +91,7 @@ class Sam3TrackingTool(TrackingTool):
 
         writers: Dict[int, VideoWriter] = {}
         written_frames: Dict[int, int] = {}
+        mask_stats: Dict[int, Dict[str, int]] = {}
         next_global_id = 0
         prev_last_global_masks: Dict[int, np.ndarray] = {}
         frame_size: Tuple[int, int] = (0, 0)
@@ -104,7 +109,7 @@ class Sam3TrackingTool(TrackingTool):
                     sub_start_frame, sub_chunk = pending_subchunks.popleft()
 
                     try:
-                        chunk_outputs = self._segment_chunk(sub_chunk, text_prompt)
+                        chunk_outputs = self._segment_chunk(sub_chunk, text_prompt=text_prompt)
                     except RuntimeError as exc:
                         if self._is_cuda_oom(exc) and self.device == "cuda" and len(sub_chunk) > 1:
                             self._clear_cuda_memory()
@@ -134,6 +139,7 @@ class Sam3TrackingTool(TrackingTool):
                         id_mapping=id_mapping,
                         writers=writers,
                         written_frames=written_frames,
+                        mask_stats=mask_stats,
                         mask_dir=mask_dir,
                         frame_rate=frame_rate,
                         frame_size=frame_size,
@@ -154,6 +160,13 @@ class Sam3TrackingTool(TrackingTool):
             raise ValueError(f"No frames found in input video: {video_path}")
         if not writers:
             print("No masks to write.")
+            return
+
+        self._prune_mask_outputs(
+            mask_dir=mask_dir,
+            mask_stats=mask_stats,
+            max_num_objects=max_num_objects,
+        )
 
     @staticmethod
     def _iter_video_chunks(
@@ -182,7 +195,11 @@ class Sam3TrackingTool(TrackingTool):
         finally:
             cap.release()
 
-    def _segment_chunk(self, chunk: List[Image.Image], text_prompt: str):
+    def _segment_chunk(
+        self,
+        chunk: List[Image.Image],
+        text_prompt: str,
+    ):
         chunk_outputs = {idx: {"object_ids": [], "masks": []} for idx in range(len(chunk))}
 
         session = self.processor.init_video_session(
@@ -233,19 +250,11 @@ class Sam3TrackingTool(TrackingTool):
         next_global_id: int,
     ) -> Tuple[Dict[int, int], int]:
         id_mapping: Dict[int, int] = {}
+        curr_first_masks = self._extract_first_local_masks(chunk_outputs)
 
-        curr_first_with_objects = None
-        for frame_idx in sorted(chunk_outputs.keys()):
-            frame_out = chunk_outputs[frame_idx]
-            if frame_out["object_ids"]:
-                curr_first_with_objects = frame_out
-                break
-
-        if curr_first_with_objects and prev_last_global_masks:
+        if curr_first_masks and prev_last_global_masks:
             used_global_ids = set()
-            curr_ids = curr_first_with_objects["object_ids"]
-            curr_masks = curr_first_with_objects["masks"]
-            for curr_id, curr_mask in zip(curr_ids, curr_masks):
+            for curr_id, curr_mask in curr_first_masks.items():
                 best_iou = 0.0
                 best_global_id = None
                 for global_id, prev_mask in prev_last_global_masks.items():
@@ -270,6 +279,18 @@ class Sam3TrackingTool(TrackingTool):
         return id_mapping, next_global_id
 
     @staticmethod
+    def _extract_first_local_masks(
+        chunk_outputs: Dict[int, Dict[str, List]],
+    ) -> Dict[int, np.ndarray]:
+        first_masks: Dict[int, np.ndarray] = {}
+        for frame_idx in sorted(chunk_outputs.keys()):
+            frame_out = chunk_outputs[frame_idx]
+            for local_id, local_mask in zip(frame_out["object_ids"], frame_out["masks"]):
+                if local_id not in first_masks:
+                    first_masks[local_id] = local_mask
+        return first_masks
+
+    @staticmethod
     def _extract_last_global_masks(
         chunk_outputs: Dict[int, Dict[str, List]], id_mapping: Dict[int, int]
     ) -> Dict[int, np.ndarray]:
@@ -291,6 +312,7 @@ class Sam3TrackingTool(TrackingTool):
         id_mapping: Dict[int, int],
         writers: Dict[int, VideoWriter],
         written_frames: Dict[int, int],
+        mask_stats: Dict[int, Dict[str, int]],
         mask_dir: Path,
         frame_rate,
         frame_size: Tuple[int, int],
@@ -319,6 +341,7 @@ class Sam3TrackingTool(TrackingTool):
                     overwrite=self.overwrite,
                 )
                 written_frames[global_obj_id] = 0
+                mask_stats[global_obj_id] = {"non_empty_frames": 0, "foreground_pixels": 0}
 
                 # Back-fill earlier frames so all mask videos keep identical frame counts.
                 for _ in range(global_frame_idx):
@@ -332,8 +355,43 @@ class Sam3TrackingTool(TrackingTool):
                 else:
                     mask_uint8 = (mask.astype(np.uint8) * 255)
                     mask_rgb = np.repeat(mask_uint8[..., np.newaxis], 3, axis=-1)
+                    mask_stats[global_obj_id]["non_empty_frames"] += 1
+                    mask_stats[global_obj_id]["foreground_pixels"] += int(mask.sum())
                 writer.write(image=mask_rgb)
                 written_frames[global_obj_id] += 1
+
+    def _prune_mask_outputs(
+        self,
+        mask_dir: Path,
+        mask_stats: Dict[int, Dict[str, int]],
+        max_num_objects: int = None,
+    ) -> List[int]:
+        if max_num_objects is None or len(mask_stats) <= max_num_objects:
+            return sorted(mask_stats.keys())
+
+        ranked_ids = sorted(
+            mask_stats.keys(),
+            key=lambda global_obj_id: (
+                -mask_stats[global_obj_id]["non_empty_frames"],
+                -mask_stats[global_obj_id]["foreground_pixels"],
+                global_obj_id,
+            ),
+        )
+        keep_ids = ranked_ids[:max_num_objects]
+        remove_ids = ranked_ids[max_num_objects:]
+
+        for global_obj_id in remove_ids:
+            mask_path = mask_dir / f"{global_obj_id}.mp4"
+            if mask_path.exists():
+                mask_path.unlink()
+
+        if self.verbose:
+            print(
+                f"Keeping top {len(keep_ids)} track(s) out of {len(mask_stats)}: "
+                f"{keep_ids}"
+            )
+
+        return keep_ids
 
     @staticmethod
     def _is_cuda_oom(exc: RuntimeError) -> bool:

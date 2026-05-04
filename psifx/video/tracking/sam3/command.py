@@ -88,6 +88,15 @@ class Sam3InferenceCommand(Command):
             help="IoU threshold for stitching chunks together (0.0 to 1.0)",
         )
         parser.add_argument(
+            "--max_num_objects",
+            type=int,
+            default=None,
+            help=(
+                "optional cap on tracked object count "
+                "(e.g., set to 2 for a two-person interaction)"
+            ),
+        )
+        parser.add_argument(
             "--device",
             type=str,
             default="cuda" if torch.cuda.is_available() else "cpu",
@@ -131,6 +140,7 @@ class Sam3InferenceCommand(Command):
             device=args.device,
             model_path=args.model_path,
             api_token=args.api_token,
+            max_num_objects=args.max_num_objects,
             overwrite=args.overwrite,
             verbose=args.verbose,
         )

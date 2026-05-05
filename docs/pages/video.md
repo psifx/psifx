@@ -50,6 +50,7 @@ psifx video tracking sam3 inference \
     [--text_prompt "people"] \
     [--chunk_size 300] \
     [--iou_threshold 0.3] \
+    [--max_num_objects N] \
     [--device cuda] \
     [--model_path facebook/sam3] \
 ```
@@ -59,6 +60,7 @@ psifx video tracking sam3 inference \
 * `--text_prompt`: Text query describing what to track, default is `"people"`.
 * `--chunk_size`: Number of frames processed per chunk. Lower values reduce peak memory usage.
 * `--iou_threshold`: IoU threshold used to stitch object IDs between adjacent chunks.
+* `--max_num_objects`: Optional cap on total tracked object tracks. Default is no explicit cap.
 * `--device`: Device on which to run inference, either `cpu` or `cuda`.
 * `--model_path`: Hugging Face model id or local path for SAM3 weights. You can also set `SAM3_PATH` as an environment variable.
 * `--api_token`: Optional Hugging Face token (defaults to `HF_TOKEN` env var if set).

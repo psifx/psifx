@@ -112,10 +112,12 @@ psifx video tracking sam3 inference \
     --text_prompt "people" \
     --chunk_size 300 \
     --iou_threshold 0.3 \
+    [--max_num_objects N] \
     --device cuda \
     --overwrite
 ```
 For very long videos or limited GPU memory, reduce `--chunk_size` (for example `64` or `128`).
+If needed, set `--max_num_objects` to cap how many tracks are written (default is no explicit cap).
 
 To visualize the tracking / segmentation masks:
 

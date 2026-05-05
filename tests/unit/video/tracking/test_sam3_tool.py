@@ -5,6 +5,7 @@ import sys
 import types
 
 import numpy as np
+from PIL import Image
 import pytest
 
 import transformers
@@ -64,6 +65,8 @@ def make_tool() -> Sam3TrackingTool:
     tool.device = "cpu"
     tool.overwrite = True
     tool.verbose = False
+    tool.compute_dtype = None
+    tool.video_storage_device = "cpu"
     return tool
 
 
@@ -125,3 +128,78 @@ def test_write_chunk_masks_backfills_new_writer(monkeypatch):
     assert writers[2].frames[1].sum() == 0
     assert writers[2].frames[2].sum() == 0
     assert writers[2].frames[3].sum() > 0
+
+
+@pytest.mark.unit
+def test_map_chunk_object_ids_respects_max_num_objects():
+    tool = make_tool()
+    mask_a = np.array([[1, 0], [0, 0]], dtype=bool)
+    mask_b = np.array([[0, 1], [0, 0]], dtype=bool)
+    mask_c = np.array([[0, 0], [1, 0]], dtype=bool)
+
+    chunk_outputs = {
+        0: {"object_ids": [1, 2, 3], "masks": [mask_a, mask_b, mask_c]},
+    }
+
+    mapping, next_global_id = tool._map_chunk_object_ids(
+        chunk_outputs=chunk_outputs,
+        prev_last_global_masks={},
+        iou_threshold=0.3,
+        next_global_id=0,
+        max_num_objects=2,
+    )
+
+    assert mapping == {1: 0, 2: 1}
+    assert next_global_id == 2
+
+
+@pytest.mark.unit
+def test_configure_model_max_num_objects_updates_model_and_config():
+    tool = make_tool()
+    tracker_config = types.SimpleNamespace(max_num_objects=10000)
+    model_config = types.SimpleNamespace(max_num_objects=10000, tracker_config=tracker_config)
+    tool.model = types.SimpleNamespace(config=model_config, max_num_objects=10000)
+
+    tool._configure_model_max_num_objects(2)
+
+    assert tool.model.max_num_objects == 2
+    assert tool.model.config.max_num_objects == 2
+    assert tool.model.config.tracker_config.max_num_objects == 2
+
+
+@pytest.mark.unit
+def test_segment_chunk_tracks_all_frames_by_default():
+    class _DummyOut:
+        def __init__(self, frame_idx):
+            self.frame_idx = frame_idx
+
+    class _DummyProcessor:
+        def init_video_session(self, **kwargs):
+            return object()
+
+        def add_text_prompt(self, inference_session, text):
+            return inference_session
+
+        def postprocess_outputs(self, inference_session, out):
+            return {
+                "object_ids": [7],
+                "masks": [np.array([[1, 0], [0, 0]], dtype=bool)],
+            }
+
+    class _DummyModel:
+        def __init__(self):
+            self.kwargs = None
+
+        def propagate_in_video_iterator(self, inference_session, **kwargs):
+            self.kwargs = kwargs
+            yield _DummyOut(frame_idx=0)
+
+    tool = make_tool()
+    tool.processor = _DummyProcessor()
+    tool.model = _DummyModel()
+
+    chunk = [Image.fromarray(np.zeros((2, 2, 3), dtype=np.uint8))]
+    outputs = tool._segment_chunk(chunk=chunk, text_prompt="people")
+
+    assert tool.model.kwargs == {}
+    assert outputs[0]["object_ids"] == [7]

@@ -4,9 +4,8 @@ from collections import deque
 from collections import OrderedDict, defaultdict
 import os
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple, Union
+from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
-import cv2
 import numpy as np
 import torch
 from PIL import Image
@@ -23,6 +22,7 @@ class Sam3TrackingTool(TrackingTool):
         device: str = "cpu",
         model_path: str = SAM3_PATH,
         api_token: str = None,
+        max_num_objects: Optional[int] = None,
         overwrite: bool = False,
         verbose: Union[bool, int] = True,
     ):
@@ -34,6 +34,7 @@ class Sam3TrackingTool(TrackingTool):
         self.compute_dtype = torch.bfloat16 if self.device == "cuda" else torch.float32
         self.model_path = model_path
         self.api_token = api_token or os.environ.get("HF_TOKEN")
+        self.max_num_objects = self._validate_positive_int(max_num_objects, "max_num_objects")
         os.environ.setdefault("TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD", "1")
         # Keep raw video frames on CPU to cap GPU memory usage for long clips.
         self.video_storage_device = "cpu" if self.device == "cuda" else self.device
@@ -47,6 +48,8 @@ class Sam3TrackingTool(TrackingTool):
                 self.device, dtype=self.compute_dtype
             )
             self.processor = Sam3VideoProcessor.from_pretrained(self.model_path, token=self.api_token)
+            if self.max_num_objects is not None:
+                self._configure_model_max_num_objects(self.max_num_objects)
         except Exception as exc:
             raise RuntimeError(
                 "Failed to load SAM3 model. "
@@ -127,6 +130,7 @@ class Sam3TrackingTool(TrackingTool):
                         prev_last_global_masks=prev_last_global_masks,
                         iou_threshold=iou_threshold,
                         next_global_id=next_global_id,
+                        max_num_objects=self.max_num_objects,
                     )
 
                     self._write_chunk_masks(
@@ -159,19 +163,11 @@ class Sam3TrackingTool(TrackingTool):
     def _iter_video_chunks(
         video_path: Union[str, Path], chunk_size: int
     ) -> Iterable[Tuple[int, List[Image.Image]]]:
-        cap = cv2.VideoCapture(str(video_path))
-        if not cap.isOpened():
-            raise ValueError(f"Failed to open video for reading: {video_path}")
-
         chunk: List[Image.Image] = []
         start_frame = 0
-        try:
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-
-                chunk.append(Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)))
+        with VideoReader(path=video_path) as video_reader:
+            for frame in video_reader:
+                chunk.append(Image.fromarray(frame))
                 if len(chunk) >= chunk_size:
                     yield start_frame, chunk
                     start_frame += len(chunk)
@@ -179,10 +175,12 @@ class Sam3TrackingTool(TrackingTool):
 
             if chunk:
                 yield start_frame, chunk
-        finally:
-            cap.release()
 
-    def _segment_chunk(self, chunk: List[Image.Image], text_prompt: str):
+    def _segment_chunk(
+        self,
+        chunk: List[Image.Image],
+        text_prompt: str,
+    ):
         chunk_outputs = {idx: {"object_ids": [], "masks": []} for idx in range(len(chunk))}
 
         session = self.processor.init_video_session(
@@ -194,7 +192,7 @@ class Sam3TrackingTool(TrackingTool):
         )
         try:
             self.processor.add_text_prompt(session, text_prompt)
-            for out in self.model.propagate_in_video_iterator(session, max_frame_num_to_track=len(chunk)):
+            for out in self.model.propagate_in_video_iterator(session):
                 processed = self.processor.postprocess_outputs(session, out)
                 object_ids = self._to_int_list(processed["object_ids"])
                 masks = self._to_bool_mask_list(processed["masks"])
@@ -231,6 +229,7 @@ class Sam3TrackingTool(TrackingTool):
         prev_last_global_masks: Dict[int, np.ndarray],
         iou_threshold: float,
         next_global_id: int,
+        max_num_objects: Optional[int] = None,
     ) -> Tuple[Dict[int, int], int]:
         id_mapping: Dict[int, int] = {}
 
@@ -264,10 +263,34 @@ class Sam3TrackingTool(TrackingTool):
             frame_out = chunk_outputs[frame_idx]
             for obj_id in frame_out["object_ids"]:
                 if obj_id not in id_mapping:
+                    if max_num_objects is not None and next_global_id >= max_num_objects:
+                        continue
                     id_mapping[obj_id] = next_global_id
                     next_global_id += 1
 
         return id_mapping, next_global_id
+
+    def _configure_model_max_num_objects(self, max_num_objects: int) -> None:
+        if hasattr(self.model, "config") and hasattr(self.model.config, "max_num_objects"):
+            self.model.config.max_num_objects = max_num_objects
+
+        tracker_config = getattr(getattr(self.model, "config", None), "tracker_config", None)
+        if tracker_config is not None and hasattr(tracker_config, "max_num_objects"):
+            tracker_config.max_num_objects = max_num_objects
+
+        if hasattr(self.model, "max_num_objects"):
+            self.model.max_num_objects = max_num_objects
+
+        if self.verbose:
+            print(f"Limiting SAM3 detections to at most {max_num_objects} object tracks.")
+
+    @staticmethod
+    def _validate_positive_int(value: Optional[int], name: str) -> Optional[int]:
+        if value is None:
+            return None
+        if value <= 0:
+            raise ValueError(f"{name} must be > 0, got {value}.")
+        return value
 
     @staticmethod
     def _extract_last_global_masks(

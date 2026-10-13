@@ -3,6 +3,7 @@
 from collections import deque
 from collections import OrderedDict, defaultdict
 import os
+import shutil
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -118,7 +119,7 @@ class OSNetEmbedder:
             raise ImportError(
                 "OSNet appearance embedding requires 'torch' and 'torchreid', "
                 "not installed by default (heavy, optional dependency). "
-                "Install with: "
+                "Install with: pip install 'psifx[reid]' or "
                 "pip install torch torchreid"
             ) from exc
         except AttributeError as exc:
@@ -228,6 +229,10 @@ class Sam3TrackingTool(TrackingTool):
         text_prompt: str = "people",
         chunk_size: int = 300,
         iou_threshold: float = 0.3,
+        id_correction: bool = True,
+        merged_mask_dir: Optional[Union[str, Path]] = None,
+        merge_report_path: Optional[Union[str, Path]] = None,
+        id_correction_kwargs: Optional[Dict[str, Any]] = None,
     ):
         """
         Perform text-based segmentation and tracking from a video file.
@@ -237,6 +242,15 @@ class Sam3TrackingTool(TrackingTool):
         :param text_prompt: Text description of objects to track.
         :param chunk_size: Number of frames to process at once.
         :param iou_threshold: IoU threshold for stitching chunks together.
+        :param id_correction: Whether to merge the ids of a same object that
+            tracking fragmented, into a second mask directory.
+        :param merged_mask_dir: Output directory of the id-corrected masks,
+            defaults to ``<mask_dir>_merged`` next to ``mask_dir``.
+        :param merge_report_path: Path of the JSON report of the merge
+            decisions, defaults to ``<mask_dir>_merge_report.json`` next to
+            ``mask_dir``.
+        :param id_correction_kwargs: Optional overrides of the
+            ``masks_id_correction`` parameters (thresholds, ``use_osnet``, ...).
         """
         if chunk_size <= 0:
             raise ValueError(f"chunk_size must be > 0, got {chunk_size}.")
@@ -247,6 +261,22 @@ class Sam3TrackingTool(TrackingTool):
                 print(f"Mask directory {mask_dir} is non-empty")
             else:
                 raise FileExistsError(f"Mask directory {mask_dir} is non-empty.")
+
+        if id_correction:
+            merged_mask_dir = (
+                Path(merged_mask_dir) if merged_mask_dir is not None
+                else mask_dir.parent / f"{mask_dir.name}_merged"
+            )
+            merge_report_path = (
+                Path(merge_report_path) if merge_report_path is not None
+                else mask_dir.parent / f"{mask_dir.name}_merge_report.json"
+            )
+            # Checked before tracking, not after: tracking can take hours.
+            if not self.overwrite:
+                if merged_mask_dir.exists() and any(merged_mask_dir.iterdir()):
+                    raise FileExistsError(f"Merged mask directory {merged_mask_dir} is non-empty.")
+                if merge_report_path.exists():
+                    raise FileExistsError(f"Merge report {merge_report_path} already exists.")
 
         mask_dir.mkdir(parents=True, exist_ok=True)
 
@@ -323,20 +353,60 @@ class Sam3TrackingTool(TrackingTool):
             raise ValueError(f"No frames found in input video: {video_path}")
         if not writers:
             print("No masks to write.")
+            return
 
-        # Merge the ids SAM3 fragmented (see `masks_id_correction`). The raw
-        # masks stay in `mask_dir`; the corrected ones go to a sibling
-        # `<mask_dir>_merged`, the report next to the video's project folder.
-        out_mask_dir = mask_dir.parent / ".temp_mask_dir"
-        report = self.masks_id_correction(
-            video_path=video_path,
-            mask_dir=mask_dir,
-            out_mask_dir=out_mask_dir,
-            device=self.device,
-        )
+        if id_correction:
+            self._write_id_corrected_masks(
+                video_path=video_path,
+                mask_dir=mask_dir,
+                merged_mask_dir=merged_mask_dir,
+                merge_report_path=merge_report_path,
+                **(id_correction_kwargs or {}),
+            )
 
-        report_path = mask_dir.parent.parent / "merge_report.json"
-        with open(report_path, "w") as f:
+    def _write_id_corrected_masks(
+        self,
+        video_path: Union[str, Path],
+        mask_dir: Path,
+        merged_mask_dir: Path,
+        merge_report_path: Path,
+        **id_correction_kwargs,
+    ):
+        """
+        Merge the ids tracking fragmented (see ``masks_id_correction``) into
+        ``merged_mask_dir`` and write the report of the merge decisions. The
+        raw masks in ``mask_dir`` are left untouched. When there is nothing
+        usable to merge, the correction is skipped with a message instead of
+        failing the whole tracking run.
+        """
+        # Built in a temporary sibling so an interrupted run never leaves a
+        # half-written merged directory behind.
+        tmp_dir = merged_mask_dir.parent / f".{merged_mask_dir.name}_tmp"
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        try:
+            report = self.masks_id_correction(
+                video_path=str(video_path),
+                mask_dir=mask_dir,
+                out_mask_dir=tmp_dir,
+                device=self.device,
+                **id_correction_kwargs,
+            )
+        except ValueError as exc:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+            print(f"ID correction skipped: {exc}")
+            return
+        report["output_mask_dir"] = str(merged_mask_dir)
+
+        merged_mask_dir.mkdir(parents=True, exist_ok=True)
+        for item in merged_mask_dir.iterdir():
+            if _MASK_FILENAME_RE.match(item.name):
+                item.unlink()
+        for item in tmp_dir.iterdir():
+            item.rename(merged_mask_dir / item.name)
+        tmp_dir.rmdir()
+
+        merge_report_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(merge_report_path, "w") as f:
             json.dump(report, f, indent=2)
         if self.verbose:
             print(
@@ -345,18 +415,8 @@ class Sam3TrackingTool(TrackingTool):
                 f"({len(report['accepted_overlap_merges'])} overlap merge(s), "
                 f"{len(report['accepted_merges'])} reappearance merge(s), "
                 f"{len(report['vetoed_merges'])} vetoed). "
-                f"Full report written in {report_path}"
+                f"Merged masks in {merged_mask_dir}, full report in {merge_report_path}"
             )
-
-        new_mask_dir = mask_dir.parent / f"{mask_dir.name}_merged"
-        new_mask_dir.mkdir(parents=True, exist_ok=True)
-
-        # Replace old corrected masks with the new ones
-        for item in new_mask_dir.iterdir():
-            item.unlink()
-        for item in out_mask_dir.iterdir():
-            item.rename(new_mask_dir / item.name)
-        out_mask_dir.rmdir()
 
     @staticmethod
     def _iter_video_chunks(
@@ -721,7 +781,7 @@ class Sam3TrackingTool(TrackingTool):
             try:
                 embedder = OSNetEmbedder(device=device)
             except ImportError as exc:
-                print(f"[sam3 id correction] OSNet unavailable ({exc}) -- "
+                print(f"WARNING [sam3 id correction] OSNet unavailable ({exc}) -- "
                         f"falling back to color-only matching.")
     
         cap = cv2.VideoCapture(video_path)

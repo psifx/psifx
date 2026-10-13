@@ -12,6 +12,7 @@ mediapipe==0.10.14
 
 # Computer Vision
 ultralytics==8.3.212
+scipy  # SAM3 id correction (Hungarian assignment)
 
 # Deep Learning and Torch Ecosystem
 torch==2.8.0

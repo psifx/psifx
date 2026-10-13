@@ -1,0 +1,7 @@
+# Optional: OSNet appearance embeddings for SAM3 id correction
+# (psifx video tracking sam3 inference --osnet). Without these the id
+# correction falls back to color-only matching.
+torchreid==0.2.5
+# torchreid imports these at package init but does not declare them
+gdown
+tensorboard

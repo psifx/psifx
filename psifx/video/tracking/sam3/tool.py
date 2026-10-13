@@ -26,26 +26,17 @@ DEFAULT_MERGE_THRESHOLD = 0.6
 DEFAULT_SIGNATURE_SAMPLES = 5
 DEFAULT_POOLED_SAMPLES_PER_MEMBER = 5
 
-# --- zeroth pass: same-time overlap (see module docstring) ---
-# real pixel-to-pixel minimum distance between two masks, in px --
-# small = the two masks' silhouettes actually touch/nearly touch.
+# --- zeroth pass: same-time overlap (see `masks_id_correction`) ---
+# minimum pixel-to-pixel distance between two masks, in px -- small
+# means the two silhouettes actually touch/nearly touch.
 DEFAULT_OVERLAP_PIXEL_GAP_THRESHOLD = 15.0
-# distance between the two masks' centroids, in px -- the discriminant
-# that actually separates same-body splits from different-people
-# occlusions. Original calibration (4 hand-checked pairs): positives
-# under ~160px, negatives over ~170px. LOWERED to 115.0 after a full
-# stress test surfaced a false positive at 130.3px (2 different real
-# people) sitting below the old 160px threshold but above the highest
-# known true positive (81.3px) -- 115.0 is the midpoint of that gap.
-# Re-validated 2026-09-10 on 29 real labeled examples across 5 full
-# sessions: safe range now 82-119.9px (margin narrowed to 4.9px on the
-# negative side, no violation so far -- see the classifier docstring in
-# classifier/train_overlap_classifier.py for the data-driven angle on
-# this same threshold).
+# distance between the two masks' centroids, in px -- what separates a
+# same-body split from two different people occluding each other.
+# Calibrated on labeled clinical sessions: true positives up to ~82px,
+# closest negative at ~120px.
 DEFAULT_OVERLAP_CENTROID_THRESHOLD = 115.0
-# minimum number of frames where BOTH ids are simultaneously active,
-# for a pair's median to be trusted at all -- same role as
-# min_fragment_frames for pass 1/2.
+# minimum number of frames where BOTH ids are simultaneously active for
+# a pair's median distances to be trusted.
 DEFAULT_MIN_OVERLAP_FRAMES = 8
 
 # ----------------------------- Masks IO ----------------------------------------------------
@@ -75,8 +66,8 @@ DEFAULT_MODEL_NAME = "osnet_x1_0"
 
 # Below these dimensions (pixels) a crop is too small/too squashed to
 # trust the resulting embedding -- same "no made-up signal" principle as
-# compute_color_signature/_mask_hue_histogram: better None than a noisy
-# embedding passed off as reliable.
+# `_mask_hue_histogram`: better None than a noisy embedding passed off
+# as reliable.
 MIN_CROP_W = 24
 MIN_CROP_H = 48
 
@@ -126,8 +117,8 @@ class OSNetEmbedder:
         except ImportError as exc:
             raise ImportError(
                 "OSNet appearance embedding requires 'torch' and 'torchreid', "
-                "not installed by default (heavy, optional dependency -- "
-                "see requirements.txt). Install with: "
+                "not installed by default (heavy, optional dependency). "
+                "Install with: "
                 "pip install torch torchreid"
             ) from exc
         except AttributeError as exc:
@@ -258,7 +249,6 @@ class Sam3TrackingTool(TrackingTool):
                 raise FileExistsError(f"Mask directory {mask_dir} is non-empty.")
 
         mask_dir.mkdir(parents=True, exist_ok=True)
-        print(f"Mask_dir: {mask_dir}")
 
         with VideoReader(path=video_path) as video_reader:
             frame_rate = video_reader.frame_rate
@@ -334,77 +324,38 @@ class Sam3TrackingTool(TrackingTool):
         if not writers:
             print("No masks to write.")
 
-# --------------------------- ID correction ----------------------------------------------
-
+        # Merge the ids SAM3 fragmented (see `masks_id_correction`). The raw
+        # masks stay in `mask_dir`; the corrected ones go to a sibling
+        # `<mask_dir>_merged`, the report next to the video's project folder.
         out_mask_dir = mask_dir.parent / ".temp_mask_dir"
-        print(f"out_mask_dir: {out_mask_dir}")
-
-        report =self.masks_id_correction(
+        report = self.masks_id_correction(
             video_path=video_path,
             mask_dir=mask_dir,
             out_mask_dir=out_mask_dir,
             device=self.device,
         )
 
-        print(f"\n{report['original_id_count']} original ids -> {report['merged_id_count']} after merging "
-            f"({len(report['accepted_merges'])} pass-1 merge(s), "
-            f"{len(report['accepted_overlap_merges'])} zeroth-pass overlap merge(s) accepted, "
-            f"{len(report['excluded_as_too_short'])} id(s) excluded as too short to use as a signature)")
-        if report["accepted_overlap_merges"]:
-            print("\nzeroth pass -- accepted overlap merges (same body, simultaneous fragments):")
-            for r in report["accepted_overlap_merges"]:
-                print(f"  id {r['id_a']} <-> id {r['id_b']}  "
-                    f"(median pixel gap {r['median_pixel_gap_px']}px, "
-                    f"median centroid dist {r['median_centroid_dist_px']}px, "
-                    f"{r['overlap_frames']} both-active frames)")
-        if report["rejected_overlap_candidates"]:
-            print(f"\nzeroth pass -- {len(report['rejected_overlap_candidates'])} candidate pair(s) considered but rejected:")
-            for r in sorted(report["rejected_overlap_candidates"], key=lambda r: r["median_centroid_dist_px"]):
-                print(f"  id {r['id_a']} <-> id {r['id_b']}  "
-                    f"(median pixel gap {r['median_pixel_gap_px']}px, "
-                    f"median centroid dist {r['median_centroid_dist_px']}px, "
-                    f"{r['overlap_frames']} both-active frames)")
-        for m in report["accepted_merges"]:
-            print(f"  id {m['from_id']} -> id {m['into_id']}  (similarity {m['similarity']})")
-        if report["rejected_candidates"]:
-            print(f"\n{len(report['rejected_candidates'])} pass-1 candidate pair(s) considered but "
-                f"below --merge-threshold ({report['merge_threshold']}):")
-            for c in sorted(report["rejected_candidates"], key=lambda c: -c["similarity"]):
-                print(f"  id {c['from_id']} -> id {c['into_id']}  (similarity {c['similarity']})")
-        if report["vetoed_merges"]:
-            print(f"\n{len(report['vetoed_merges'])} merge(s) VETOED for temporal inconsistency "
-                f"(would have put two simultaneously-active ids in one group):")
-            for v in report["vetoed_merges"]:
-                print(f"  id {v['from_id']} -> id {v['into_id']}  (similarity {v['similarity']}) -- "
-                    f"ids {v['conflict_ids'][0]} and {v['conflict_ids'][1]} coexist for "
-                    f"{v['conflict_overlap_frames']} frames")
-        if report["pooled_group_candidates"]:
-            accepted = [c for c in report["pooled_group_candidates"] if c["accepted"]]
-            rejected = [c for c in report["pooled_group_candidates"] if not c["accepted"]]
-            print(f"\npass 2 (pooled-group fallback for orphan start tracks): "
-                f"{len(accepted)} accepted, {len(rejected)} rejected")
-            for c in sorted(report["pooled_group_candidates"], key=lambda c: -c["similarity"]):
-                tag = "accepted" if c["accepted"] else "rejected"
-                print(f"  id {c['orphan_id']} -> group {c['group_id']}  (similarity {c['similarity']}, {tag})")
-
         report_path = mask_dir.parent.parent / "merge_report.json"
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
-        print(f"\nFull report written in {report_path}")
-        # print(f"Full report: {json.dumps(report, indent=2)}")
+        if self.verbose:
+            print(
+                f"ID correction: {report['original_id_count']} original ids -> "
+                f"{report['merged_id_count']} after merging "
+                f"({len(report['accepted_overlap_merges'])} overlap merge(s), "
+                f"{len(report['accepted_merges'])} reappearance merge(s), "
+                f"{len(report['vetoed_merges'])} vetoed). "
+                f"Full report written in {report_path}"
+            )
 
         new_mask_dir = mask_dir.parent / f"{mask_dir.name}_merged"
         new_mask_dir.mkdir(parents=True, exist_ok=True)
 
-        # Remplace old masks with corrected ones
+        # Replace old corrected masks with the new ones
         for item in new_mask_dir.iterdir():
-            print(f"Removing old mask file: {item} in {new_mask_dir}")
             item.unlink()
-
         for item in out_mask_dir.iterdir():
-            print(f"Moving corrected mask file: {item} in {out_mask_dir} -> {new_mask_dir / item.name}")
             item.rename(new_mask_dir / item.name)
-
         out_mask_dir.rmdir()
 
     @staticmethod
@@ -692,10 +643,24 @@ class Sam3TrackingTool(TrackingTool):
         use_osnet: bool = True,
     ) -> dict:
         """Reads `mask_dir`, merges fragmented identities via appearance
-        (see module docstring), writes a NEW MaskDir at `out_mask_dir`
-        (never touches the original), and returns a JSON-able report of
-        every merge decision made -- accepted and, for transparency, every
-        candidate pair actually considered."""
+        (OSNet embedding + hue histogram), writes a NEW MaskDir at
+        `out_mask_dir` (never touches the original), and returns a
+        JSON-able report of every merge decision made -- accepted and,
+        for transparency, every candidate pair actually considered.
+
+        Steps:
+          0. Zeroth pass (`_resolve_overlap_merges`): ids alive at the
+             same time that are really one body split in two parts.
+          1. Pass 1 (`_resolve_merges`): a track that ENDS is matched
+             against tracks that START later, by appearance, with one
+             global Hungarian assignment.
+          2. Pass 2 (`_resolve_group_merges`): start tracks pass 1 left
+             unmatched are compared against whole pass-1 groups.
+        Every union goes through `_group_chains_with_temporal_veto`,
+        which refuses a merge that would put two simultaneously-active
+        ids in one group (only zeroth-pass pairs may coexist).
+
+        Mask videos are streamed from disk, never loaded whole in RAM."""
         mask_paths = self._list_mask_files(mask_dir)
         if not mask_paths:
             raise ValueError(f"No <id>.mp4 mask files found in {mask_dir}")
@@ -722,7 +687,7 @@ class Sam3TrackingTool(TrackingTool):
                 raise ValueError(
                     f"id {obj_id} has {decoded_frames} frames but id {total_frames_source_id} "
                     f"has {total_frames} -- every <id>.mp4 in a MaskDir is expected to be padded "
-                    f"to the same total frame count (same invariant mask_io.load_mask_dir checks)."
+                    f"to the same total frame count."
                 )
             if real_frames < min_fragment_frames:
                 excluded_short.append(obj_id)
@@ -735,14 +700,11 @@ class Sam3TrackingTool(TrackingTool):
                 f"frames -- nothing to merge (every id was too short/noisy)."
             )
     
-        # --- zeroth pass: same-body fragments that coexist in time, see
-        # module docstring's ATTENZIONE section. Computed before pass 1/2 so
-        # its unions are already folded into `canonical` by the time pass 2
-        # builds its candidate groups from it. If `overlap_classifier_path`
-        # points at a JSON produced by `train_overlap_classifier.py`, it
-        # REPLACES the two fixed thresholds (see `_resolve_overlap_merges`
-        # docstring) -- falls back to the thresholds if not given, which is
-        # the default until enough labeled examples exist to train one. ---
+        # --- zeroth pass: same-body fragments that coexist in time.
+        # Computed before pass 1/2 so its unions are already folded into
+        # `canonical` when pass 2 builds its candidate groups. An optional
+        # classifier weights JSON (`overlap_classifier_path`) REPLACES the
+        # two fixed thresholds (see `_resolve_overlap_merges`). ---
 
         classifier = None
         if overlap_classifier_path:
@@ -759,7 +721,7 @@ class Sam3TrackingTool(TrackingTool):
             try:
                 embedder = OSNetEmbedder(device=device)
             except ImportError as exc:
-                print(f"[merge_fragments] OSNet unavailable ({exc}) -- "
+                print(f"[sam3 id correction] OSNet unavailable ({exc}) -- "
                         f"falling back to color-only matching.")
     
         cap = cv2.VideoCapture(video_path)
@@ -773,9 +735,9 @@ class Sam3TrackingTool(TrackingTool):
         # something else can resume INTO it later).
         start_ids = [oid for oid in bounds if bounds[oid][0] > 0]
     
-        # per-signature frame indices actually used, for transparency (see
-        # module docstring's "Border-touching frames" section) -- filled in
-        # below, included in the report as `signature_frames`.
+        # per-signature frame indices actually used, included in the
+        # report as `signature_frames` so a suspicious similarity can be
+        # checked by hand.
         signature_frames: dict[str, dict] = {"end": {}, "start": {}, "pooled_groups": {}}
     
         try:
@@ -822,8 +784,7 @@ class Sam3TrackingTool(TrackingTool):
         )
 
         # --- second pass: pooled-group fallback for orphan start tracks
-        # pass one couldn't match against any single fragment (see module
-        # docstring's "Second pass" section) ---
+        # pass one couldn't match against any single fragment ---
         merged_start_ids = {c["into_id"] for c in candidate_pairs if c["accepted"]}
         orphan_start_ids = [s for s in start_ids if s not in merged_start_ids]
 
@@ -881,25 +842,17 @@ class Sam3TrackingTool(TrackingTool):
         for oid in all_ids:
             groups.setdefault(canonical[oid], []).append(oid)
 
-        # The canonical id (smallest original id in the group) is what
-        # `groups`/`vetoed_merges`/etc below are keyed by -- kept as-is so
-        # every OTHER field in the report still means what it always has,
-        # comparable across runs. But as an OUTPUT FILENAME it skips
-        # whenever an id got absorbed into an earlier group (e.g. 0,2,4,6),
-        # and downstream consumers that label by raw filename stem with no
-        # remapping of their own (`TrackingTool.visualize`) show those same
-        # gaps. Assign each group a separate, purely sequential OUTPUT id
-        # (0,1,2,3..., same ascending order as the canonical ids) for the
-        # written filenames only -- `output_id_remap` in the report records
-        # the mapping back to the canonical id so nothing is lost.
+        # The report is keyed by canonical id (smallest original id of the
+        # group), which leaves gaps (e.g. 0,2,4,6). Output FILENAMES get a
+        # sequential id instead (0,1,2,3, same order), since consumers such
+        # as `TrackingTool.visualize` label by filename; `output_id_remap`
+        # in the report maps canonical id -> output id.
         sorted_canon_ids = sorted(groups.keys())
         output_id_remap = {canon: seq for seq, canon in enumerate(sorted_canon_ids)}
 
         with VideoReader(path=video_path) as video_reader:
             frame_rate = video_reader.frame_rate
 
-
-        # fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         for canon_id, members in groups.items():
             member_caps = [cv2.VideoCapture(str(mask_paths[m])) for m in members]
             for member, mcap in zip(members, member_caps):
@@ -922,12 +875,6 @@ class Sam3TrackingTool(TrackingTool):
                 },
                 overwrite=self.overwrite,
             )
-
-            # writer = cv2.VideoWriter(str(out_path), fourcc, fps, (width, height))
-            # if not writer.isOpened():
-            #     for c in member_caps:
-            #         c.release()
-            #     raise RuntimeError(f"Could not open mask writer at {out_path}")
 
             try:
                 for _t in range(total_frames):
@@ -998,7 +945,7 @@ class Sam3TrackingTool(TrackingTool):
 
     def _list_mask_files(self, mask_dir: str) -> dict[int, Path]:
         """`{id: path}` for every `<id>.mp4` in `mask_dir`, without decoding
-        anything (unlike `load_mask_dir`)."""
+        anything."""
         dir_path = Path(mask_dir)
         paths: dict[int, Path] = {}
         if not dir_path.is_dir():
@@ -1080,7 +1027,7 @@ class Sam3TrackingTool(TrackingTool):
     ) -> tuple[np.ndarray | None, np.ndarray | None]:
         """OSNet embedding + hue histogram for ONE frame, or `(None, None)`
         if the frame is empty or its mask isn't a single, non-border-touching
-        component (see `mask_utils`)."""
+        component."""
         if not mask_frame.any():
             return None, None
         poly = self._mask_to_polygon_single_component(mask_frame)

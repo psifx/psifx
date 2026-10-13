@@ -342,7 +342,8 @@ class Sam3TrackingTool(TrackingTool):
         report =self.masks_id_correction(
             video_path=video_path,
             mask_dir=mask_dir,
-            out_mask_dir=out_mask_dir
+            out_mask_dir=out_mask_dir,
+            device=self.device,
         )
 
         print(f"\n{report['original_id_count']} original ids -> {report['merged_id_count']} after merging "
@@ -880,6 +881,20 @@ class Sam3TrackingTool(TrackingTool):
         for oid in all_ids:
             groups.setdefault(canonical[oid], []).append(oid)
 
+        # The canonical id (smallest original id in the group) is what
+        # `groups`/`vetoed_merges`/etc below are keyed by -- kept as-is so
+        # every OTHER field in the report still means what it always has,
+        # comparable across runs. But as an OUTPUT FILENAME it skips
+        # whenever an id got absorbed into an earlier group (e.g. 0,2,4,6),
+        # and downstream consumers that label by raw filename stem with no
+        # remapping of their own (`TrackingTool.visualize`) show those same
+        # gaps. Assign each group a separate, purely sequential OUTPUT id
+        # (0,1,2,3..., same ascending order as the canonical ids) for the
+        # written filenames only -- `output_id_remap` in the report records
+        # the mapping back to the canonical id so nothing is lost.
+        sorted_canon_ids = sorted(groups.keys())
+        output_id_remap = {canon: seq for seq, canon in enumerate(sorted_canon_ids)}
+
         with VideoReader(path=video_path) as video_reader:
             frame_rate = video_reader.frame_rate
 
@@ -893,7 +908,7 @@ class Sam3TrackingTool(TrackingTool):
                         c.release()
                     raise FileNotFoundError(f"Could not open mask video: {mask_paths[member]}")
 
-            out_path = out_dir_path / f"{canon_id}.mp4"
+            out_path = out_dir_path / f"{output_id_remap[canon_id]}.mp4"
 
             writer = VideoWriter(
                 out_path,
@@ -965,6 +980,7 @@ class Sam3TrackingTool(TrackingTool):
                 for c in group_candidates
             ],
             "groups": {str(canon): members for canon, members in groups.items()},
+            "output_id_remap": {str(canon): seq for canon, seq in output_id_remap.items()},
             "signature_frames": {
                 "end": {str(oid): frames for oid, frames in signature_frames["end"].items()},
                 "start": {str(oid): frames for oid, frames in signature_frames["start"].items()},
@@ -1454,6 +1470,7 @@ class Sam3TrackingTool(TrackingTool):
         end_sigs: dict[int, tuple],
         start_sigs: dict[int, tuple],
         merge_threshold: float,
+        blacklist: set[tuple[int, int]] | None = None,
     ) -> list[dict]:
         """Pass 1: global Hungarian assignment between `end_ids` (rows) and
         `start_ids` (columns). Returns every temporally-valid pair Hungarian
@@ -1461,15 +1478,23 @@ class Sam3TrackingTool(TrackingTool):
         `"accepted": similarity >= merge_threshold` -- including near-misses,
         useful when tuning the threshold. A single global assignment (not
         pairwise greedy) so two simultaneous fragmentation events don't
-        steal each other's correct match."""
+        steal each other's correct match.
+
+        `blacklist` is a set of `(end_id, start_id)` pairs forced to
+        `_IMPOSSIBLE_COST` -- used by the caller to retry the assignment
+        after a temporal veto, so the vetoed edge can't win the same slot
+        twice and the next-best (possibly temporally-sensible) candidate
+        gets a chance instead."""
         if not end_ids or not start_ids:
             return []
+
+        blacklist = blacklist or set()
 
         cost = np.full((len(end_ids), len(start_ids)), _IMPOSSIBLE_COST)
         for i, e in enumerate(end_ids):
             for j, s in enumerate(start_ids):
-                if e == s or bounds[e][1] >= bounds[s][0]:
-                    continue  # same track, or start doesn't come after end
+                if e == s or bounds[e][1] >= bounds[s][0] or (e, s) in blacklist:
+                    continue  # same track, start doesn't come after end, or vetoed earlier
                 sim = self._pair_similarity(end_sigs[e], start_sigs[s])
                 cost[i, j] = 1.0 - sim
 
@@ -1497,6 +1522,7 @@ class Sam3TrackingTool(TrackingTool):
         orphan_sigs: dict[int, tuple],
         merge_threshold: float,
         orphan_groups: dict[int, list[int]] | None = None,
+        blacklist: set[tuple[int, int]] | None = None,
     ) -> list[dict]:
         """Pass 2: global Hungarian assignment between orphan start tracks
         (rows -- ones pass one left unmatched) and candidate GROUPS
@@ -1513,9 +1539,14 @@ class Sam3TrackingTool(TrackingTool):
         "orphan into group G" really merges its whole chain into G. The
         overlap check therefore runs on every member of the orphan's chain,
         not just the orphan -- otherwise a 30-frame fragment can bridge two
-        people who coexist for the entire session."""
+        people who coexist for the entire session.
+
+        `blacklist` is a set of `(orphan_id, group_id)` pairs forced to
+        `_IMPOSSIBLE_COST`, same veto-retry purpose as in `_resolve_merges`."""
         if not orphan_ids or not groups:
             return []
+
+        blacklist = blacklist or set()
 
         group_ids = list(groups.keys())
         cost = np.full((len(orphan_ids), len(group_ids)), _IMPOSSIBLE_COST)
@@ -1525,8 +1556,8 @@ class Sam3TrackingTool(TrackingTool):
             chain_bounds = [bounds[m] for m in chain if m in bounds] or [bounds[o]]
             for j, g in enumerate(group_ids):
                 members = groups[g]
-                if o in members:
-                    continue  # orphan is (trivially) already part of this group
+                if o in members or (o, g) in blacklist:
+                    continue  # orphan is (trivially) already part of this group, or vetoed earlier
                 member_bounds = [bounds[m] for m in members if m in bounds]
                 if not member_bounds:
                     continue  # e.g. every member was too short to have bounds

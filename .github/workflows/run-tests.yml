@@ -2,6 +2,12 @@ name: validate-published-0.2.4
 
 on:
   workflow_dispatch:
+    inputs:
+      target:
+        description: Published artifacts to test
+        type: choice
+        options: [all, docker, pypi]
+        default: all
 
 permissions:
   contents: read
@@ -61,6 +67,7 @@ jobs:
           print('CLI options, default correction, OSNet imports and MediaPipe imports passed.')
           PY
       - name: Test correction in published Docker image
+        if: inputs.target != 'pypi'
         run: |
           docker exec release-validation python -m pip install --no-cache-dir 'pytest>=8,<10'
           docker exec release-validation python -m pytest -q -rs -o markers=integration \
@@ -68,6 +75,7 @@ jobs:
             tests/integration/video/test_sam3_reid.py \
             | tee "$RUNNER_TEMP/release-evidence/docker-tests.log"
       - name: Download exact PyPI release and verify its digest
+        if: inputs.target != 'docker'
         run: |
           docker exec release-validation python -m pip download --no-cache-dir --no-deps --only-binary=:all: \
             --index-url https://pypi.org/simple --dest /evidence/pypi 'psifx==0.2.4'
@@ -80,7 +88,9 @@ jobs:
           print('Published wheel matches the validated release-build artifact:', digest)
           PY
       - name: Install and test published PyPI wheel
+        if: inputs.target != 'docker'
         run: |
+          docker exec release-validation python -m pip install --no-cache-dir 'pytest>=8,<10'
           docker exec release-validation python -m pip install --no-cache-dir --no-deps --force-reinstall \
             /evidence/pypi/psifx-0.2.4-py3-none-any.whl
           docker exec release-validation python -c "import psifx; assert psifx.__version__ == '0.2.4'; assert not psifx.__file__.startswith('/validation/'); print(psifx.__file__)"

@@ -68,6 +68,14 @@ psifx video tracking sam3 inference \
 * `--model_path`: Hugging Face model id or local path for SAM3 weights. You can also set `SAM3_PATH` as an environment variable.
 * `--api_token`: Optional Hugging Face token (defaults to `HF_TOKEN` env var if set).
 
+SAM3 is gated: each user must request access at [facebook/sam3](https://huggingface.co/facebook/sam3)
+and supply a [Hugging Face read token](https://huggingface.co/docs/hub/security-tokens) from the account
+with approved access. Set `HF_TOKEN` in the process environment or pass `--api_token`.
+The CLI does not prompt interactively or automatically load `.env` files.
+For Docker, pass your own file containing `HF_TOKEN=...` with `docker run --env-file .env ...`,
+or forward an exported token with `docker run -e HF_TOKEN ...`. Tokens are excluded from the image build.
+A complete local model directory can instead be supplied with `--model_path`.
+
 * `--id_correction` / `--no-id_correction`: Whether to merge fragmented IDs after tracking (see below), default is enabled.
 * `--merged_mask_dir`: Path to the ID-corrected mask directory, default is `<mask_dir>_merged`.
 * `--merge_report`: Path to the JSON report of the merge decisions, default is `<mask_dir>_merge_report.json`.

@@ -220,7 +220,10 @@ class Sam3TrackingTool(TrackingTool):
         except Exception as exc:
             raise RuntimeError(
                 "Failed to load SAM3 model. "
-                "Check model access/token, or pass a local model path with --model_path."
+                "For facebook/sam3, request access at https://huggingface.co/facebook/sam3 "
+                "and supply your own Hugging Face read token through HF_TOKEN or --api_token. "
+                "Check that the token is valid and its account has model access. "
+                "Alternatively, pass downloaded model weights with --model_path."
             ) from exc
 
     def infer(

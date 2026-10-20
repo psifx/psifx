@@ -31,13 +31,16 @@ Let's begin by installing up psifx and getting the example video from the git re
    cd psifx/example/data
    ```
 
-4. Run the latest image with the example directory mounted.
+4. Export your own `HF_TOKEN` from an account with approved access to
+   [facebook/sam3](https://huggingface.co/facebook/sam3). Run the latest image with the example directory mounted.
+   OSNet dependencies are included from version 0.2.4; you can replace `latest` with a published version tag.
    ```bash
    export DATA_PATH="$(pwd)"
    
    docker run \
       --user $(id -u):$(id -g) \
       --gpus all \
+      -e HF_TOKEN \
       --mount type=bind,source=$DATA_PATH,target=$DATA_PATH \
       --workdir $DATA_PATH \
       --interactive \
@@ -68,7 +71,7 @@ Let's begin by installing up psifx and getting the example video from the git re
    ```
 3. Install `psifx`:
    ```bash
-   pip install 'psifx @ git+https://github.com/psifx/psifx.git'
+   pip install 'psifx[reid] @ git+https://github.com/psifx/psifx.git'
    ```
 4. Verify your installation with:
    ```bash
@@ -97,6 +100,9 @@ Let's begin by installing up psifx and getting the example video from the git re
 
 </details>
 
+For local SAM3 use, export your own `HF_TOKEN` from an account with model access or supply `--api_token`.
+The CLI does not prompt for credentials or load `.env` automatically. OSNet downloads its weights on first use.
+
 ## Process video
 
 The video setting feature a staged discussion between two individuals.
@@ -112,24 +118,42 @@ psifx video tracking sam3 inference \
     --text_prompt "people" \
     --chunk_size 300 \
     --iou_threshold 0.3 \
-    [--max_num_objects N] \
     --device cuda \
     --overwrite
 ```
 For very long videos or limited GPU memory, reduce `--chunk_size` (for example `64` or `128`).
 If needed, set `--max_num_objects` to cap how many tracks are written (default is no explicit cap).
+Identity correction runs by default and writes `masks_merged` plus `masks_merge_report.json`, preserving
+the raw files in `masks`. Use `--merged_mask_dir` and `--merge_report` to choose different output locations.
+Review the report and corrected overlays: adjacent people can be merged incorrectly, while border-touching
+masks and appearance changes can leave identities split. To disable correction, add `--no-id_correction`
+and use `masks` instead of `masks_merged` in the commands below.
 
-To visualize the tracking / segmentation masks:
+To visualize the corrected tracking / segmentation masks:
 
 ```bash
 psifx video tracking visualization \
     --video Video.mp4 \
-    --masks masks \
+    --masks masks_merged \
     --visualization VisualizationTracking.mp4 --overwrite
 ```
 
 ### Pose
-Detect and analyze human poses using MediaPipe.
+Extract one pose sequence per corrected identity using MediaPipe:
+
+```bash
+psifx video pose mediapipe multi-inference \
+    --video Video.mp4 \
+    --masks masks_merged \
+    --poses_dir PosesDir --overwrite
+
+psifx video pose mediapipe visualization \
+    --video Video.mp4 \
+    --poses PosesDir \
+    --visualization VisualizationPoses.mp4 --overwrite
+```
+
+For a single-person video, use single-inference instead:
 ```bash
 psifx video pose mediapipe single-inference \
     --video Video.mp4 \

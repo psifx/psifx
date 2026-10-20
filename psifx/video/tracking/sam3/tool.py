@@ -749,6 +749,7 @@ class Sam3TrackingTool(TrackingTool):
              global Hungarian assignment.
           2. Pass 2 (`_resolve_group_merges`): start tracks pass 1 left
              unmatched are compared against whole pass-1 groups.
+
         Every union goes through `_group_chains_with_temporal_veto`,
         which refuses a merge that would put two simultaneously-active
         ids in one group (only zeroth-pass pairs may coexist).

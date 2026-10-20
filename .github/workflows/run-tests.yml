@@ -15,6 +15,7 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY" --jq '{repository: .full_name, push_permission: .permissions.push}'
           test "$(gh api "repos/$GITHUB_REPOSITORY" --jq '.permissions.push')" = true
       - name: Verify Docker Hub authentication without publishing
+        if: always()
         uses: docker/login-action@v3
         with:
           username: psifx

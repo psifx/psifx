@@ -91,8 +91,10 @@ jobs:
         if: inputs.target != 'docker'
         run: |
           docker exec release-validation python -m pip install --no-cache-dir 'pytest>=8,<10'
-          docker exec release-validation python -m pip install --no-cache-dir --no-deps --force-reinstall \
-            /evidence/pypi/psifx-0.2.4-py3-none-any.whl
+          docker exec release-validation python -m pip uninstall --yes psifx
+          docker exec release-validation python -m pip install --no-cache-dir \
+            --index-url https://pypi.org/simple --report /evidence/pypi-install.json \
+            '/evidence/pypi/psifx-0.2.4-py3-none-any.whl[reid]'
           docker exec release-validation python -c "import psifx; assert psifx.__version__ == '0.2.4'; assert not psifx.__file__.startswith('/validation/'); print(psifx.__file__)"
           docker exec release-validation psifx --version
           docker exec release-validation python -m pytest -q -rs -o markers=integration \

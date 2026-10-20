@@ -1,3 +1,4 @@
 include requirements.txt
 include requirements-dev.txt
 include docs/requirements.txt
+include requirements-reid.txt

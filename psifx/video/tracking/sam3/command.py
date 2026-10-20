@@ -8,7 +8,13 @@ import torch
 
 from psifx.utils.constants import SAM3_PATH
 from psifx.utils.command import Command, register_command
-from psifx.video.tracking.sam3.tool import Sam3TrackingTool
+from psifx.video.tracking.sam3.tool import (
+    DEFAULT_MERGE_THRESHOLD,
+    DEFAULT_MIN_FRAGMENT_FRAMES,
+    DEFAULT_OVERLAP_CENTROID_THRESHOLD,
+    DEFAULT_OVERLAP_PIXEL_GAP_THRESHOLD,
+    Sam3TrackingTool,
+)
 
 
 class Sam3Command(Command):
@@ -97,6 +103,65 @@ class Sam3InferenceCommand(Command):
             ),
         )
         parser.add_argument(
+            "--id_correction",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help=(
+                "merge the ids of a same person/object that tracking fragmented "
+                "(occlusion, leaving and re-entering the frame, chunk boundary), "
+                "using appearance; writes a second, id-corrected mask directory "
+                "and leaves ``--mask_dir`` untouched"
+            ),
+        )
+        parser.add_argument(
+            "--merged_mask_dir",
+            type=Path,
+            default=None,
+            help="path to the id-corrected mask directory, defaults to ``<mask_dir>_merged``",
+        )
+        parser.add_argument(
+            "--merge_report",
+            type=Path,
+            default=None,
+            help=(
+                "path to the JSON report of every merge decision, "
+                "defaults to ``<mask_dir>_merge_report.json``"
+            ),
+        )
+        parser.add_argument(
+            "--merge_threshold",
+            type=float,
+            default=DEFAULT_MERGE_THRESHOLD,
+            help="minimum appearance similarity (0.0 to 1.0) to merge a track that ends with one that starts later",
+        )
+        parser.add_argument(
+            "--min_fragment_frames",
+            type=int,
+            default=DEFAULT_MIN_FRAGMENT_FRAMES,
+            help="ids with fewer non-empty frames than this are too short to be matched and are left as they are",
+        )
+        parser.add_argument(
+            "--overlap_pixel_gap_threshold",
+            type=float,
+            default=DEFAULT_OVERLAP_PIXEL_GAP_THRESHOLD,
+            help="maximum gap in pixels between two simultaneous masks to consider them parts of a same body",
+        )
+        parser.add_argument(
+            "--overlap_centroid_threshold",
+            type=float,
+            default=DEFAULT_OVERLAP_CENTROID_THRESHOLD,
+            help="maximum centroid distance in pixels between two simultaneous masks to consider them parts of a same body",
+        )
+        parser.add_argument(
+            "--osnet",
+            default=True,
+            action=argparse.BooleanOptionalAction,
+            help=(
+                "use OSNet appearance embeddings for id correction (needs the optional "
+                "``torchreid`` package, falls back to color only when it is missing)"
+            ),
+        )
+        parser.add_argument(
             "--device",
             type=str,
             default="cuda" if torch.cuda.is_available() else "cpu",
@@ -150,5 +215,15 @@ class Sam3InferenceCommand(Command):
             text_prompt=args.text_prompt,
             chunk_size=args.chunk_size,
             iou_threshold=args.iou_threshold,
+            id_correction=args.id_correction,
+            merged_mask_dir=args.merged_mask_dir,
+            merge_report_path=args.merge_report,
+            id_correction_kwargs=dict(
+                merge_threshold=args.merge_threshold,
+                min_fragment_frames=args.min_fragment_frames,
+                overlap_pixel_gap_threshold=args.overlap_pixel_gap_threshold,
+                overlap_centroid_threshold=args.overlap_centroid_threshold,
+                use_osnet=args.osnet,
+            ),
         )
         del tool

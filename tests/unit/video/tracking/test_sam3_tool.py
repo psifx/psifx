@@ -203,3 +203,180 @@ def test_segment_chunk_tracks_all_frames_by_default():
 
     assert tool.model.kwargs == {}
     assert outputs[0]["object_ids"] == [7]
+
+
+class RecordingVideoWriter(DummyVideoWriter):
+    """DummyVideoWriter that keeps every instance, keyed by output file name."""
+
+    written = {}
+
+    def __init__(self, path, input_dict=None, output_dict=None, overwrite=False):
+        super().__init__(path, input_dict=input_dict, output_dict=output_dict, overwrite=overwrite)
+        RecordingVideoWriter.written[self.path.name] = self
+
+
+class DummyVideoReader:
+    """Stand-in for VideoReader, only used for its frame rate."""
+
+    frame_rate = "15/1"
+
+    def __init__(self, path, *args, **kwargs):
+        self.path = path
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+
+def _write_video(path: Path, frames):
+    import cv2
+
+    height, width = frames[0].shape[:2]
+    writer = cv2.VideoWriter(str(path), cv2.VideoWriter_fourcc(*"mp4v"), 15, (width, height))
+    assert writer.isOpened(), "OpenCV cannot write mp4v videos in this environment"
+    for frame in frames:
+        writer.write(frame)
+    writer.release()
+
+
+@pytest.mark.unit
+def test_masks_id_correction_merges_reappearing_id_and_renumbers(tmp_path, monkeypatch):
+    """A red person tracked as id 0, lost, then tracked again as id 5 must end
+    up in one output file; the blue person (id 3) present the whole time must
+    not be merged with it. Output files are renumbered 0, 1."""
+    n_frames, height, width = 60, 120, 160
+    person_a = (slice(30, 90), slice(20, 50))    # red, left
+    person_b = (slice(30, 90), slice(100, 130))  # blue, right
+    a_spans = {0: range(0, 20), 5: range(30, 60)}
+
+    video, masks = [], {0: [], 3: [], 5: []}
+    for t in range(n_frames):
+        frame = np.full((height, width, 3), 128, dtype=np.uint8)
+        frame[person_b] = (255, 0, 0)
+        for obj_id in masks:
+            masks[obj_id].append(np.zeros((height, width, 3), dtype=np.uint8))
+        masks[3][t][person_b] = 255
+        for obj_id, span in a_spans.items():
+            if t in span:
+                frame[person_a] = (0, 0, 255)
+                masks[obj_id][t][person_a] = 255
+        video.append(frame)
+
+    video_path = tmp_path / "video.mp4"
+    mask_dir = tmp_path / "masks"
+    mask_dir.mkdir()
+    _write_video(video_path, video)
+    for obj_id, frames in masks.items():
+        _write_video(mask_dir / f"{obj_id}.mp4", frames)
+
+    RecordingVideoWriter.written = {}
+    monkeypatch.setattr(sam3_tool_module, "VideoWriter", RecordingVideoWriter)
+    monkeypatch.setattr(sam3_tool_module, "VideoReader", DummyVideoReader)
+
+    report = make_tool().masks_id_correction(
+        video_path=str(video_path),
+        mask_dir=str(mask_dir),
+        out_mask_dir=str(tmp_path / "merged"),
+        use_osnet=False,
+    )
+
+    assert report["original_id_count"] == 3
+    assert report["merged_id_count"] == 2
+    assert report["osnet_used"] is False
+    assert report["groups"] == {"0": [0, 5], "3": [3]}
+    assert report["output_id_remap"] == {"0": 0, "3": 1}
+
+    assert sorted(RecordingVideoWriter.written) == ["0.mp4", "1.mp4"]
+    merged_a = RecordingVideoWriter.written["0.mp4"].frames
+    assert len(merged_a) == n_frames
+    assert merged_a[10].any() and merged_a[45].any()  # both fragments of the red person
+    assert not merged_a[25].any()                     # the gap in between stays empty
+
+
+@pytest.mark.unit
+def test_group_chains_with_temporal_veto_refuses_simultaneous_ids():
+    """A short fragment (2) looks like both 0 and 1, which coexist: the less
+    trusted of the two merges must be refused instead of bridging 0 and 1."""
+    tool = make_tool()
+    bounds = {0: (0, 100), 1: (0, 100), 2: (120, 140)}
+
+    canonical, vetoed = tool._group_chains_with_temporal_veto(
+        merges=[(0, 2, 0.9), (1, 2, 0.8)],
+        all_ids=[0, 1, 2],
+        bounds=bounds,
+        allowed_overlap_pairs=set(),
+        max_tolerated_overlap_frames=8,
+    )
+
+    assert canonical == {0: 0, 1: 1, 2: 0}
+    assert [(v["from_id"], v["into_id"]) for v in vetoed] == [(1, 2)]
+    assert sorted(vetoed[0]["conflict_ids"]) == [0, 1]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("output", ["masks", "masks/merged", "."])
+def test_id_correction_rejects_overlapping_directories_before_tracking(tmp_path, output):
+    tool = make_tool()
+    raw = tmp_path / "masks"
+    raw.mkdir()
+    sentinel = raw / "0.mp4"
+    sentinel.write_bytes(b"original mask")
+
+    with pytest.raises(ValueError, match="overlap"):
+        tool.infer(
+            video_path=tmp_path / "missing-video.mp4",
+            mask_dir=raw,
+            merged_mask_dir=tmp_path / output,
+            id_correction=True,
+        )
+    assert sentinel.read_bytes() == b"original mask"
+
+
+@pytest.mark.unit
+def test_direct_id_correction_rejects_same_output_directory(tmp_path):
+    with pytest.raises(ValueError, match="overlap"):
+        make_tool().masks_id_correction(
+            video_path=str(tmp_path / "missing.mp4"),
+            mask_dir=str(tmp_path / "masks"),
+            out_mask_dir=str(tmp_path / "masks"),
+            use_osnet=False,
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("report", ["video.mp4", "masks/0.mp4", "merged/0.mp4"])
+def test_id_correction_report_cannot_replace_video_or_masks(tmp_path, report):
+    with pytest.raises(ValueError, match="report"):
+        make_tool().infer(
+            video_path=tmp_path / "video.mp4",
+            mask_dir=tmp_path / "masks",
+            merged_mask_dir=tmp_path / "merged",
+            merge_report_path=tmp_path / report,
+            id_correction=True,
+        )
+
+
+@pytest.mark.unit
+def test_id_correction_preserves_short_tracks(tmp_path, monkeypatch):
+    frame = np.zeros((120, 160, 3), dtype=np.uint8)
+    frame[30:90, 20:50] = 255
+    video = tmp_path / "video.mp4"
+    masks = tmp_path / "masks"
+    masks.mkdir()
+    _write_video(video, [frame] * 3)
+    _write_video(masks / "5.mp4", [frame] * 3)
+    RecordingVideoWriter.written = {}
+    monkeypatch.setattr(sam3_tool_module, "VideoWriter", RecordingVideoWriter)
+    monkeypatch.setattr(sam3_tool_module, "VideoReader", DummyVideoReader)
+
+    report = make_tool().masks_id_correction(
+        video_path=str(video), mask_dir=str(masks),
+        out_mask_dir=str(tmp_path / "merged"), use_osnet=False,
+    )
+
+    assert report["groups"] == {"5": [5]}
+    assert report["excluded_as_too_short"] == [5]
+    assert len(RecordingVideoWriter.written["0.mp4"].frames) == 3
+    assert all(f.any() for f in RecordingVideoWriter.written["0.mp4"].frames)

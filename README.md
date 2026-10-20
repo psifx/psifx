@@ -19,55 +19,49 @@ This demo clip is not intended for commercial use, and is solely for demonstrati
 
 Visit https://psifx.github.io/psifx/
 
-arXiv preprint:  https://www.arxiv.org/abs/2407.10266```
+arXiv preprint: https://www.arxiv.org/abs/2407.10266
 
+## SAM3 tracking quickstart
 
-# Setup Instructions for psifx with Local SAM3 Model```
+Install FFmpeg and create a Python environment:
 
-## 1. Clone the SAM3 Model Locally
-
-```bash
-git clone https://huggingface.co/facebook/sam3
-```
-
-Note: Facebook requires ethical approval to download or access the model online. Creating a local copy avoids this requirement and is the simplest solution.
-
-## 2. Clone the psifx Repository
-
-```bash
-git clone https://github.com/BogdanvL/psifx.git
-```
-
-## 3. Configure SAM3 Path
-
-Edit the following file:
-
-/psifx/utils/constants.py
-
-Update the SAM3_PATH variable to point to your local SAM3 directory:
-
-```python
-SAM3_PATH = "/home/[user_name]/path/to/sam3"
-```
-The default value is:
-
-```python
-SAM3_PATH = "facebook/sam3"
-```
-This requires automatic authorization via Hugging Face.
-
-## 4. Install System Dependencies
 ```bash
 sudo apt install ffmpeg ubuntu-restricted-extras
-```
-## 5. Create and Activate Conda Environment
-
-```bash
 conda create -y -n psifx-env python=3.11 pip
 conda activate psifx-env
+git clone https://github.com/psifx/psifx.git
+cd psifx
+pip install '.[reid]'
 ```
-## 6. Install psifx
+
+For a published version, use `pip install 'psifx[reid]'`. The `reid` extra enables OSNet appearance
+embeddings for identity correction; Docker images from 0.2.4 include it.
+
+Request access to [facebook/sam3](https://huggingface.co/facebook/sam3) and create your own
+[Hugging Face read token](https://huggingface.co/docs/hub/security-tokens) with access to that model.
+Supply it through the `HF_TOKEN` environment variable or `--api_token`. The CLI does not prompt
+interactively or automatically read `.env`; Docker can load your own token file using `--env-file .env`.
+If you already downloaded a complete model directory, use `--model_path /path/to/sam3`
+or set `SAM3_PATH`. Downloading a local copy still requires the model's access approval.
+
 ```bash
-cd /home/[user_name]/psifx
-pip install .
+psifx video tracking sam3 inference \
+    --video example/data/Video.mp4 \
+    --mask_dir example/data/masks \
+    --device cuda \
+    --chunk_size 64
+
+psifx video tracking visualization \
+    --video example/data/Video.mp4 \
+    --masks example/data/masks_merged \
+    --visualization example/data/tracking_corrected.mp4
 ```
+
+Use `--device cpu` if CUDA is unavailable. Tracking writes raw masks to `masks`, corrected masks to
+`masks_merged`, and decisions to `masks_merge_report.json`. Correction is enabled by default; use
+`--no-id_correction` to disable it. Review the overlays and report before using corrected identities:
+adjacent people can be merged incorrectly, and border-touching or changing appearances can remain split.
+OSNet downloads weights on first use; without the optional dependencies, correction falls back to color.
+
+See the [video guide](docs/pages/video.md), [installation guide](docs/pages/installation.md),
+and [worked example](example/README.md) for all options and downstream pose extraction.

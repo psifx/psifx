@@ -53,6 +53,9 @@ psifx video tracking sam3 inference \
     [--max_num_objects N] \
     [--device cuda] \
     [--model_path facebook/sam3] \
+    [--no-id_correction] \
+    [--merged_mask_dir MaskDir_merged] \
+    [--merge_report MaskDir_merge_report.json] \
 ```
 
 * `--video`: Path to the input video file (supports `.mp4`, `.avi`, `.mkv`, etc.).
@@ -64,6 +67,49 @@ psifx video tracking sam3 inference \
 * `--device`: Device on which to run inference, either `cpu` or `cuda`.
 * `--model_path`: Hugging Face model id or local path for SAM3 weights. You can also set `SAM3_PATH` as an environment variable.
 * `--api_token`: Optional Hugging Face token (defaults to `HF_TOKEN` env var if set).
+
+* `--id_correction` / `--no-id_correction`: Whether to merge fragmented IDs after tracking (see below), default is enabled.
+* `--merged_mask_dir`: Path to the ID-corrected mask directory, default is `<mask_dir>_merged`.
+* `--merge_report`: Path to the JSON report of the merge decisions, default is `<mask_dir>_merge_report.json`.
+* `--merge_threshold`: Minimum appearance similarity to merge a track that ends with one that starts later, default is `0.6`.
+* `--min_fragment_frames`: IDs with fewer non-empty frames are too short to be matched, default is `8`.
+* `--overlap_pixel_gap_threshold`, `--overlap_centroid_threshold`: Maximum pixel gap (`15`) and centroid distance (`115`) between two simultaneous masks to treat them as parts of the same body.
+* `--osnet` / `--no-osnet`: Whether to use OSNet appearance embeddings for ID correction, default is enabled.
+
+SAM3 is gated: each user must request access at [facebook/sam3](https://huggingface.co/facebook/sam3)
+and supply a [Hugging Face read token](https://huggingface.co/docs/hub/security-tokens) from the account
+with approved access. Set `HF_TOKEN` in the process environment or pass `--api_token`.
+The CLI does not prompt interactively or automatically load `.env` files.
+For Docker, pass your own file containing `HF_TOKEN=...` with `docker run --env-file .env ...`,
+or forward an exported token with `docker run -e HF_TOKEN ...`. Tokens are excluded from the image build.
+A complete local model directory can instead be supplied with `--model_path`.
+
+#### ID correction
+
+Tracking can give the same person several IDs: after an occlusion, when they leave and re-enter the frame, or when
+stitching between chunks fails. After tracking, the IDs are therefore merged using appearance (OSNet embedding and
+color histogram of each mask):
+
+1. IDs alive at the same time that are parts of the same body are merged.
+2. A track that ends is matched against tracks that start later, with one global assignment over the whole video.
+3. A merge that would put two simultaneously visible IDs in the same identity is refused.
+
+The raw masks in `--mask_dir` are left untouched. The corrected masks are written to `--merged_mask_dir`, one
+`<id>.mp4` per identity, numbered from 0, and can be used wherever a mask directory is expected (visualization, pose
+multi-inference). The report lists every accepted, rejected and refused merge.
+
+OSNet needs the optional `torchreid` package (`pip install 'psifx[reid]'`). Without it a warning is printed and only
+color is used, which is less reliable when people wear similar colors; `osnet_used` in the report tells which one ran.
+Docker images from 0.2.4 include this extra. OSNet downloads its ImageNet pretrained weights on first use,
+so that first run requires network access; later runs can reuse the Torch checkpoint cache.
+
+Correction is enabled by default. Review the corrected overlays and merge report: people sitting close together
+can be mistaken for fragments of one body by the overlap pass, and appearance changes or long occlusions can
+leave identities split. Masks touching the image border or containing multiple disconnected components are
+excluded from appearance signatures; tracks with no usable signature may remain separate.
+Use `--no-id_correction` to retain only the raw tracking outputs. The raw and corrected
+mask directories must be separate and must not contain one another; the report must be outside both.
+Tracks shorter than `--min_fragment_frames` are preserved in the corrected output without matching.
 
 Notes:
 - If a CUDA chunk still runs out of memory, the tracker automatically retries by splitting that chunk into smaller subchunks.

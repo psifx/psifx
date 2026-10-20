@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+
 jobs:
   create-tag-and-release:
     runs-on: ubuntu-latest
@@ -51,15 +54,23 @@ jobs:
           fi
           echo "HAS_CHANGED_VERSION=$HAS_CHANGED_VERSION" >> $GITHUB_OUTPUT
       -
+        name: validate-release-credentials
+        if: steps.has-changed-version.outputs.HAS_CHANGED_VERSION == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |
+          # Fail before pushing a tag if release authentication is unavailable.
+          test -n "$GH_TOKEN"
+          gh api "repos/$GITHUB_REPOSITORY" --silent
+      -
         name: create-tag
         id: create-tag
         if: steps.has-changed-version.outputs.HAS_CHANGED_VERSION == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           LATEST_VERSION: ${{ steps.get-latest-version.outputs.LATEST_VERSION }}
         run: |
           git tag $LATEST_VERSION
-          git push origin --tags
+          git push origin "refs/tags/$LATEST_VERSION"
       -
         name: create-release
         id: create-release

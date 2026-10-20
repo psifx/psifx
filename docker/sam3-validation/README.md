@@ -5,7 +5,7 @@ This folder provides a containerized validation flow for SAM3 in `psifx` without
 ## What it does
 - Builds a fresh Docker image.
 - Creates a Conda env (`psifx-env`) inside the image.
-- Installs `psifx` from this repository.
+- Installs `psifx[reid]` from this repository, including OSNet dependencies.
 - Runs SAM3 CLI smoke tests:
   - `psifx video tracking sam3 inference` on CPU
   - `psifx video tracking sam3 inference` on GPU (if CUDA is available)
@@ -33,4 +33,5 @@ USE_GPU=1                                 # Set to 0 for CPU-only container run
   - `HF_TOKEN` has access to that model, or
   - `SAM3_PATH` is changed to a local model path available inside the container.
 - The harness intentionally does not use the repository's top-level `Dockerfile`.
-
+- ID correction is enabled by default. OSNet downloads weights on first use; preserve the Torch cache for offline runs.
+- Very short tracks are retained in corrected masks, but are not matched until they reach `min_fragment_frames` (8 by default).

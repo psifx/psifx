@@ -1,0 +1,14 @@
+.git
+.env
+.env.*
+.codex
+.agents
+.tmp
+.pytest_cache
+**/__pycache__
+**/*.pyc
+*.egg-info
+build
+dist
+public
+sam3_test_outputs

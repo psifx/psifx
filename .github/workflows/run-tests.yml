@@ -1,94 +1,102 @@
-name: run-tests
+name: validate-published-0.2.4
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'psifx/**'
-      - 'tests/**'
-      - 'requirements*.txt'
-      - 'pyproject.toml'
-      - 'MANIFEST.in'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/**'
-  pull_request:
-    types: [opened, reopened, synchronize]
-    branches:
-      - main
-    paths:
-      - 'psifx/**'
-      - 'tests/**'
-      - 'requirements*.txt'
-      - 'pyproject.toml'
-      - 'MANIFEST.in'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '.github/workflows/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
 
 jobs:
-  build-package:
+  validate-published-artifacts:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - name: Build and validate distributions
+          ref: refs/tags/0.2.4
+      - name: Verify release revision and prepare runner
         run: |
-          python -m pip install --upgrade build twine
-          python -m build
-          python -m twine check dist/*
-
-  run-tests:
-    name: Tests (Python ${{ matrix.python-version }})
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: [ '3.10', '3.11', '3.12' ]
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Free up space
-        run: |
-          df -h
+          test "$(git rev-parse HEAD)" = 2692cab334b610972b4e9222e91efa1b557d4a6d
           sudo rm -rf /opt/hostedtoolcache /usr/share/dotnet /usr/local/lib/android /usr/lib/jvm
+          mkdir -p "$RUNNER_TEMP/release-evidence"
           df -h
-
-      - name: Build Docker image
+      - name: Pull published Docker tags and verify labels
         run: |
-          docker build \
-            --build-arg PYTHON_VERSION=${{ matrix.python-version }} \
-            -t psifx-test:${{ matrix.python-version }} .
-
-      - name: Start container
-        env:
-          HF_TOKEN: ${{ secrets.HF_TOKEN }}
-          HF_TOKEN_SAM3: ${{ secrets.HF_TOKEN_SAM3 }}
+          docker pull psifx/psifx:0.2.4
+          docker pull psifx/psifx:latest
+          docker image inspect psifx/psifx:0.2.4 psifx/psifx:latest > "$RUNNER_TEMP/release-evidence/docker-images.json"
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          images = json.loads((Path(os.environ['RUNNER_TEMP']) / 'release-evidence/docker-images.json').read_text())
+          assert images[0]['Id'] == images[1]['Id'], 'latest differs from 0.2.4'
+          for image in images:
+              labels = image['Config']['Labels']
+              assert labels['org.opencontainers.image.version'] == '0.2.4'
+              assert labels['org.opencontainers.image.revision'] == '2692cab334b610972b4e9222e91efa1b557d4a6d'
+          print('Versioned and latest tags resolve to the same release image:', images[0]['Id'])
+          PY
+      - name: Start published image and check installed CLI
         run: |
-          TOKEN="${HF_TOKEN_SAM3:-$HF_TOKEN}"
-          docker run -dit --name test-container \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            -e HF_TOKEN="$TOKEN" \
-            psifx-test:${{ matrix.python-version }}
-      
-      - name: Install requirements
+          docker run -d --name release-validation \
+            -v "$GITHUB_WORKSPACE/tests:/validation/tests:ro" \
+            -v "$RUNNER_TEMP/release-evidence:/evidence" \
+            -w /validation \
+            -e OMP_NUM_THREADS=2 -e OPENBLAS_NUM_THREADS=2 \
+            -e HF_HUB_DISABLE_TELEMETRY=1 \
+            psifx/psifx:0.2.4 sleep infinity
+          docker exec -i release-validation python - <<'PY' | tee "$RUNNER_TEMP/release-evidence/docker-cli.log"
+          import inspect, subprocess
+          import psifx, mediapipe
+          from psifx.video.tracking.sam3.tool import Sam3TrackingTool, _resolve_feature_extractor
+          assert psifx.__version__ == '0.2.4'
+          assert not psifx.__file__.startswith('/validation/'), psifx.__file__
+          assert inspect.signature(Sam3TrackingTool.infer).parameters['id_correction'].default is True
+          _resolve_feature_extractor()
+          print('Installed module:', psifx.__file__)
+          print(subprocess.check_output(['psifx', '--version'], text=True))
+          help_text = subprocess.check_output(['psifx', 'video', 'tracking', 'sam3', 'inference', '--help'], text=True)
+          for flag in ['--id_correction', '--no-id_correction', '--merged_mask_dir', '--merge_report']:
+              assert flag in help_text, flag
+          print('CLI options, default correction, OSNet imports and MediaPipe imports passed.')
+          PY
+      - name: Test correction in published Docker image
         run: |
-          docker exec test-container pip install -r requirements-dev.txt
-      
-      - name: Run tests
+          docker exec release-validation python -m pip install --no-cache-dir 'pytest>=8,<10'
+          docker exec release-validation python -m pytest -q -rs -o markers=integration \
+            tests/unit/video/tracking/test_sam3_tool.py \
+            tests/integration/video/test_sam3_reid.py \
+            | tee "$RUNNER_TEMP/release-evidence/docker-tests.log"
+      - name: Download exact PyPI release and verify its digest
         run: |
-          docker exec test-container pytest -rs tests
-
-
-      - name: Stop and remove container
+          docker exec release-validation python -m pip download --no-cache-dir --no-deps --only-binary=:all: \
+            --index-url https://pypi.org/simple --dest /evidence/pypi 'psifx==0.2.4'
+          python3 - <<'PY'
+          import hashlib, os
+          from pathlib import Path
+          wheel = Path(os.environ['RUNNER_TEMP']) / 'release-evidence/pypi/psifx-0.2.4-py3-none-any.whl'
+          digest = hashlib.sha256(wheel.read_bytes()).hexdigest()
+          assert digest == '065fb0a9607ebff0acab9fc5eac84827c8bcbea2a77578a47d638b7504c2ba6e', digest
+          print('Published wheel matches the validated release-build artifact:', digest)
+          PY
+      - name: Install and test published PyPI wheel
+        run: |
+          docker exec release-validation python -m pip install --no-cache-dir --no-deps --force-reinstall \
+            /evidence/pypi/psifx-0.2.4-py3-none-any.whl
+          docker exec release-validation python -c "import psifx; assert psifx.__version__ == '0.2.4'; assert not psifx.__file__.startswith('/validation/'); print(psifx.__file__)"
+          docker exec release-validation psifx --version
+          docker exec release-validation python -m pytest -q -rs -o markers=integration \
+            tests/unit/video/tracking/test_sam3_tool.py \
+            tests/integration/video/test_sam3_reid.py \
+            tests/integration/video/test_mediapipe.py \
+            tests/integration/video/test_tracking.py::test_tracking_visualization \
+            | tee "$RUNNER_TEMP/release-evidence/pypi-tests.log"
+      - name: Save published-artifact test evidence
         if: always()
-        run: |
-          docker rm -f test-container
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-0.2.4-validation
+          path: ${{ runner.temp }}/release-evidence
+      - name: Remove validation container
+        if: always()
+        run: docker rm -f release-validation || true

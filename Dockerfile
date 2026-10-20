@@ -66,7 +66,8 @@ RUN mkdir --parents $HOME $HOME/.config $HOME/.cache && \
         --minimal_install \
         --no-add_to_login_shell && \
     rm install.py && \
-    pip install --no-cache-dir $PSIFX_PREFIX && \
+    pip install --no-cache-dir "$PSIFX_PREFIX[reid]" && \
+    python -c "from psifx.video.tracking.sam3.tool import _resolve_feature_extractor; _resolve_feature_extractor(); import mediapipe" && \
     rm -r $PSIFX_PREFIX && \
     pip cache purge && \
     conda clean -y --all && \

@@ -4,4 +4,5 @@
 torchreid==0.2.5
 # torchreid imports these at package init but does not declare them
 gdown
-tensorboard
+# TensorBoard 2.21+ requires protobuf>=6; MediaPipe needs protobuf<5.
+tensorboard>=2.14,<2.21

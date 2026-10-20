@@ -92,6 +92,16 @@ multi-inference). The report lists every accepted, rejected and refused merge.
 
 OSNet needs the optional `torchreid` package (`pip install 'psifx[reid]'`). Without it a warning is printed and only
 color is used, which is less reliable when people wear similar colors; `osnet_used` in the report tells which one ran.
+Docker images from 0.2.4 include this extra. OSNet downloads its ImageNet pretrained weights on first use,
+so that first run requires network access; later runs can reuse the Torch checkpoint cache.
+
+Correction is enabled by default. Review the corrected overlays and merge report: people sitting close together
+can be mistaken for fragments of one body by the overlap pass, and appearance changes or long occlusions can
+leave identities split. Masks touching the image border or containing multiple disconnected components are
+excluded from appearance signatures; tracks with no usable signature may remain separate.
+Use `--no-id_correction` to retain only the raw tracking outputs. The raw and corrected
+mask directories must be separate and must not contain one another; the report must be outside both.
+Tracks shorter than `--min_fragment_frames` are preserved in the corrected output without matching.
 
 Notes:
 - If a CUDA chunk still runs out of memory, the tracker automatically retries by splitting that chunk into smaller subchunks.

@@ -34,6 +34,6 @@ COPY . /workspace
 RUN source "${CONDA_DIR}/etc/profile.d/conda.sh" && \
     conda activate psifx-env && \
     pip install --upgrade pip setuptools wheel && \
-    pip install .
+    pip install '.[reid]'
 
 RUN chmod +x /workspace/docker/sam3-validation/validate_sam3.sh

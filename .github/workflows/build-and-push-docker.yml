@@ -9,6 +9,8 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-current-version.outputs.CURRENT_VERSION }}
     steps:
       - # remove the tool cache of a few versions of Python + PyPy https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#hosted-tool-cache
         name: delete-unnecessary-tools
@@ -21,9 +23,14 @@ jobs:
       -
         name: get-current-version
         id: get-current-version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          git fetch --tags
-          CURRENT_VERSION=$(git describe --tags $(git rev-list --tags --max-count=1))
+          CURRENT_VERSION=$(python3 -c "import psifx; print(psifx.__version__)")
+          if [ -n "$RELEASE_TAG" ] && [ "$RELEASE_TAG" != "$CURRENT_VERSION" ]; then
+            echo "Release tag $RELEASE_TAG does not match package version $CURRENT_VERSION" >&2
+            exit 1
+          fi
           echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
       -
         name: log-in-docker
@@ -54,12 +61,15 @@ jobs:
           tags: |
             psifx/psifx:${{ env.CURRENT_VERSION }}
             psifx/psifx:latest
+          labels: |
+            org.opencontainers.image.version=${{ env.CURRENT_VERSION }}
+            org.opencontainers.image.revision=${{ github.sha }}
   publish-docs:
     needs:
       - build-and-push
     runs-on: ubuntu-latest
     container:
-      image: psifx/psifx:latest
+      image: psifx/psifx:${{ needs.build-and-push.outputs.version }}
     permissions:
       id-token: write
       pages: write

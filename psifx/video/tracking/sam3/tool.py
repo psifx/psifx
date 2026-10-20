@@ -4,6 +4,7 @@ from collections import deque
 from collections import OrderedDict, defaultdict
 import os
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 
@@ -271,6 +272,9 @@ class Sam3TrackingTool(TrackingTool):
                 Path(merge_report_path) if merge_report_path is not None
                 else mask_dir.parent / f"{mask_dir.name}_merge_report.json"
             )
+            self._validate_correction_paths(
+                video_path, mask_dir, merged_mask_dir, merge_report_path
+            )
             # Checked before tracking, not after: tracking can take hours.
             if not self.overwrite:
                 if merged_mask_dir.exists() and any(merged_mask_dir.iterdir()):
@@ -381,8 +385,13 @@ class Sam3TrackingTool(TrackingTool):
         """
         # Built in a temporary sibling so an interrupted run never leaves a
         # half-written merged directory behind.
-        tmp_dir = merged_mask_dir.parent / f".{merged_mask_dir.name}_tmp"
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+        self._validate_correction_paths(
+            video_path, mask_dir, merged_mask_dir, merge_report_path
+        )
+        merged_mask_dir.parent.mkdir(parents=True, exist_ok=True)
+        tmp_dir = Path(tempfile.mkdtemp(
+            prefix=f".{merged_mask_dir.name}_", dir=merged_mask_dir.parent
+        ))
         try:
             report = self.masks_id_correction(
                 video_path=str(video_path),
@@ -395,6 +404,9 @@ class Sam3TrackingTool(TrackingTool):
             shutil.rmtree(tmp_dir, ignore_errors=True)
             print(f"ID correction skipped: {exc}")
             return
+        except Exception:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+            raise
         report["output_mask_dir"] = str(merged_mask_dir)
 
         merged_mask_dir.mkdir(parents=True, exist_ok=True)
@@ -417,6 +429,24 @@ class Sam3TrackingTool(TrackingTool):
                 f"{len(report['vetoed_merges'])} vetoed). "
                 f"Merged masks in {merged_mask_dir}, full report in {merge_report_path}"
             )
+
+    @staticmethod
+    def _validate_correction_paths(video_path, mask_dir, out_mask_dir, report_path=None):
+        """Reject output aliases before opening or replacing any input files."""
+        source = Path(mask_dir).resolve()
+        output = Path(out_mask_dir).resolve()
+        video = Path(video_path).resolve()
+        if source == output or source in output.parents or output in source.parents:
+            raise ValueError("Raw and corrected mask directories must not overlap.")
+        if video == output or output in video.parents:
+            raise ValueError("Corrected mask directory must not contain the input video.")
+        if report_path is not None:
+            report = Path(report_path).resolve()
+            if (
+                report == video or report in (source, output)
+                or source in report.parents or output in report.parents
+            ):
+                raise ValueError("Merge report must be separate from the input video and mask directories.")
 
     @staticmethod
     def _iter_video_chunks(
@@ -721,6 +751,7 @@ class Sam3TrackingTool(TrackingTool):
         ids in one group (only zeroth-pass pairs may coexist).
 
         Mask videos are streamed from disk, never loaded whole in RAM."""
+        self._validate_correction_paths(video_path, mask_dir, out_mask_dir)
         mask_paths = self._list_mask_files(mask_dir)
         if not mask_paths:
             raise ValueError(f"No <id>.mp4 mask files found in {mask_dir}")
@@ -754,10 +785,9 @@ class Sam3TrackingTool(TrackingTool):
                 continue
             bounds[obj_id] = (first, last)
     
-        if not bounds:
+        if total_frames is None:
             raise ValueError(
-                f"No id in {mask_dir} has at least {min_fragment_frames} non-empty "
-                f"frames -- nothing to merge (every id was too short/noisy)."
+                f"No non-empty masks found in {mask_dir}."
             )
     
         # --- zeroth pass: same-body fragments that coexist in time.
@@ -777,7 +807,7 @@ class Sam3TrackingTool(TrackingTool):
         overlap_merge_tuples = [(r["id_a"], r["id_b"], 0.0) for r in overlap_accepted]
 
         embedder = None
-        if use_osnet:
+        if use_osnet and bounds:
             try:
                 embedder = OSNetEmbedder(device=device)
             except ImportError as exc:

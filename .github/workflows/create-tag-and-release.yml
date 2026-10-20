@@ -59,7 +59,7 @@ jobs:
           LATEST_VERSION: ${{ steps.get-latest-version.outputs.LATEST_VERSION }}
         run: |
           git tag $LATEST_VERSION
-          git push origin --tags
+          git push origin "refs/tags/$LATEST_VERSION"
       -
         name: create-release
         id: create-release

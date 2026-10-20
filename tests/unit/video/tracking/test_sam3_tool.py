@@ -313,3 +313,70 @@ def test_group_chains_with_temporal_veto_refuses_simultaneous_ids():
     assert canonical == {0: 0, 1: 1, 2: 0}
     assert [(v["from_id"], v["into_id"]) for v in vetoed] == [(1, 2)]
     assert sorted(vetoed[0]["conflict_ids"]) == [0, 1]
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("output", ["masks", "masks/merged", "."])
+def test_id_correction_rejects_overlapping_directories_before_tracking(tmp_path, output):
+    tool = make_tool()
+    raw = tmp_path / "masks"
+    raw.mkdir()
+    sentinel = raw / "0.mp4"
+    sentinel.write_bytes(b"original mask")
+
+    with pytest.raises(ValueError, match="overlap"):
+        tool.infer(
+            video_path=tmp_path / "missing-video.mp4",
+            mask_dir=raw,
+            merged_mask_dir=tmp_path / output,
+            id_correction=True,
+        )
+    assert sentinel.read_bytes() == b"original mask"
+
+
+@pytest.mark.unit
+def test_direct_id_correction_rejects_same_output_directory(tmp_path):
+    with pytest.raises(ValueError, match="overlap"):
+        make_tool().masks_id_correction(
+            video_path=str(tmp_path / "missing.mp4"),
+            mask_dir=str(tmp_path / "masks"),
+            out_mask_dir=str(tmp_path / "masks"),
+            use_osnet=False,
+        )
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize("report", ["video.mp4", "masks/0.mp4", "merged/0.mp4"])
+def test_id_correction_report_cannot_replace_video_or_masks(tmp_path, report):
+    with pytest.raises(ValueError, match="report"):
+        make_tool().infer(
+            video_path=tmp_path / "video.mp4",
+            mask_dir=tmp_path / "masks",
+            merged_mask_dir=tmp_path / "merged",
+            merge_report_path=tmp_path / report,
+            id_correction=True,
+        )
+
+
+@pytest.mark.unit
+def test_id_correction_preserves_short_tracks(tmp_path, monkeypatch):
+    frame = np.zeros((120, 160, 3), dtype=np.uint8)
+    frame[30:90, 20:50] = 255
+    video = tmp_path / "video.mp4"
+    masks = tmp_path / "masks"
+    masks.mkdir()
+    _write_video(video, [frame] * 3)
+    _write_video(masks / "5.mp4", [frame] * 3)
+    RecordingVideoWriter.written = {}
+    monkeypatch.setattr(sam3_tool_module, "VideoWriter", RecordingVideoWriter)
+    monkeypatch.setattr(sam3_tool_module, "VideoReader", DummyVideoReader)
+
+    report = make_tool().masks_id_correction(
+        video_path=str(video), mask_dir=str(masks),
+        out_mask_dir=str(tmp_path / "merged"), use_osnet=False,
+    )
+
+    assert report["groups"] == {"5": [5]}
+    assert report["excluded_as_too_short"] == [5]
+    assert len(RecordingVideoWriter.written["0.mp4"].frames) == 3
+    assert all(f.any() for f in RecordingVideoWriter.written["0.mp4"].frames)

@@ -69,5 +69,5 @@ conda activate psifx-env
 ## 6. Install psifx
 ```bash
 cd /home/[user_name]/psifx
-pip install .
+pip install '.[reid]'
 ```
